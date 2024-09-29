@@ -1,0 +1,418 @@
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using JALib.Tools;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
+
+namespace JipperResourcePack;
+
+public class Overlay {
+    public static Overlay Instance;
+    public GameObject GameObject;
+    public Canvas Canvas;
+    public TextMeshProUGUI ProgressText;
+    public TextMeshProUGUI AccuracyText;
+    public TextMeshProUGUI XAccuracyText;
+    public TextMeshProUGUI TimeText;
+    public TextMeshProUGUI MapTimeText;
+    public GameObject ComboObject;
+    public TextMeshProUGUI ComboTitle;
+    public TextMeshProUGUI ComboText;
+    public TextMeshProUGUI BPMText;
+    public TextMeshProUGUI JudgementText;
+    public TextMeshProUGUI TimingScaleText;
+    public RectTransform LineTransform;
+    public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
+    public float Progress;
+    public int[] hit = scrMistakesManager.hitMarginsCount;
+    public Shader Shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
+    protected int lastTime = -1;
+    protected int lastMapTime = -1;
+    protected int startTile;
+    protected float lastTileBPM = -1;
+    protected float lastCurBPM = -1;
+    private Stopwatch Stopwatch;
+    protected bool songPlaying;
+
+    public Overlay() {
+        Instance = this;
+        GameObject = new GameObject("JipperResourcePack Overlay");
+        Canvas = GameObject.AddComponent<Canvas>();
+        Canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        CanvasScaler scaler = Canvas.gameObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.matchWidthOrHeight = 0.5f;
+        Canvas.gameObject.AddComponent<GraphicRaycaster>();
+        Stopwatch = new Stopwatch();
+        InitializeMain();
+        InitializeBPM();
+        InitializeJudgement();
+        InitializeCombo();
+        InitializeProgressBar();
+        InitializeTimingScale();
+        GameObject.SetActive(false);
+        Object.DontDestroyOnLoad(Canvas.gameObject);
+    }
+
+    protected virtual void InitializeMain() {
+        GameObject gameObject = new("Main");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        gameObject.SetActive(false);
+        Status.ProgressObject = gameObject;
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0, 1);
+        transform.anchoredPosition = new Vector2(16, -16);
+        transform.sizeDelta = new Vector2(456, 100);
+        SetupMainText("Progress", ref ProgressText);
+        SetupMainText("Accuracy", ref AccuracyText);
+        SetupMainText("XAccuracy", ref XAccuracyText);
+        SetupMainText("MusicTime", ref TimeText);
+        SetupMainText("MapTime", ref MapTimeText);
+        SetupLocationMain();
+    }
+
+    protected void SetupMainText(string name, ref TextMeshProUGUI text) {
+        GameObject gameObject2 = new(name);
+        RectTransform transform = gameObject2.AddComponent<RectTransform>();
+        transform.SetParent(Status.ProgressObject.transform);
+        transform.anchorMin = transform.anchorMax = new Vector2(0, 1);
+        transform.sizeDelta = new Vector2(456, 30);
+        text = gameObject2.AddComponent<TextMeshProUGUI>();
+        text.font = BundleLoader.FontAsset;
+        text.fontSize = 25;
+        SetupShadow(text);
+    }
+
+    public virtual void SetupLocationMain() {
+        int y = -15;
+        SetupLocationMainText(ProgressText, Status.Settings.ShowProgress, ref y);
+        SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy, ref y);
+        SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
+        SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
+        SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
+        UpdateProgress();
+        UpdateAccuracy();
+        UpdateTime();
+    }
+
+    protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
+        text.enabled = enabled;
+        if(!enabled) return;
+        text.rectTransform.anchoredPosition = new Vector2(228, y);
+        y -= 35;
+    }
+
+    public void SetupLocationJudgement() {
+        JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 92 : 5);
+    }
+    
+    protected void InitializeBPM() {
+        GameObject gameObject = new("BPM");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(1, 1);
+        transform.anchoredPosition = new Vector2(-16, -16);
+        transform.sizeDelta = new Vector2(456, 90);
+        BPMText = gameObject.AddComponent<TextMeshProUGUI>();
+        BPMText.font = BundleLoader.FontAsset;
+        BPMText.alignment = TextAlignmentOptions.TopRight;
+        BPMText.lineSpacing = 30;
+        BPMText.fontSize = 25;
+        SetupShadow(BPMText);
+        BPM.BPMObject = gameObject;
+    }
+
+    private void InitializeJudgement() {
+        GameObject gameObject = new("Judgement");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
+        transform.sizeDelta = new Vector2(1000, 30);
+        JudgementText = gameObject.AddComponent<TextMeshProUGUI>();
+        SetupLocationJudgement();
+        JudgementText.font = BundleLoader.FontAsset;
+        JudgementText.fontSize = 25;
+        JudgementText.alignment = TextAlignmentOptions.Bottom;
+        JudgementText.color = new Color(0.8509804f, 0.345098f, 1);
+        SetupShadow(JudgementText);
+        Judgement.JudgementObject = gameObject;
+    }
+
+    protected void InitializeCombo() {
+        GameObject gameObject = new("Combo");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
+        transform.anchoredPosition = new Vector2(0, -50);
+        transform.sizeDelta = new Vector2(300, 200);
+        GameObject gameObject2 = new("ComboTitle");
+        transform = gameObject2.AddComponent<RectTransform>();
+        transform.SetParent(gameObject.transform);
+        transform.anchorMin = transform.anchorMax = new Vector2(0.5f, 0.45f);
+        transform.pivot = new Vector2(0.5f, 0);
+        ComboTitle = gameObject2.AddComponent<TextMeshProUGUI>();
+        ComboTitle.font = BundleLoader.FontAsset;
+        ComboTitle.fontSize = 40;
+        ComboTitle.text = "Perfect";
+        ComboTitle.alignment = TextAlignmentOptions.Center;
+        ContentSizeFitter fitter = gameObject2.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        SetupDarkShadow(ComboTitle);
+        ComboObject = gameObject2;
+        gameObject2 = new GameObject("ComboValue");
+        transform = gameObject2.AddComponent<RectTransform>();
+        transform.SetParent(gameObject.transform);
+        transform.anchorMin = transform.anchorMax = new Vector2(0.5f, 0.45f);
+        transform.anchoredPosition = Vector2.zero;
+        ComboText = gameObject2.AddComponent<TextMeshProUGUI>();
+        ComboText.font = BundleLoader.FontAsset;
+        ComboText.fontSize = 108;
+        ComboText.alignment = TextAlignmentOptions.Top;
+        fitter = gameObject2.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        SetupDarkShadow(ComboText);
+        Combo.ComboObject = gameObject;
+    }
+
+    protected void InitializeProgressBar() {
+        GameObject gameObject = Object.Instantiate(BundleLoader.ProgressObject);
+        RectTransform transform = gameObject.GetComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
+        transform.anchoredPosition = new Vector2(0, -10);
+        transform.sizeDelta = new Vector2(642, 18);
+        LineTransform = gameObject.transform.Find("line").gameObject.GetComponent<RectTransform>();
+        Status.ProgressBarObject = gameObject;
+    }
+
+    protected void InitializeTimingScale() {
+        GameObject gameObject = new("TimingScale");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
+        transform.anchoredPosition = new Vector2(0, 130);
+        transform.sizeDelta = new Vector2(300, 30);
+        TimingScaleText = gameObject.AddComponent<TextMeshProUGUI>();
+        TimingScaleText.font = BundleLoader.FontAsset;
+        TimingScaleText.fontSize = 20;
+        TimingScaleText.alignment = TextAlignmentOptions.Bottom;
+        SetupShadow(TimingScaleText);
+        TimingScale.TimingScaleObject = gameObject;
+    }
+
+    protected void SetupShadow(TextMeshProUGUI text) {
+        Material material = new(text.fontSharedMaterial);
+        if(Shader) material.shader = Shader;
+        material.EnableKeyword(ShaderUtilities.Keyword_Outline);
+        material.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+        material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
+        material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
+        material.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, 0.5f));
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.2f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.2f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.0f);
+        material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.2f);
+        text.fontSharedMaterial = material;
+    }
+
+    protected void SetupDarkShadow(TextMeshProUGUI text) {
+        Material material = new(text.fontSharedMaterial);
+        if(Shader) material.shader = Shader;
+        material.EnableKeyword(ShaderUtilities.Keyword_Outline);
+        material.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+        material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
+        material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
+        material.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.7f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.7f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.0f);
+        material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.7f);
+        text.fontSharedMaterial = material;
+    }
+
+    public virtual void UpdateAccuracy() {
+        if(!GameObject.activeSelf) return;
+        if(Status.Settings.ShowAccuracy) {
+            float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - startTile) * 0.0001f;
+            AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
+            AccuracyText.color = scrController.instance.mistakesManager == null || scrController.instance.mistakesManager.percentXAcc == 1 ? PurePerfectColor :
+                                     new Color(1, Math.Max((acc - maxAcc) * 0.98f, 0) * 50, 1);
+        }
+        if(Status.Settings.ShowXAccuracy) {
+            float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
+            if(float.IsNaN(xacc)) xacc = 1;
+            XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, 2)}%";
+            XAccuracyText.color = xacc == 1 ? PurePerfectColor : new Color(1, Math.Max(xacc - 0.98f, 0) * 50, 1);
+        }
+    }
+    
+    public virtual void UpdateProgress() {
+        if(!GameObject.activeSelf) return;
+        Progress = scrController.instance.percentComplete;
+        if(Status.Settings.ShowProgress) UpdateProgressText();
+        if(Status.Settings.ShowProgressBar) LineTransform.SizeDeltaX(Progress * 638);
+    }
+
+    protected virtual void UpdateProgressText() {
+        ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, 2)}%";
+        // R: 255 - 223 = 32, 32 / 255 = 0.12549019607843137
+        // G: 255 - 181 = 74, 74 / 255 = 0.29019607843137255
+        ProgressText.color = new Color(1 - Progress * 0.12549019607843137f,1 - Progress * 0.29019607843137255f, 1);
+    }
+
+    public void UpdateJudgement() {
+        if(!GameObject.activeSelf) return;
+        int[] hits = hit;
+        JudgementText.text = $"{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}";
+    }
+    
+    public virtual void UpdateTime() {
+        if(!GameObject.activeSelf) return;
+        bool requireMusicToMap = false;
+        if(Status.Settings.ShowMusicTime) {
+            AudioSource song = scrConductor.instance.song;
+            if(!song?.clip && Status.Settings.ShowMapTimeIfNotMusic) requireMusicToMap = true;
+            else {
+                float time = song.time;
+                float totalTime = song.clip?.length ?? 0;
+                if(lastTime == (int) time) return;
+                if(time > 0) songPlaying = true;
+                else if(time == 0 && songPlaying) time = totalTime;
+                TimeSpan now = TimeSpan.FromSeconds(time);
+                TimeSpan length = TimeSpan.FromSeconds(totalTime);
+                TimeText.text = $@"음악 시간 | {now:m\:ss}~{length:m\:ss}";
+                lastTime = (int) time;
+            }
+        }
+        if(Status.Settings.ShowMapTime || requireMusicToMap) {
+            double time;
+            double totalTime;
+            time = scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi;
+            totalTime = scrLevelMaker.instance.listFloors.Last().entryTime;
+            if(time < 0) time = 0;
+            else if(time > totalTime) time = totalTime;
+            if((!Status.Settings.ShowMapTime || lastMapTime == (int) time) &&
+               (!requireMusicToMap || lastTime == (int) time)) return;
+            TimeSpan now = TimeSpan.FromSeconds(time);
+            TimeSpan length = TimeSpan.FromSeconds(totalTime);
+            string text = $@"맵 시간 | {now:m\:ss}~{length:m\:ss}";
+            if(Status.Settings.ShowMapTime) {
+                MapTimeText.text = text;
+                lastMapTime = (int) time;
+            }
+            if(requireMusicToMap) {
+                TimeText.text = text;
+                lastTime = (int) time;
+            }
+        }
+    }
+    
+    public void UpdateCombo(int combo, bool bump) {
+        if(!GameObject.activeSelf) return;
+        ComboText.text = combo.ToString();
+        ComboText.color = UpdateComboColor(combo);
+        if(bump) {
+            Stopwatch.Restart();
+            UpdateComboSize();
+        } else {
+            Stopwatch.Stop();
+            ComboText.fontSize = 78;
+            ComboObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 43.505f);
+        }
+    }
+
+    protected virtual Color UpdateComboColor(int combo) {
+        // R: 223 - 183 = 40, 40 / 1000 = 0.04, 223 / 255 = 0.8745098039215686, 0.04 / 255 = 0.0001568627450980392
+        // G: 181 - 89 = 92, 92 / 1000 = 0.092, 181 / 255 = 0.7098039215686275, 0.092 / 255 = 0.0003607843137254902
+        if(combo > 1000) combo = 1000;
+        return new Color(0.8745098039215686f - 0.0001568627450980392f * combo, 0.7098039215686275f - 0.0003607843137254902f * combo, 1);
+    }
+
+    public void UpdateComboSize() {
+        if(!Stopwatch.IsRunning || !GameObject.activeSelf) return;
+        double t = Stopwatch.Elapsed.TotalMilliseconds / 500;
+        if(t > 1) {
+            t = 1;
+            Stopwatch.Stop();
+        }
+        ComboText.fontSize = 30 * OutExpoChange(t) + 78;
+        UpdateComboLocation();
+    }
+
+    private async void UpdateComboLocation() {
+        await Task.Yield();
+        ComboObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, ComboText.GetComponent<RectTransform>().sizeDelta.y / 2);
+    }
+    
+    private static float OutExpoChange(double t) => (float) (t == 1 ? 0 : Math.Pow(2, -10 * t));
+
+    public virtual void UpdateBPM() {
+        if(!GameObject.activeSelf) return;
+        scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
+        scrConductor conductor = scrConductor.instance;
+        float bpm = (float) (conductor.bpm * conductor.song.pitch * scrController.instance.speed);
+        float cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
+        float kps = cbpm / 60;
+        if(lastTileBPM == bpm && lastCurBPM == cbpm) return;
+        BPMText.text = $"<color=white>TBPM | <color=#FF{(int) (0xFF - Math.Min(bpm / 31.25f, 0xFF)):X2}FF>{Math.Round(bpm, 2)}</color>\n" +
+                       $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
+                       $"<color=white>KPS |</color> {Math.Round(kps, 2)}";
+        if(lastCurBPM != cbpm) BPMText.color = new Color(1, 1 - Math.Min(cbpm / 8000, 1), 1);
+        lastTileBPM = bpm;
+        lastCurBPM = cbpm;
+    }
+    
+
+    public void UpdateTimingScale() {
+        if(!GameObject.activeSelf) return;
+        TimingScaleText.text = $"Timing Scale - {Math.Round(scrController.instance.currFloor.marginScale * 100, 2)}%";
+    }
+    
+    public virtual void Show() {
+        if(startTile == -1) startTile = scrController.instance.currentSeqID;
+        if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
+        GameObject.SetActive(true);
+        UpdateProgress();
+        scrMistakesManager manager = scrController.instance.mistakesManager;
+        if(manager != null) {
+            manager.percentAcc = 1;
+            manager.percentXAcc = 1;
+        }
+        UpdateAccuracy();
+        UpdateJudgement();
+        songPlaying = false;
+        UpdateTime();
+        UpdateCombo(0, false);
+        UpdateBPM();
+        UpdateTimingScale();
+        Combo.combo = 0;
+    }
+    
+    public virtual void Hide() {
+        GameObject.SetActive(false);
+        startTile = -1;
+    }
+
+    public void Fail() {
+        startTile = -1;
+    }
+
+    public void Destroy() {
+        Object.Destroy(GameObject);
+        GC.SuppressFinalize(this);
+    }
+
+    public void Reset() {
+        if(!GameObject.activeSelf || startTile == -1) return;
+        startTile = scrController.instance.currentSeqID;
+        Show();
+    }
+}

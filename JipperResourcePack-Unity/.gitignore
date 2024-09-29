@@ -1,0 +1,19 @@
+# Intellij Idea
+.idea
+
+# Compile File
+*.dll
+bin/
+obj/
+
+# Unity File
+Library/
+Logs/
+Packages/
+Temp/
+UserSettings/
+Build/
+AssetBundles/
+
+# TextMesh Pro
+Assets/TextMesh Pro/
