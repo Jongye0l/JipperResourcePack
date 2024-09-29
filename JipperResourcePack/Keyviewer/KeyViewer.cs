@@ -121,6 +121,7 @@ public class KeyViewer : Feature {
             _ => null
         };
         string[] keyTexts = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12Text : settings.key16Text;
+        GUILayout.Space(20f);
         GUILayout.Label(localization["keyViewer.keyChange"]);
         GUILayout.BeginHorizontal();
         for(int i = 0; i < 8; i++) CreateButton(i, false);
@@ -155,6 +156,7 @@ public class KeyViewer : Feature {
             GUILayout.EndHorizontal();
         }
         if(SelectedKey != -1 && !TextChanged) GUILayout.Label($"<b>{localization["keyViewer.inputKey"]}</b>");
+        GUILayout.Space(20f);
         GUILayout.Label(localization["keyViewer.textChange"]);
         GUILayout.BeginHorizontal();
         for(int i = 0; i < 8; i++) CreateButton(i, true);
