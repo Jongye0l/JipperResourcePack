@@ -77,6 +77,7 @@ public class Main : JAMod {
         URLLabel(Localization["credit.design"] + ": Jipper", "https://www.youtube.com/@jipper1214");
         URLLabel(Localization["credit.translator"] + ": changhyeon", "https://www.youtube.com/@changhyeon7492");
         URLLabel(Localization["credit.tester"] + ": dofaer", "https://www.youtube.com/@%EB%8F%84%ED%8E%98");
+        URLLabel(Localization["credit.tester"] + ": NTure", "https://www.youtube.com/@NTure_1253");
         GUILayout.Space(25f);
         GUILayout.Label(Localization["credit.reference"]);
         URLLabel("Overlayer(By. c3nb)", "https://github.com/c3nb/Overlayer");
