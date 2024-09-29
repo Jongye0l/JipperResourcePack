@@ -57,7 +57,7 @@ public class SelectModScreen : Screen {
                 Text = mods[i].DisplayName,
                 Font = new Font("Arial", 12),
                 AutoSize = true,
-                Location = new Point(30 + i % 3 * 267, 30 + i / 3 * 30),
+                Location = new Point(30 + i % 2 * 267, 30 + i / 2 * 30),
                 Checked = selectedMods?.Contains(mods[i]) == true
             };
             ModGroup.Controls.Add(Mods[i]);
