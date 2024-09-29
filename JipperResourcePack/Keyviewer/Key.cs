@@ -38,6 +38,7 @@ public class Key : MonoBehaviour {
         transform.SetParent(parent);
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
         transform.anchoredPosition = transform.sizeDelta = Vector2.zero;
+        transform.localScale = Vector3.one;
         return rainPrefab.AddComponent<Rain>();
     }
 }

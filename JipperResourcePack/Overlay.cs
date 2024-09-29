@@ -49,13 +49,13 @@ public class Overlay {
         scaler.matchWidthOrHeight = 0.5f;
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
         Stopwatch = new Stopwatch();
+        GameObject.SetActive(false);
         InitializeMain();
         InitializeBPM();
         InitializeJudgement();
         InitializeCombo();
         InitializeProgressBar();
         InitializeTimingScale();
-        GameObject.SetActive(false);
         Object.DontDestroyOnLoad(Canvas.gameObject);
     }
 

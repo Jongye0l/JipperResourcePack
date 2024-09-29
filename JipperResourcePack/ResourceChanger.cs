@@ -39,7 +39,7 @@ public class ResourceChanger : Feature {
                 ADOBase.editor.autoImage.sprite = autoSprite;
                 ADOBase.editor.Invoke("OttoUpdate");
             }
-            foreach(scrPlanet planet in ADOBase.controller.allPlanets) planet.SetColor(planet.currentPlanetColor);
+            foreach(scrPlanet planet in ADOBase.controller.allPlanets) planet.LoadPlanetColor();
             foreach(scrFloor floor in Object.FindObjectsByType<scrFloor>(FindObjectsSortMode.None)) {
                 if(floor.gameObject.tag != "Beat") return;
                 floor.floorRenderer.color = new Color(0.675f, 0.675f, 0.766f, 1f);

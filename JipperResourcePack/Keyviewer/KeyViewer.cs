@@ -459,6 +459,7 @@ public class KeyViewer : Feature {
         transform.anchorMin = transform.anchorMax = Vector2.zero;
         transform.pivot = new Vector2(0, 0.5f);
         transform.anchoredPosition = new Vector2(x, y);
+        transform.localScale = Vector3.one;
         Key key = obj.AddComponent<Key>();
         GameObject gameObject = new("Background");
         transform = gameObject.AddComponent<RectTransform>();
@@ -466,6 +467,7 @@ public class KeyViewer : Feature {
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
+        transform.localScale = Vector3.one;
         Image image = gameObject.AddComponent<Image>();
         image.color = Background;
         image.sprite = BundleLoader.KeyBackground;
@@ -476,6 +478,7 @@ public class KeyViewer : Feature {
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
+        transform.localScale = Vector3.one;
         image = gameObject.AddComponent<Image>();
         image.color = Outline;
         image.sprite = BundleLoader.KeyOutline;
@@ -492,6 +495,7 @@ public class KeyViewer : Feature {
             transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
             transform.anchoredPosition = new Vector2(0, 2);
         }
+        transform.localScale = Vector3.one;
         TextMeshProUGUI text = gameObject.AddComponent<TextMeshProUGUI>();
         text.font = BundleLoader.FontAsset;
         text.enableAutoSizing = true;
@@ -512,6 +516,7 @@ public class KeyViewer : Feature {
                 transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
                 transform.anchoredPosition = new Vector2(0, 2);
             }
+            transform.localScale = Vector3.one;
             text = gameObject.AddComponent<TextMeshProUGUI>();
             text.font = BundleLoader.FontAsset;
             text.enableAutoSizing = true;
@@ -529,6 +534,7 @@ public class KeyViewer : Feature {
         transform.sizeDelta = new Vector2(sizeX, 275);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = new Vector2(0, raining == 0 ? -223 : -169);
+        transform.localScale = Vector3.one;
         return key;
     }
 
