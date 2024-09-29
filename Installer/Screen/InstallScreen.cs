@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -187,6 +188,8 @@ public class InstallScreen : Screen {
             string entryPath = Path.Combine(path, entry.FullName);
             if(entryPath.EndsWith("/")) Directory.CreateDirectory(entryPath);
             else {
+                string directory = Path.GetDirectoryName(entryPath);
+                if(!Directory.Exists(directory)) Directory.CreateDirectory(directory);
                 using FileStream fileStream = new(entryPath, FileMode.Create);
                 entry.Open().CopyTo(fileStream);
             }
@@ -213,11 +216,26 @@ public class InstallScreen : Screen {
 
     public async Task DownloadJALib() {
         DownloadName = "JALib Github Api";
-        DownloadProgressStart = 130;
-        DownloadProgressEnd = 150;
         Log("Check JALib Latest Version...");
-        string json = await InstallerForm.WebClient.DownloadStringTaskAsync("https://api.github.com/repos/Jongye0l/JALib/releases/latest");
-        string latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
+        string latestVersion;
+        using HttpClient httpClient = new();
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("JipperResourcePack");
+        try {
+            HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases/latest");
+            Progress = 137;
+            response.EnsureSuccessStatusCode();
+            Progress = 144;
+            string json = await response.Content.ReadAsStringAsync();
+            latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
+        } catch (Exception) {
+            HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases");
+            Progress = 140;
+            response.EnsureSuccessStatusCode();
+            Progress = 146;
+            string json = await response.Content.ReadAsStringAsync();
+            latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
+        }
+        Progress = 150;
         DownloadName = "JALib";
         DownloadProgressStart = 150;
         DownloadProgressEnd = 200;
@@ -228,11 +246,26 @@ public class InstallScreen : Screen {
 
     public async Task DownloadJipperResourcePack() {
         DownloadName = "JipperResourcePack Github Api";
-        DownloadProgressStart = 200;
-        DownloadProgressEnd = 220;
         Log("Check JipperResourcePack Latest Version...");
-        string json = await InstallerForm.WebClient.DownloadStringTaskAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases/latest");
-        string latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
+        string latestVersion;
+        using HttpClient httpClient = new();
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("JipperResourcePack");
+        try {
+            HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases/latest");
+            Progress = 207;
+            response.EnsureSuccessStatusCode();
+            Progress = 214;
+            string json = await response.Content.ReadAsStringAsync();
+            latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
+        } catch (Exception) {
+            HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases");
+            Progress = 210;
+            response.EnsureSuccessStatusCode();
+            Progress = 216;
+            string json = await response.Content.ReadAsStringAsync();
+            latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
+        }
+        Progress = 220;
         DownloadName = "JipperResourcePack";
         DownloadProgressStart = 220;
         DownloadProgressEnd = 270;
