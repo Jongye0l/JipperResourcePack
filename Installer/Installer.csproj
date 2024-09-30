@@ -63,6 +63,7 @@
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="ModData.cs" />
+        <Compile Include="Resource\Resources.cs" />
         <Compile Include="Screen\FinishScreen.cs" />
         <Compile Include="Screen\InstallScreen.cs" />
         <Compile Include="Screen\Screen.cs" />
@@ -70,24 +71,6 @@
         <Compile Include="Screen\SelectLocationScreen.cs" />
         <Compile Include="Screen\SelectModScreen.cs" />
         <Compile Include="Utility.cs" />
-        <EmbeddedResource Include="InstallerForm.ko-kr.resx">
-          <DependentUpon>InstallerForm.cs</DependentUpon>
-        </EmbeddedResource>
-        <EmbeddedResource Include="InstallerForm.resx">
-          <DependentUpon>InstallerForm.cs</DependentUpon>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Properties\Resources.ko-kr.resx">
-          <DependentUpon>Resources.resx</DependentUpon>
-        </EmbeddedResource>
-        <EmbeddedResource Include="Properties\Resources.resx">
-            <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-            <SubType>Designer</SubType>
-        </EmbeddedResource>
-        <Compile Include="Properties\Resources.Designer.cs">
-            <AutoGen>True</AutoGen>
-            <DependentUpon>Resources.resx</DependentUpon>
-        </Compile>
         <None Include="packages.config" />
         <None Include="Properties\Settings.settings">
             <Generator>SettingsSingleFileGenerator</Generator>

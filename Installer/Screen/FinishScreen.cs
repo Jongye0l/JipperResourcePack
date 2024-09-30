@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Properties;
+using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;
 
@@ -25,16 +26,16 @@ public class FinishScreen : Screen {
     }
 
     public override void OnEnter() {
-        NextButton.Text = Resources.Install_Finish;
+        NextButton.Text = Resources.Current.Install_Finish;
         Exception exception = ((InstallScreen) PrevScreen).exception;
         TitleLabel = new Label {
-            Text = exception == null ? Resources.FinishScreen_Title : Resources.FinishScreen_Title_Error,
+            Text = exception == null ? Resources.Current.FinishScreen_Title : Resources.Current.FinishScreen_Title_Error,
             Font = new Font("Arial", 22, FontStyle.Bold),
             AutoSize = true,
             Location = new Point(420, 50)
         };
         DescriptionLabel = new Label {
-            Text = exception == null ? Resources.FinishScreen_Description : Resources.FinishScreen_Description_Error,
+            Text = exception == null ? Resources.Current.FinishScreen_Description : Resources.Current.FinishScreen_Description_Error,
             Font = new Font("Arial", 15),
             AutoSize = true,
             Location = new Point(420, 120)
@@ -48,7 +49,7 @@ public class FinishScreen : Screen {
         MainPanel.Controls.Add(PictureBox);
         if(exception == null) {
             CheckBox = new CheckBox {
-                Text = Resources.FinishScreen_RunAdofai,
+                Text = Resources.Current.FinishScreen_RunAdofai,
                 Font = new Font("Arial", 15),
                 AutoSize = true,
                 Location = new Point(420, 240),
@@ -57,7 +58,7 @@ public class FinishScreen : Screen {
             MainPanel.Controls.Add(CheckBox);
         } else {
             CheckLog = new Button {
-                Text = Resources.FinishScreen_CheckLog,
+                Text = Resources.Current.FinishScreen_CheckLog,
                 Font = new Font("Arial", 15),
                 AutoSize = true,
                 Location = new Point(420, 240)

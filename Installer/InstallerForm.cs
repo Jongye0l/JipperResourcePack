@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using JipperResourcePack.Installer.Properties;
+using JipperResourcePack.Installer.Resource;
 using JipperResourcePack.Installer.Screen;
 using Newtonsoft.Json;
-#if DEBUG
-using System.Threading;
-#endif
 
 namespace JipperResourcePack.Installer;
 
@@ -56,9 +52,10 @@ public partial class InstallerForm : Form {
     }
 
     public override void ResetText() {
-        Cancel.Text = Resources.Cancel;
-        Prev.Text = Resources.Previous;
-        Next.Text = Resources.Next;
+        Text = Resources.Current.Title;
+        Cancel.Text = Resources.Current.Cancel;
+        Prev.Text = Resources.Current.Previous;
+        Next.Text = Resources.Current.Next;
     }
 
     public void SetupScreenData() {

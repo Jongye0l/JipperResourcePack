@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Properties;
+using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;
 
@@ -23,19 +24,19 @@ public class SelectLocationScreen : Screen {
     public override void OnEnter() {
         GlobalSetting.Instance.InstallPath ??= Utility.GetAdofaiPath();
         TitleLabel = new Label {
-            Text = Resources.SelectLocation_Title,
+            Text = Resources.Current.SelectLocation_Title,
             Font = new Font("Arial", 16),
             AutoSize = true,
             Location = new Point(30, 8)
         };
         DescriptionLabel = new Label {
-            Text = Resources.SelectLocation_Description,
+            Text = Resources.Current.SelectLocation_Description,
             Font = new Font("Arial", 13),
             AutoSize = true,
             Location = new Point(30, 65)
         };
         LocationGroup = new GroupBox {
-            Text = Resources.SelectLocation_Location,
+            Text = Resources.Current.SelectLocation_Location,
             Font = new Font("Arial", 13),
             Location = new Point(60, 360),
             Size = new Size(850, 80)
@@ -47,14 +48,14 @@ public class SelectLocationScreen : Screen {
             Size = new Size(690, 50)
         };
         LocationSelectButton = new Button {
-            Text = Resources.SelectLocation_Select,
+            Text = Resources.Current.SelectLocation_Select,
             Location = new Point(714, 40),
             Font = new Font("Arial", 13),
             Size = new Size(130, 30)
         };
         LocationSelectButton.Click += LocationSelectButton_Click;
         //AdofaiFolderGuide = new Button {
-        //    Text = Resources.SelectLocation_AdofaiFolderGuide,
+        //    Text = Resources.Current.SelectLocation_AdofaiFolderGuide,
         //    Location = new Point(30, 150),
         //    Font = new Font("Arial", 13),
         //    Size = new Size(150, 30)
@@ -75,17 +76,17 @@ public class SelectLocationScreen : Screen {
         GlobalSetting.Instance.InstallPath = LocationTextBox.Text;
         string path = GlobalSetting.Instance.InstallPath.Replace("\\", "/");
         if(string.IsNullOrEmpty(path)) {
-            MessageBox.Show(Resources.SelectLocation_NoLocation, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Current.SelectLocation_NoLocation, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
         if(!Directory.Exists(path)) {
-            MessageBox.Show(Resources.SelectLocation_NoFolder, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Current.SelectLocation_NoFolder, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
         if(!Directory.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data"))) {
             if(!path.EndsWith("A Dance of Fire and Ice/A Dance of Fire and Ice_Data")) {
                 if(!Directory.Exists(Path.Combine(path, "A Dance of Fire and Ice", "A Dance of Fire and Ice_Data"))) {
-                    MessageBox.Show(Resources.SelectLocation_NoAdofai, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(Resources.Current.SelectLocation_NoAdofai, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
                 GlobalSetting.Instance.InstallPath = Path.Combine(path, "A Dance of Fire and Ice");

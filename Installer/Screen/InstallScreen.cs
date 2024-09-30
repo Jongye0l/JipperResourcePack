@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Properties;
+using JipperResourcePack.Installer.Resource;
 using Newtonsoft.Json.Linq;
 
 namespace JipperResourcePack.Installer.Screen;
@@ -40,7 +41,7 @@ public class InstallScreen : Screen {
     public override void OnEnter() {
         InstallerForm.WebClient.DownloadProgressChanged += WebClientOnDownloadProgressChanged;
         TitleLabel = new Label {
-            Text = Resources.Install_Install,
+            Text = Resources.Current.Install_Install,
             Font = new Font("Arial", 16),
             AutoSize = true,
             Location = new Point(30, 8)

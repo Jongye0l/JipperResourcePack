@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Properties;
+using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;
 
@@ -21,13 +24,13 @@ public class MainScreen : Screen {
 
     public override void OnEnter() {
         TitleLabel = new Label {
-            Text = Resources.MainScreen_Title,
+            Text = Resources.Current.MainScreen_Title,
             Font = new Font("Arial", 22, FontStyle.Bold),
             AutoSize = true,
             Location = new Point(420, 50)
         };
         DescriptionLabel = new Label {
-            Text = Resources.MainScreen_Description,
+            Text = Resources.Current.MainScreen_Description,
             Font = new Font("Arial", 15),
             AutoSize = true,
             Location = new Point(420, 150)
@@ -46,7 +49,7 @@ public class MainScreen : Screen {
 
     public override bool OnNext() {
         if(IsNetworkAvailable()) return true;
-        MessageBox.Show(Resources.MainScreen_NoInternet, Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show(Resources.Current.MainScreen_NoInternet, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
         return false;
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Properties;
+using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;
 
@@ -29,19 +30,19 @@ public class SelectModScreen : Screen {
         MainPanel.Controls.Add(ProgressBar);
         ProgressBar.Dispose();
         TitleLabel = new Label {
-            Text = Resources.SelectMod_Title,
+            Text = Resources.Current.SelectMod_Title,
             Font = new Font("Arial", 16),
             AutoSize = true,
             Location = new Point(30, 8)
         };
         DescriptionLabel = new Label {
-            Text = Resources.SelectMod_Description,
+            Text = Resources.Current.SelectMod_Description,
             Font = new Font("Arial", 13),
             AutoSize = true,
             Location = new Point(30, 70)
         };
         ModGroup = new GroupBox {
-            Text = Resources.SelectMod_Mod,
+            Text = Resources.Current.SelectMod_Mod,
             Font = new Font("Arial", 13),
             Location = new Point(60, 120),
             Size = new Size(850, 400)
