@@ -195,6 +195,16 @@ public class InstallScreen : Screen {
                 entry.Open().CopyTo(fileStream);
             }
         }
+        if(File.Exists(Path.Combine(path, "Info.json"))) return;
+        string folder = Directory.GetDirectories(path)[0];
+        foreach(string file in Directory.GetFiles(folder)) {
+            string fileName = Path.GetFileName(file);
+            File.Move(file, Path.Combine(path, fileName));
+        }
+        foreach(string folder2 in Directory.GetDirectories(folder)) {
+            string folderName = Path.GetFileName(folder2);
+            Directory.Move(folder2, Path.Combine(path, folderName));
+        }
     }
 
     public Task ApplyUMM(string path) {
