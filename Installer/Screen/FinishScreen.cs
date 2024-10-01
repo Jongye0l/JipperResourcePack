@@ -99,7 +99,8 @@ public class FinishScreen : Screen {
     }
 
     public override void OnLeave() {
-        if(CheckBox is { Checked: true }) Process.Start(Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice.exe"));
+        if(GlobalSetting.Instance.InstallPath == Utility.GetAdofaiPath()) Process.Start("steam://rungameid/977950");
+        else if(CheckBox is { Checked: true }) Process.Start(Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice.exe"));
         if(Folder != null) DeleteFolder();
     }
 }
