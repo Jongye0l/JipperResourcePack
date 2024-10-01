@@ -22,8 +22,6 @@ public class Main {
         JipperResourcePack.Main.Instance.SaveSetting();
         Overlay.Instance.Destroy();
         JipperResourcePack.Main.Instance.FeatureReset(ModeEnabled);
-        if(ModeEnabled) new JOverlay();
-        else new Overlay();
     }
 
     public static Feature[] GetFeatures() {

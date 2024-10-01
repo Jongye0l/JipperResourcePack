@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq;
+using System.Reflection;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -37,7 +38,10 @@ public class Main : JAMod {
         this.GetValue<JASetting>("ModSetting").RemoveFieldData();
         if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
         else AddFeature();
-        if(enabled) foreach(Feature feature in Features) feature.Invoke("Enable");
+        if(!enabled) return;
+        if(jongyeolMode) new JOverlay();
+        else new Overlay();
+        foreach(Feature feature in Features.Where(feature => feature.Enabled)) feature.Invoke("Enable");
     }
     
     protected override void OnEnable() {

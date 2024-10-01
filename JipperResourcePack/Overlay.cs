@@ -57,6 +57,7 @@ public class Overlay {
         InitializeProgressBar();
         InitializeTimingScale();
         Object.DontDestroyOnLoad(Canvas.gameObject);
+        if(ADOBase.controller && ADOBase.conductor && ADOBase.conductor.isGameWorld) Show();
     }
 
     protected virtual void InitializeMain() {
@@ -110,7 +111,7 @@ public class Overlay {
     public void SetupLocationJudgement() {
         JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 92 : 5);
     }
-    
+
     protected void InitializeBPM() {
         GameObject gameObject = new("BPM");
         RectTransform transform = gameObject.AddComponent<RectTransform>();
