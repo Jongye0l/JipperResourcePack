@@ -217,6 +217,10 @@ public class InstallScreen : Screen {
             ummStartInfo.UseShellExecute = true;
             ummProcess.Start();
             ummProcess.WaitForExit();
+            if(ummProcess.ExitCode == 0) return;
+            string errorMessageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack", "UnityModManagerInstaller", "UMMAutoInstallerError.log");
+            string errorMessage = File.ReadAllText(errorMessageFile);
+            throw new Exception("UMM AutoInstaller Error: " + errorMessage);
         });
     }
 
