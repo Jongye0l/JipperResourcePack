@@ -213,6 +213,7 @@ public class InstallScreen : Screen {
             Process ummProcess = new();
             ProcessStartInfo ummStartInfo = ummProcess.StartInfo;
             ummStartInfo.FileName = path;
+            ummStartInfo.WorkingDirectory = Path.GetDirectoryName(path);
             ummStartInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
             ummStartInfo.UseShellExecute = true;
             ummProcess.Start();
