@@ -316,7 +316,7 @@ public class KeyViewer : Feature {
             KeyViewerSettings settings = KeyViewerSettings.Settings;
             bool[] keyState = new bool[24];
             int repeat = 0;
-            while(KeyinputListener.IsAlive && Enabled) {
+            while(KeyinputListener is { IsAlive: true } && Enabled) {
                 long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
                 KeyCode[] keyCodes = settings.KeyViewerStyle == 0 ? settings.key12 : settings.key16;
                 for(int i = 0; i < keyCodes.Length; i++) {
@@ -375,6 +375,7 @@ public class KeyViewer : Feature {
                 repeat = 0;
             }
         } catch (Exception e) {
+            if(KeyinputListener is not { IsAlive: true }) return;
             Main.Instance.LogException(e);
         }
     }
