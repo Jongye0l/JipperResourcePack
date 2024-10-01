@@ -116,7 +116,7 @@ public class InstallScreen : Screen {
             DownloadName = "UnityModManager";
             DownloadProgressStart = 10;
             DownloadProgressEnd = 60;
-            await Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", ummPath);
+            await Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", Path.Combine(ummPath, "UnityModManagerInstaller"));
             File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnityModManagerNet", "Params.xml"), $"""
                  <?xml version="1.0" encoding="utf-8"?>
                  <Param xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -220,6 +220,7 @@ public class InstallScreen : Screen {
             if(ummProcess.ExitCode == 0) return;
             string errorMessageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack", "UnityModManagerInstaller", "UMMAutoInstallerError.log");
             string errorMessage = File.ReadAllText(errorMessageFile);
+            File.Delete(errorMessageFile);
             throw new Exception("UMM AutoInstaller Error: " + errorMessage);
         });
     }

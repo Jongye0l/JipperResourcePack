@@ -42,6 +42,7 @@ namespace UMMAutoInstaller {
                 return 0;
             } catch (Exception e) {
                 string errorMessageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack", "UnityModManagerInstaller", "UMMAutoInstallerError.log");
+                File.Create(errorMessageFile);
                 File.WriteAllText(errorMessageFile, e.ToString());
                 return -1;
             }
