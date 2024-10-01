@@ -71,6 +71,9 @@
         <Compile Include="Screen\SelectLocationScreen.cs" />
         <Compile Include="Screen\SelectModScreen.cs" />
         <Compile Include="Utility.cs" />
+        <EmbeddedResource Include="InstallerForm.resx">
+          <DependentUpon>InstallerForm.cs</DependentUpon>
+        </EmbeddedResource>
         <None Include="packages.config" />
         <None Include="Properties\Settings.settings">
             <Generator>SettingsSingleFileGenerator</Generator>
