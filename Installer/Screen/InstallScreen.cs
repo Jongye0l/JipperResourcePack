@@ -97,7 +97,7 @@ public class InstallScreen : Screen {
     public async Task UnityModManagerCheck() {
         string path = GlobalSetting.Instance.InstallPath;
         Log("Founding UnityModManager...");
-        if(Directory.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager"))) {
+        if(File.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager", "UnityModManager.dll"))) {
             Progress = 120;
             Log("UnityModManager already exists.");
             return;
