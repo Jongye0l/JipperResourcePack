@@ -38,6 +38,26 @@
 ### 사용 방법 How to use
 * [이 링크](https://github.com/Jongye0l/JipperResourcePack/releases/latest) 에서 다운로드 후 모드매니저를 통해 적용시키면 됩니다.
 ---
+### 크레딧 Credit
+* [개발: Jongyeol](https://www.youtube.com/@Jongyeol)
+* [디자인: Jipper](https://www.youtube.com/@jipper1214)
+* [번역: changhyeon](https://www.youtube.com/@changhyeon7492)
+* [테스트: dofaer](https://www.youtube.com/@%EB%8F%84%ED%8E%98)
+* [테스트: NTure](https://www.youtube.com/@NTure_1253)
+* 참고한 코드
+  * [Overlayer](https://github.com/c3nb/Overlayer)
+  * [ShowBPM](https://github.com/FLOWERs-Modding/ADOFAI_ShowBPM)
+  * [ProgressDisplayer2](https://github.com/FLOWERs-Modding/ADOFAI_ProgressDisplayer2)
+  * [AdofaiTweaks(By. PizzaLovers007)](https://github.com/PizzaLovers007/AdofaiTweaks)
+  * [MovingManN](https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js)
+  * [KeyViewer](https://github.com/c3nb/KeyViewer)
+  * [MoreTimeTags](https://github.com/Jongye0l/MoreTimeTags)
+  * [State](https://github.com/Jongye0l/State)
+  * [AdvancedCombo](https://github.com/Jongye0l/AdvancedCombo)
+  * [AdofaiModInstaller](https://github.com/tjwogud/AdofaiModInstaller)
+* 사용한 폰트
+  * [Maplestory OTF Bold](https://fontmeme.com/ktype/maplestory-font)
+---
 ### 개발 환경 Development environment
 * Windows 11
 * Rider 2024.2.5
