@@ -21,7 +21,6 @@ public class TimingScale : Feature {
     
     [JAPatch(typeof(scrPlanet), "MoveToNextFloor", PatchType.Postfix, true)]
     private static void OnMoveToNextFloor() {
-        Main.Instance.Log("MoveToNextFloor");
         Overlay.Instance.UpdateTimingScale();
     }
 }
