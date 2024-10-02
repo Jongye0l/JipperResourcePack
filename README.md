@@ -35,8 +35,11 @@
   * 토끼 모양 변경
   * 로고 추가
 ---
+### 안내 사항 Instructions
+* 이 모드를 사용하려면 [JALib](https://github.com/Jongye0l/JALib/releases)모드가 필요합니다.
+---
 ### 사용 방법 How to use
-* [이 링크](https://github.com/Jongye0l/JipperResourcePack/releases/latest) 에서 다운로드 후 모드매니저를 통해 적용시키면 됩니다.
+* [이 링크](https://github.com/Jongye0l/JipperResourcePack/releases/v1.0.0.0/JipperResourcePack%20Installer.exe)에서 다운로드후 실행하시면 자동으로 설치됩니다.
 ---
 ### 크레딧 Credit
 * [개발: Jongyeol](https://www.youtube.com/@Jongyeol)
