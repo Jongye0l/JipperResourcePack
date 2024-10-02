@@ -474,6 +474,7 @@ public class KeyViewer : Feature {
         Image image = gameObject.AddComponent<Image>();
         image.color = Background;
         image.sprite = BundleLoader.KeyBackground;
+        image.type = Image.Type.Sliced;
         key.background = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("Outline");
         transform = gameObject.AddComponent<RectTransform>();
@@ -485,6 +486,7 @@ public class KeyViewer : Feature {
         image = gameObject.AddComponent<Image>();
         image.color = Outline;
         image.sprite = BundleLoader.KeyOutline;
+        image.type = Image.Type.Sliced;
         key.outline = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("KeyText");
         transform = gameObject.AddComponent<RectTransform>();
