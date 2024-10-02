@@ -84,7 +84,7 @@ public class Main : JAMod {
         URLLabel(Localization["credit.tester"] + ": NTure", "https://www.youtube.com/@NTure_1253");
         GUILayout.Space(25f);
         GUILayout.Label(Localization["credit.reference"]);
-        URLLabel("Overlayer(By. c3nb)", "https://github.com/c3nb/Overlayer");
+        URLLabel("Overlayer(By. c3nb)", "https://github.com/c3nb/Overlayer/tree/2cdf95b13add797f9c274d5766786c24c54adb9f");
         URLLabel("ShowBPM(By. Flower)", "https://github.com/FLOWERs-Modding/ADOFAI_ShowBPM");
         URLLabel("ProgressDisplayer2(By. Flower)", "https://github.com/FLOWERs-Modding/ADOFAI_ProgressDisplayer2");
         URLLabel("AdofaiTweaks(By. PizzaLovers007)", "https://github.com/PizzaLovers007/AdofaiTweaks");
