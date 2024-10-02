@@ -50,7 +50,6 @@
   * [ProgressDisplayer2](https://github.com/FLOWERs-Modding/ADOFAI_ProgressDisplayer2)
   * [AdofaiTweaks(By. PizzaLovers007)](https://github.com/PizzaLovers007/AdofaiTweaks)
   * [MovingManN](https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js)
-  * [KeyViewer](https://github.com/c3nb/KeyViewer)
   * [MoreTimeTags](https://github.com/Jongye0l/MoreTimeTags)
   * [State](https://github.com/Jongye0l/State)
   * [AdvancedCombo](https://github.com/Jongye0l/AdvancedCombo)

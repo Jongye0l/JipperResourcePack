@@ -89,7 +89,6 @@ public class Main : JAMod {
         URLLabel("ProgressDisplayer2(By. Flower)", "https://github.com/FLOWERs-Modding/ADOFAI_ProgressDisplayer2");
         URLLabel("AdofaiTweaks(By. PizzaLovers007)", "https://github.com/PizzaLovers007/AdofaiTweaks");
         URLLabel("MovingManN(By. Kittut)", "https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js");
-        URLLabel("KeyViewer(By. c3nb)", "https://github.com/c3nb/KeyViewer");
         URLLabel("MoreTimeTags(By. Jongyeol)", "https://github.com/Jongye0l/MoreTimeTags");
         if(Jongyeol.Main.ModeEnabled) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
