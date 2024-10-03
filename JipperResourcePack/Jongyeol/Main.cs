@@ -17,7 +17,7 @@ public class Main {
 
     public static void Update(float deltaTime) {
         if(ModeEnabled) JOverlay.Instance.UpdateFPS(deltaTime);
-        if(!CheatCode.CheckCheatCode()) return;
+        if(!ADOBase.isLevelSelect || !CheatCode.CheckCheatCode()) return;
         Setting["Jongyeol"] = ModeEnabled = !ModeEnabled;
         JipperResourcePack.Main.Instance.SaveSetting();
         Overlay.Instance.Destroy();
