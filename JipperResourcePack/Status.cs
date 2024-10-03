@@ -74,7 +74,10 @@ public class Status : Feature {
     private static async void OnShowIfDebugAwake(scrShowIfDebug __instance) {
         try {
             await Task.Yield();
-            if(__instance) __instance.GetComponent<RectTransform>().position = new Vector3(300, 1040);
+            if(__instance) {
+                RectTransform transform = __instance.GetComponent<RectTransform>();
+                transform.anchoredPosition = new Vector2(300, transform.anchoredPosition.y);
+            }
         } catch (Exception e) {
             Main.Instance.LogException(e);
         }
@@ -84,7 +87,7 @@ public class Status : Feature {
     private static void OnHUDTextAwake(Text ___txtLevelName) {
         if(!___txtLevelName) return;
         RectTransform transform = ___txtLevelName.GetComponent<RectTransform>();
-        transform.position = new Vector3(960, 1056);
+        transform.anchoredPosition = new Vector3(0, -28);
         transform.localScale = new Vector3(0.5f, 0.5f);
         transform.sizeDelta = new Vector2(transform.sizeDelta.x * 2.5f, transform.sizeDelta.y);
         ___txtLevelName.text = ___txtLevelName.text.Replace('\n', ' ');
