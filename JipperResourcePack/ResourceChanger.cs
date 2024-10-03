@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
 using JALib.Core;
 using JALib.Core.Patch;
+using JALib.Core.Setting;
 using JALib.Tools;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using GameObject = UnityEngine.GameObject;
@@ -15,40 +17,92 @@ public class ResourceChanger : Feature {
     public static Color TileColor;
     public static string ResourcePackName;
     public static Sprite autoSprite;
+    public static ResourceChangerSetting Settings;
 
-    public ResourceChanger() : base(Main.Instance, nameof(ResourceChanger), true, typeof(ResourceChanger)) {
+    public ResourceChanger() : base(Main.Instance, nameof(ResourceChanger), true, typeof(ResourceChanger), typeof(ResourceChangerSetting)) {
         ResourcePackName = "Jipper Resource Pack";
         PlanetColor = new Color(0.8125f, 0.70703125f, 0.96875f);
         TitleColor = new Color(0.56640625f, 0.46875f, 0.6328125f);
         TileColor = new Color(0.94921875f, 0.87109375f, 1);
+        Settings = (ResourceChangerSetting) Setting;
     }
 
     protected override void OnEnable() {
-        if(ADOBase.isLevelSelect) ADOBase.LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) ADOBase.LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
-            if(ADOBase.editor) OnEditorStart();
-            foreach(scrPlanet planet in ADOBase.controller.allPlanets) OnPlanetStart(planet);
+            if(Settings.ChangeRabbit) LoadRabbit();
+            if(Settings.ChangeBallColor) LoadPlanet();
         }
     }
 
     protected override async void OnDisable() {
         while(Patcher.patched) await Task.Yield();
-        if(ADOBase.isLevelSelect) ADOBase.LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) ADOBase.LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
-            if(autoSprite && ADOBase.editor) {
-                ADOBase.editor.autoImage.sprite = autoSprite;
-                ADOBase.editor.Invoke("OttoUpdate");
-            }
-            foreach(scrPlanet planet in ADOBase.controller.allPlanets) planet.LoadPlanetColor();
-            foreach(scrFloor floor in Object.FindObjectsByType<scrFloor>(FindObjectsSortMode.None)) {
-                if(floor.gameObject.tag != "Beat") return;
-                floor.floorRenderer.color = new Color(0.675f, 0.675f, 0.766f, 1f);
-            }
+            if(Settings.ChangeRabbit) UnloadRabbit();
+            if(Settings.ChangeBallColor) UnloadPlanet();
+            if(Settings.ChangeTileColor) UnloadTileColor();
         }
+    }
+
+    protected override void OnGUI() {
+        SettingGUI settingGUI = Main.SettingGUI;
+        JALocalization localization = Main.Instance.Localization;
+        settingGUI.AddSettingToggle(ref Settings.ChangeRabbit, localization["resourceChanger.changeRabbit"], () => {
+            if(Settings.ChangeRabbit) LoadRabbit();
+            else UnloadRabbit();
+        });
+        settingGUI.AddSettingToggle(ref Settings.ChangeBallColor, localization["resourceChanger.changeBallColor"], () => {
+            if(Settings.ChangeBallColor) LoadPlanet();
+            else UnloadPlanet();
+        });
+        settingGUI.AddSettingToggle(ref Settings.ChangeTileColor, localization["resourceChanger.changeTileColor"], () => {
+            if(ADOBase.isLevelSelect) ADOBase.LoadScene(ADOBase.sceneName);
+            else if(!Settings.ChangeTileColor) UnloadTileColor();
+        });
+    }
+
+    private static void LoadRabbit() {
+        if(ADOBase.editor) OnEditorStart();
+    }
+
+    private static void LoadPlanet() {
+        foreach(scrPlanet planet in ADOBase.controller.allPlanets) OnPlanetStart(planet);
+        if(!ADOBase.isLevelSelect) return;
+        scrLogoText logoText = Object.FindObjectOfType<scrLogoText>();
+        if(!logoText) return;
+        logoText.ColorLogo(PlanetColor, true);
+        logoText.ColorLogo(PlanetColor, false);
+    }
+
+    private static void UnloadRabbit() {
+        if(!autoSprite || !ADOBase.editor) return;
+        ADOBase.editor.autoImage.sprite = autoSprite;
+        ADOBase.editor.Invoke("OttoUpdate");
+    }
+
+    private static void UnloadPlanet() {
+        foreach(scrPlanet planet in ADOBase.controller.allPlanets) planet.LoadPlanetColor();
+        if(!ADOBase.isLevelSelect) return;
+        Object.FindObjectOfType<scrLogoText>().UpdateColors();
+    }
+
+    private static void UnloadTileColor() {
+        foreach(scrFloor floor in Object.FindObjectsByType<scrFloor>(FindObjectsSortMode.None)) {
+            if(floor.gameObject.tag != "Beat") return;
+            floor.floorRenderer.color = new Color(0.675f, 0.675f, 0.766f, 1f);
+        }
+    }
+
+    public class ResourceChangerSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
+        public bool ChangeRabbit = true;
+        public bool ChangeBallColor = true;
+        public bool ChangeTileColor = true;
     }
 
     [JAPatch(typeof(scnEditor), "OttoUpdate", PatchType.Postfix, false)]
     public static void OnEditorStart() {
+        if(!Settings.ChangeRabbit) return;
         Image autoImage = scnEditor.instance.autoImage;
         if(autoImage.sprite == BundleLoader.Auto) return;
         autoSprite = autoImage.sprite;
@@ -59,12 +113,13 @@ public class ResourceChanger : Feature {
     
     [JAPatch(typeof(scrFloor), "Start", PatchType.Postfix, false)]
     public static void OnFloorStart(scrFloor __instance) {
-        if(__instance.gameObject.tag != "Beat") return;
+        if(!Settings.ChangeTileColor || __instance.tag != "Beat") return;
         __instance.floorRenderer.color = TileColor;
     }
     
     [JAPatch(typeof(scrPlanet), "Start", PatchType.Postfix, false)]
     public static void OnPlanetStart(scrPlanet __instance) {
+        if(!Settings.ChangeBallColor) return;
         __instance.DisableAllSpecialPlanets();
         __instance.sprite.sprite = ADOBase.gc.tex_planetWhite;
         __instance.SetPlanetColor(PlanetColor);
@@ -79,7 +134,7 @@ public class ResourceChanger : Feature {
     [JAPatch(typeof(scnLevelSelect), "EnbyMode", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrLogoText), "UpdateColors", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrLogoText), "LateUpdate", PatchType.Prefix, false, TryingCatch = false)]
-    public static bool OnPlanetAndLogoColorChange() => false;
+    public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor;
 
     [JAPatch(typeof(scrPlanet), "SetPlanetColor", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrPlanet), "SetCoreColor", PatchType.Prefix, false, TryingCatch = false)]
@@ -87,18 +142,20 @@ public class ResourceChanger : Feature {
     [JAPatch(typeof(scrPlanet), "SetRingColor", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrPlanet), "SetFaceColor", PatchType.Prefix, false, TryingCatch = false)]
     public static void Prefix(ref Color color) {
-        color = PlanetColor;
+        if(Settings.ChangeBallColor) color = PlanetColor;
     }
 
     [JAPatch(typeof(scrFloor), "SetTileColor", PatchType.Prefix, false, TryingCatch = false)]
-    public static bool OnTileColorChange(scrFloor __instance) => __instance.tag != "Beat";
+    public static bool OnTileColorChange(scrFloor __instance) => !Settings.ChangeTileColor || __instance.tag != "Beat";
     
     [JAPatch(typeof(scrLogoText), "Awake", PatchType.Postfix, false)]
     public static void OnLogoTextAwake(scrLogoText __instance) {
         RectTransform rectTransform = __instance.gameObject.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = rectTransform.anchoredPosition with { y = 0.75f };
-        __instance.ColorLogo(PlanetColor, true);
-        __instance.ColorLogo(PlanetColor, false);
+        if(Settings.ChangeBallColor) {
+            __instance.ColorLogo(PlanetColor, true);
+            __instance.ColorLogo(PlanetColor, false);
+        }
         Transform transform = rectTransform.parent.parent.Find("Hit Space");
         if(transform.Find("JipperResourcepack Logo")) return;
         GameObject gameObject = transform.Find("Education Edition").gameObject;
