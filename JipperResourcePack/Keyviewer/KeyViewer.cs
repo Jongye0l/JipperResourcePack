@@ -38,6 +38,8 @@ public class KeyViewer : Feature {
     public Stopwatch Stopwatch;
     private bool Save;
     private bool KeyShare;
+    private bool KeyChangeExpanded;
+    private bool TextChangeExpanded;
 
     public int SelectedKey = -1;
     public int WinAPICool;
@@ -137,120 +139,123 @@ public class KeyViewer : Feature {
             _ => null
         };
         string[] keyTexts = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12Text : settings.key16Text;
-        GUILayout.Space(20f);
-        GUILayout.Label(localization["keyViewer.keyChange"]);
-        GUILayout.BeginHorizontal();
-        for(int i = 0; i < 8; i++) CreateButton(i, false);
-        GUILayout.FlexibleSpace();
-        GUILayout.EndHorizontal();
-        GUILayout.BeginHorizontal();
-        switch(settings.KeyViewerStyle) {
-            case KeyviewerStyle.Key12:
-                CreateButton(9, false);
-                CreateButton(8, false);
-                CreateButton(10, false);
-                CreateButton(11, false);
-                break;
-            case KeyviewerStyle.Key16:
-                CreateButton(12, false);
-                CreateButton(13, false);
-                CreateButton(9, false);
-                CreateButton(8, false);
-                CreateButton(10, false);
-                CreateButton(11, false);
-                CreateButton(14, false);
-                CreateButton(15, false);
-                break;
-        }
-        GUILayout.FlexibleSpace();
-        GUILayout.EndHorizontal();
-        if(footKeyCodes != null) {
+        GUILayout.Space(12f);
+        KeyChangeExpanded = GUILayout.Toggle(KeyChangeExpanded, (KeyChangeExpanded ? "◢" : "▶") + localization["keyViewer.keyChange"]);
+        if(KeyChangeExpanded) {
             GUILayout.BeginHorizontal();
-            for(int i = 0; i < footKeyCodes.Length; i++) CreateButton(i++ + 16, false);
-            for(int i = 1; i < footKeyCodes.Length; i++) CreateButton(i++ + 16, false);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-        if(SelectedKey != -1 && !TextChanged) GUILayout.Label($"<b>{localization["keyViewer.inputKey"]}</b>");
-        GUILayout.Space(20f);
-        GUILayout.Label(localization["keyViewer.textChange"]);
-        GUILayout.BeginHorizontal();
-        for(int i = 0; i < 8; i++) CreateButton(i, true);
-        GUILayout.FlexibleSpace();
-        GUILayout.EndHorizontal();
-        GUILayout.BeginHorizontal();
-        switch(settings.KeyViewerStyle) {
-            case KeyviewerStyle.Key12:
-                CreateButton(9, true);
-                CreateButton(8, true);
-                CreateButton(10, true);
-                CreateButton(11, true);
-                break;
-            case KeyviewerStyle.Key16:
-                CreateButton(12, true);
-                CreateButton(13, true);
-                CreateButton(9, true);
-                CreateButton(8, true);
-                CreateButton(10, true);
-                CreateButton(11, true);
-                CreateButton(14, true);
-                CreateButton(15, true);
-                break;
-        }
-        GUILayout.FlexibleSpace();
-        GUILayout.EndHorizontal();
-        if(SelectedKey == -1) return;
-        if(TextChanged) {
+            GUILayout.Space(24f);
+            GUILayout.BeginVertical();
+            GUILayout.Label(localization["keyViewer.keyChange"]);
             GUILayout.BeginHorizontal();
-            GUILayout.Label(localization["keyViewer.inputText"]);
-            string textArea = GUILayout.TextArea(keyTexts[SelectedKey] ?? KeyToString(keyCodes[SelectedKey]));
-            if(keyTexts[SelectedKey] != textArea) {
-                Keys[SelectedKey].text.tmp.text = textArea;
-                if(textArea == KeyToString(keyCodes[SelectedKey])) textArea = null;
-                keyTexts[SelectedKey] = textArea;
-            }
+            for(int i = 0; i < 8; i++) CreateButton(i, false);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            if(GUILayout.Button(localization["keyViewer.textReset"])) {
-                keyTexts[SelectedKey] = null;
-                SelectedKey = -1;
-                Main.Instance.SaveSetting();
-                return;
-            }
-            if(GUILayout.Button(localization["keyViewer.textSave"])) {
-                SelectedKey = -1;
-                Main.Instance.SaveSetting();
-                return;
-            }
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        } else if(Application.isFocused) {
-            if(Input.anyKeyDown) {
-                foreach(KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
-                    if(!Input.GetKeyDown(keyCode)) continue;
-                    if(SelectedKey < 16) keyCodes[SelectedKey] = keyCode;
-                    else footKeyCodes[SelectedKey - 16] = keyCode;
-                    Keys[SelectedKey].text.tmp.text = (SelectedKey < 16 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
-                    SelectedKey = -1;
-                    WinAPICool = 0;
-                    UpdateKeyLimit();
-                    Main.Instance.SaveSetting();
+            switch(settings.KeyViewerStyle) {
+                case KeyviewerStyle.Key12:
+                    CreateButton(9, false);
+                    CreateButton(8, false);
+                    CreateButton(10, false);
+                    CreateButton(11, false);
                     break;
+                case KeyviewerStyle.Key16:
+                    CreateButton(12, false);
+                    CreateButton(13, false);
+                    CreateButton(9, false);
+                    CreateButton(8, false);
+                    CreateButton(10, false);
+                    CreateButton(11, false);
+                    CreateButton(14, false);
+                    CreateButton(15, false);
+                    break;
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            if(footKeyCodes != null) {
+                GUILayout.BeginHorizontal();
+                for(int i = 0; i < footKeyCodes.Length; i++) CreateButton(i++ + 16, false);
+                for(int i = 1; i < footKeyCodes.Length; i++) CreateButton(i++ + 16, false);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
+            if(SelectedKey != -1 && !TextChanged) GUILayout.Label($"<b>{localization["keyViewer.inputKey"]}</b>");
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            GUILayout.Space(12f);
+        }
+        TextChangeExpanded = GUILayout.Toggle(TextChangeExpanded, (TextChangeExpanded ? "◢" : "▶") + localization["keyViewer.textChange"]);
+        if(TextChangeExpanded) {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(24f);
+            GUILayout.BeginVertical();
+            GUILayout.Label(localization["keyViewer.textChange"]);
+            GUILayout.BeginHorizontal();
+            for(int i = 0; i < 8; i++) CreateButton(i, true);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            switch(settings.KeyViewerStyle) {
+                case KeyviewerStyle.Key12:
+                    CreateButton(9, true);
+                    CreateButton(8, true);
+                    CreateButton(10, true);
+                    CreateButton(11, true);
+                    break;
+                case KeyviewerStyle.Key16:
+                    CreateButton(12, true);
+                    CreateButton(13, true);
+                    CreateButton(9, true);
+                    CreateButton(8, true);
+                    CreateButton(10, true);
+                    CreateButton(11, true);
+                    CreateButton(14, true);
+                    CreateButton(15, true);
+                    break;
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            if(SelectedKey != -1 && TextChanged) {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(localization["keyViewer.inputText"]);
+                string textArea = GUILayout.TextArea(keyTexts[SelectedKey] ?? KeyToString(keyCodes[SelectedKey]));
+                if(keyTexts[SelectedKey] != textArea) {
+                    Keys[SelectedKey].text.tmp.text = textArea;
+                    if(textArea == KeyToString(keyCodes[SelectedKey])) textArea = null;
+                    keyTexts[SelectedKey] = textArea;
                 }
-            } else {
-                for(int i = 0; i < 256; i++) {
-                    if((GetAsyncKeyState(i) & 0x8000) == 0) continue;
-                    if(WinAPICool++ < 6) break;
-                    KeyCode keyCode = (KeyCode) i + 0x1000;
-                    if(SelectedKey < 16) keyCodes[SelectedKey] = keyCode;
-                    else footKeyCodes[SelectedKey - 16] = keyCode;
-                    Keys[SelectedKey].text.tmp.text = (SelectedKey < 16 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                if(GUILayout.Button(localization["keyViewer.textReset"])) {
+                    keyTexts[SelectedKey] = null;
                     SelectedKey = -1;
-                    WinAPICool = 0;
-                    UpdateKeyLimit();
                     Main.Instance.SaveSetting();
                 }
+                if(GUILayout.Button(localization["keyViewer.textSave"])) {
+                    SelectedKey = -1;
+                    Main.Instance.SaveSetting();
+                }
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            GUILayout.Space(12f);
+        }
+        if(SelectedKey == -1 || TextChanged || !Application.isFocused) return;
+        if(Input.anyKeyDown) {
+            foreach(KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
+                if(!Input.GetKeyDown(keyCode)) continue;
+                SetupKey(keyCode);
+                break;
+            }
+        } else {
+            for(int i = 0; i < 256; i++) {
+                if((GetAsyncKeyState(i) & 0x8000) == 0) continue;
+                if(WinAPICool++ < 6) break;
+                KeyCode keyCode = (KeyCode) i + 0x1000;
+                SetupKey(keyCode);
+                break;
             }
         }
         return;
@@ -260,6 +265,16 @@ public class KeyViewer : Feature {
                    i == SelectedKey && textChanged == TextChanged))) return;
             SelectedKey = i;
             TextChanged = textChanged;
+        }
+
+        void SetupKey(KeyCode keyCode) {
+            if(SelectedKey < 16) keyCodes[SelectedKey] = keyCode;
+            else footKeyCodes[SelectedKey - 16] = keyCode;
+            Keys[SelectedKey].text.tmp.text = (SelectedKey < 16 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+            SelectedKey = -1;
+            WinAPICool = 0;
+            UpdateKeyLimit();
+            Main.Instance.SaveSetting();
         }
     }
 
