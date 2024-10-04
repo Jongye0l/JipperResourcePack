@@ -13,14 +13,14 @@ public class Key : MonoBehaviour {
     public AsyncText value;
     public GameObject rain;
     public bool isGreenColor;
-    public List<RawRain> rainList = new();
+    public List<RawRain> rainList = [];
     public ConcurrentQueue<RawRain> rawRainQueue = new();
 
     private void Update() {
         while(rawRainQueue.TryDequeue(out RawRain rawRain)) {
             Rain rainComponent = CreateRain(rawRain.transform);
             rainComponent.rawRain = rawRain;
-            rainComponent.image.color = isGreenColor ? Color.white : KeyViewer.RainColor;
+            rainComponent.image.color = isGreenColor ? KeyViewer.Settings.RainColorUnder : KeyViewer.Settings.RainColor;
             rainComponent.transform.SetSiblingIndex(isGreenColor ? 1 : 0);
         }
     }

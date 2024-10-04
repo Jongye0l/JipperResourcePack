@@ -30,10 +30,6 @@ public class Main {
         ResourceChanger.PlanetColor = new Color(0.62109375f, 0.7265625f, 1);
         ResourceChanger.TitleColor = new Color(0.5546875f, 0.86328125f, 0.96484375f);
         ResourceChanger.TileColor = new Color(0.88235295f, 0.9882353f, 1f);
-        KeyViewer keyViewer = new();
-        KeyViewer.Background = new Color(0.4392157f, 0.8f, 0.9372549f, 0.1960784f);
-        KeyViewer.Outline = new Color(0.243137255f, 0.4862745f, 1);
-        KeyViewer.RainColor = new Color(0.1254902f, 0.7176471f, 0.85882354f);
-        return [new Status(), new BPM(), new Combo(), new Judgement(), new TimingScale(), resourceChanger, keyViewer];
+        return [new Status(), new BPM(), new Combo(), new Judgement(), new TimingScale(), resourceChanger, new KeyViewer()];
     }
 }

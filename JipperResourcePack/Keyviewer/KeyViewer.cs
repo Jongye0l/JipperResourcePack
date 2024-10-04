@@ -24,9 +24,15 @@ namespace JipperResourcePack.Keyviewer;
 
 public class KeyViewer : Feature {
 
-    public static Color Background;
-    public static Color Outline;
-    public static Color RainColor;
+    public static KeyViewerSettings Settings;
+    public static readonly Color Background = new(0.5607843f, 0.2352941f, 1, 0.1960784f);
+    public static readonly Color BackgroundClicked = Color.white;
+    public static readonly Color Outline = new(0.5529412f, 0.2431373f, 1);
+    public static readonly Color OutlineClicked = Color.white;
+    public static readonly Color Text = Color.white;
+    public static readonly Color TextClicked = Color.black;
+    public static readonly Color RainColor = new(0.5137255f, 0.1254902f, 0.858823538f);
+    public static readonly Color RainColorUnder = Color.white;
     public GameObject KeyViewerObject;
     public Canvas Canvas;
     public Key[] Keys;
@@ -40,15 +46,14 @@ public class KeyViewer : Feature {
     private bool KeyShare;
     private bool KeyChangeExpanded;
     private bool TextChangeExpanded;
+    private bool ColorExpanded;
+    private Dictionary<int, ColorChangeCache> caches = new();
 
     public int SelectedKey = -1;
     public int WinAPICool;
     public bool TextChanged;
 
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSettings)) {
-        Background = new Color(0.5607843f, 0.2352941f, 1, 0.1960784f);
-        Outline = new Color(0.5529412f, 0.2431373f, 1);
-        RainColor = new Color(0.5137255f, 0.1254902f, 0.858823538f);
         if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
         AdofaiTweaksAPI.Setup();
@@ -65,7 +70,7 @@ public class KeyViewer : Feature {
         scaler.matchWidthOrHeight = 0.5f;
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
         Keys = new Key[24];
-        KeyViewerSettings settings = KeyViewerSettings.Settings;
+        KeyViewerSettings settings = Settings;
         switch(settings.KeyViewerStyle) {
             case KeyviewerStyle.Key12:
                 Initialize0KeyViewer();
@@ -123,7 +128,7 @@ public class KeyViewer : Feature {
     protected override void OnGUI() {
         SettingGUI settingGUI = Main.SettingGUI;
         JALocalization localization = Main.Instance.Localization;
-        KeyViewerSettings settings = KeyViewerSettings.Settings;
+        KeyViewerSettings settings = Settings;
         settingGUI.AddSettingToggle(ref KeyShare, localization["keyViewer.keyShare"]);
         settingGUI.AddSettingToggle(ref settings.DownLocation, localization["keyViewer.downLocation"], ResetKeyViewer);
         if(ADOBase.platform == Platform.Windows && (AdofaiTweaksAPI.IsExist || KeyboardChatterBlockerAPI.IsExist))
@@ -140,15 +145,20 @@ public class KeyViewer : Feature {
         };
         string[] keyTexts = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12Text : settings.key16Text;
         GUILayout.Space(12f);
-        GUIStyle style = new() {
+        GUIStyle toggleStyle = new() {
             fixedWidth = 10f,
             normal = new GUIStyleState { textColor = Color.white },
+            fontSize = 15,
             margin = new RectOffset(4, 2, 6, 6)
         };
-        KeyChangeExpanded = GUILayout.Toggle(KeyChangeExpanded, (KeyChangeExpanded ? "◢" : "▶") + localization["keyViewer.keyChange"], style);
+        GUILayout.BeginHorizontal();
+        KeyChangeExpanded = GUILayout.Toggle(KeyChangeExpanded, KeyChangeExpanded ? "◢" : "▶", toggleStyle);
+        if(GUILayout.Button(localization["keyViewer.keyChange"], GUI.skin.label)) KeyChangeExpanded = !KeyChangeExpanded;
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
         if(KeyChangeExpanded) {
             GUILayout.BeginHorizontal();
-            GUILayout.Space(24f);
+            GUILayout.Space(18f);
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
             for(int i = 0; i < 8; i++) CreateButton(i, false);
@@ -187,10 +197,14 @@ public class KeyViewer : Feature {
             GUILayout.EndHorizontal();
             GUILayout.Space(12f);
         }
-        TextChangeExpanded = GUILayout.Toggle(TextChangeExpanded, (TextChangeExpanded ? "◢" : "▶") + localization["keyViewer.textChange"], style);
+        GUILayout.BeginHorizontal();
+        TextChangeExpanded = GUILayout.Toggle(TextChangeExpanded, TextChangeExpanded ? "◢" : "▶", toggleStyle);
+        if(GUILayout.Button(localization["keyViewer.textChange"], GUI.skin.label)) TextChangeExpanded = !TextChangeExpanded;
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
         if(TextChangeExpanded) {
             GUILayout.BeginHorizontal();
-            GUILayout.Space(24f);
+            GUILayout.Space(18f);
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
             for(int i = 0; i < 8; i++) CreateButton(i, true);
@@ -240,6 +254,59 @@ public class KeyViewer : Feature {
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+            GUILayout.Space(12f);
+        }
+        GUILayout.BeginHorizontal();
+        ColorExpanded = GUILayout.Toggle(ColorExpanded, ColorExpanded ? "◢" : "▶", toggleStyle);
+        if(GUILayout.Button(localization["keyViewer.color"], GUI.skin.label)) ColorExpanded = !ColorExpanded;
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
+        if(ColorExpanded) {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(18f);
+            GUILayout.BeginVertical();
+            string[] names = [
+                "Background",
+                "BackgroundClicked",
+                "Outline",
+                "OutlineClicked",
+                "Text",
+                "TextClicked",
+                "RainColor",
+                "RainColorUnder"
+            ];
+            for(int i = 0; i < 8; i++) {
+                bool ep = caches.ContainsKey(i);
+                GUILayout.BeginHorizontal();
+                ep = GUILayout.Toggle(ep, ep ? "◢" : "▶", toggleStyle);
+                if(GUILayout.Button(localization["keyViewer.color." + char.ToLower(names[i][0]) + names[i][1..]], GUI.skin.label)) ep = !ep;
+                if(!ep && caches.ContainsKey(i)) caches.Remove(i);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                if(!ep) continue;
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(18f);
+                GUILayout.BeginVertical();
+                Color color = settings.GetValue<Color>(names[i]);
+                if(!caches.ContainsKey(i)) caches.Add(i, new ColorChangeCache(color));
+                ColorChangeCache cache = caches[i];
+                Color original = color;
+                cache.SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]), ref color);
+                if(color != original) {
+                    settings.SetValue(names[i], color);
+                    for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
+                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 16, CheckKey(footKeyCodes[i2]));
+                    Kps.background.color = Total.background.color = settings.Background;
+                    Kps.outline.color = Total.outline.color = settings.Outline;
+                    Kps.text.color = Kps.value.color = Total.text.color = Total.value.color = settings.Text;
+                    Main.Instance.SaveSetting();
+                }
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+                GUILayout.Space(12f);
             }
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
@@ -497,18 +564,19 @@ public class KeyViewer : Feature {
             KeyCode[] keyCode2;
             string[] keyText1;
             string[] keyText2;
-            switch(KeyViewerSettings.Settings.KeyViewerStyle) {
+            KeyViewerSettings settings = Settings;
+            switch(settings.KeyViewerStyle) {
                 case KeyviewerStyle.Key12:
-                    keyCode1 = KeyViewerSettings.Settings.key12;
-                    keyCode2 = KeyViewerSettings.Settings.key16;
-                    keyText1 = KeyViewerSettings.Settings.key12Text;
-                    keyText2 = KeyViewerSettings.Settings.key16Text;
+                    keyCode1 = settings.key12;
+                    keyCode2 = settings.key16;
+                    keyText1 = settings.key12Text;
+                    keyText2 = settings.key16Text;
                     break;
                 case KeyviewerStyle.Key16:
-                    keyCode1 = KeyViewerSettings.Settings.key16;
-                    keyCode2 = KeyViewerSettings.Settings.key12;
-                    keyText1 = KeyViewerSettings.Settings.key16Text;
-                    keyText2 = KeyViewerSettings.Settings.key12Text;
+                    keyCode1 = settings.key16;
+                    keyCode2 = settings.key12;
+                    keyText1 = settings.key16Text;
+                    keyText2 = settings.key12Text;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -530,7 +598,7 @@ public class KeyViewer : Feature {
         }
         Object.Destroy(Total.gameObject);
         Object.Destroy(Kps.gameObject);
-        switch(KeyViewerSettings.Settings.KeyViewerStyle) {
+        switch(Settings.KeyViewerStyle) {
             case KeyviewerStyle.Key12:
                 Initialize0KeyViewer();
                 break;
@@ -545,7 +613,7 @@ public class KeyViewer : Feature {
             Key key = Keys[i];
             if(key) Object.Destroy(key.gameObject);
         }
-        switch(KeyViewerSettings.Settings.FootKeyViewerStyle) {
+        switch(Settings.FootKeyViewerStyle) {
             case FootKeyviewerStyle.Key2:
                 Initialize0FootKeyViewer();
                 break;
@@ -575,16 +643,20 @@ public class KeyViewer : Feature {
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
 
+    private static bool CheckKey(KeyCode keyCode) {
+        return Application.isFocused && (int) keyCode < 0x1000 ? Input.GetKey(keyCode) : GetAsyncKeyState((int) keyCode - 0x1000) != 0;
+    }
+
     private void ListenKey() {
         try {
-            KeyViewerSettings settings = KeyViewerSettings.Settings;
+            KeyViewerSettings settings = Settings;
             bool[] keyState = new bool[24];
             int repeat = 0;
             while(KeyinputListener is { IsAlive: true } && Enabled) {
                 long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
                 KeyCode[] keyCodes = settings.KeyViewerStyle == 0 ? settings.key12 : settings.key16;
                 for(int i = 0; i < keyCodes.Length; i++) {
-                    bool current = Application.isFocused && (int) keyCodes[i] < 0x1000 ? Input.GetKey(keyCodes[i]) : GetAsyncKeyState((int) keyCodes[i] - 0x1000) != 0;
+                    bool current = CheckKey(keyCodes[i]);
                     Key key = Keys[i];
                     if(!key) continue;
                     for(int j = 0; j < key.rainList.Count; j++) {
@@ -646,14 +718,15 @@ public class KeyViewer : Feature {
 
     private void UpdateKey(int i, bool enabled) {
         Key key = Keys[i];
-        key.background.color = enabled ? Color.white : Background;
-        key.outline.color = enabled ? Color.white : Outline;
-        key.text.color = enabled ? Color.black : Color.white;
+        KeyViewerSettings settings = Settings;
+        key.background.color = enabled ? settings.BackgroundClicked : settings.Background;
+        key.outline.color = enabled ? settings.OutlineClicked : settings.Outline;
+        key.text.color = enabled ? settings.TextClicked : settings.Text;
         if(key.value) key.value.color = key.text.color;
     }
 
     private void Initialize0KeyViewer() {
-        int remove = KeyViewerSettings.Settings.DownLocation ? 200 : 0;
+        int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 279 - remove, 50, 0);
         Keys[8] = CreateKey(8, 81 + 54, 225 - remove, 77, 2);
         Keys[9] = CreateKey(9, 81, 225 - remove, 50, 2);
@@ -664,7 +737,7 @@ public class KeyViewer : Feature {
     }
 
     private void Initialize1KeyViewer() {
-        int remove = KeyViewerSettings.Settings.DownLocation ? 200 : 0;
+        int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 320 - remove, 50, 0);
         Keys[8] = CreateKey(8, 54 * 3, 266 - remove, 50, 1);
         Keys[8].rain = Keys[3].rain;
@@ -720,6 +793,7 @@ public class KeyViewer : Feature {
 
     private Key CreateKey(int i, float x, float y, float sizeX, int raining, bool slim = false, bool count = true) {
         GameObject obj = new("Key " + i);
+        KeyViewerSettings settings = Settings;
         RectTransform transform = obj.AddComponent<RectTransform>();
         transform.SetParent(KeyViewerObject.transform);
         transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
@@ -736,7 +810,7 @@ public class KeyViewer : Feature {
         transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
         transform.localScale = Vector3.one;
         Image image = gameObject.AddComponent<Image>();
-        image.color = Background;
+        image.color = settings.Background;
         image.sprite = BundleLoader.KeyBackground;
         image.type = Image.Type.Sliced;
         key.background = gameObject.AddComponent<AsyncImage>();
@@ -748,7 +822,7 @@ public class KeyViewer : Feature {
         transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
         transform.localScale = Vector3.one;
         image = gameObject.AddComponent<Image>();
-        image.color = Outline;
+        image.color = settings.Outline;
         image.sprite = BundleLoader.KeyOutline;
         image.type = Image.Type.Sliced;
         key.outline = gameObject.AddComponent<AsyncImage>();
@@ -771,6 +845,7 @@ public class KeyViewer : Feature {
         text.fontSizeMin = 0;
         text.fontSizeMax = 20;
         text.alignment = slim ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
+        text.color = settings.Text;
         key.text = gameObject.AddComponent<AsyncText>();
         if(count) {
             gameObject = new GameObject("CountText");
@@ -807,7 +882,7 @@ public class KeyViewer : Feature {
         return key;
     }
 
-    public void UpdateKeyText(Key key, int i) {
+    private static void UpdateKeyText(Key key, int i) {
         switch(i) {
             case -1:
                 key.text.tmp.text = "KPS";
@@ -815,22 +890,22 @@ public class KeyViewer : Feature {
                 return;
             case -2:
                 key.text.tmp.text = "Total";
-                key.value.tmp.text = KeyViewerSettings.Settings.TotalCount.ToString();
+                key.value.tmp.text = Settings.TotalCount.ToString();
                 return;
             default:
                 KeyCode[] keyCodes;
-                KeyViewerSettings Settings = KeyViewerSettings.Settings;
+                KeyViewerSettings settings = Settings;
                 if(i < 16) {
-                    keyCodes = Settings.KeyViewerStyle == 0 ? Settings.key12 : Settings.key16;
-                    string[] keyText = Settings.KeyViewerStyle == 0 ? Settings.key12Text : Settings.key16Text;
+                    keyCodes = settings.KeyViewerStyle == 0 ? settings.key12 : settings.key16;
+                    string[] keyText = settings.KeyViewerStyle == 0 ? settings.key12Text : settings.key16Text;
                     key.text.tmp.text = keyText[i] ?? KeyToString(keyCodes[i]);
-                    key.value.tmp.text = Settings.Count[i].ToString();
+                    key.value.tmp.text = settings.Count[i].ToString();
                 } else {
-                    keyCodes = Settings.FootKeyViewerStyle switch {
-                        FootKeyviewerStyle.Key2 => Settings.footkey2,
-                        FootKeyviewerStyle.Key6 => Settings.footkey6,
-                        FootKeyviewerStyle.Key8 => Settings.footkey8,
-                        _ => Settings.footkey4
+                    keyCodes = settings.FootKeyViewerStyle switch {
+                        FootKeyviewerStyle.Key2 => settings.footkey2,
+                        FootKeyviewerStyle.Key6 => settings.footkey6,
+                        FootKeyviewerStyle.Key8 => settings.footkey8,
+                        _ => settings.footkey4
                     };
                     key.text.tmp.text = KeyToString(keyCodes[i - 16]);
                 }
@@ -882,14 +957,15 @@ public class KeyViewer : Feature {
     }
 
     private static void UpdateKeyLimit() {
-        if(ADOBase.platform != Platform.Windows || !KeyViewerSettings.Settings.AutoSetupKeyLimit || !AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
+        KeyViewerSettings settings = Settings;
+        if(ADOBase.platform != Platform.Windows || !settings.AutoSetupKeyLimit || !AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
         Dictionary<KeyCode, List<int>> codeDictionary = GetKeyCodes();
-        KeyCode[] keyCodes = KeyViewerSettings.Settings.KeyViewerStyle == KeyviewerStyle.Key12 ? KeyViewerSettings.Settings.key12 : KeyViewerSettings.Settings.key16;
-        KeyCode[] footKeyCodes = KeyViewerSettings.Settings.FootKeyViewerStyle switch {
-            FootKeyviewerStyle.Key2 => KeyViewerSettings.Settings.footkey2,
-            FootKeyviewerStyle.Key4 => KeyViewerSettings.Settings.footkey4,
-            FootKeyviewerStyle.Key6 => KeyViewerSettings.Settings.footkey6,
-            FootKeyviewerStyle.Key8 => KeyViewerSettings.Settings.footkey8,
+        KeyCode[] keyCodes = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12 : settings.key16;
+        KeyCode[] footKeyCodes = settings.FootKeyViewerStyle switch {
+            FootKeyviewerStyle.Key2 => settings.footkey2,
+            FootKeyviewerStyle.Key4 => settings.footkey4,
+            FootKeyviewerStyle.Key6 => settings.footkey6,
+            FootKeyviewerStyle.Key8 => settings.footkey8,
             _ => []
         };
         HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
@@ -948,7 +1024,6 @@ public class KeyViewer : Feature {
     }
 
     public class KeyViewerSettings : JASetting {
-        public static KeyViewerSettings Settings;
         public KeyviewerStyle KeyViewerStyle = KeyviewerStyle.Key16;
         public FootKeyviewerStyle FootKeyViewerStyle = FootKeyviewerStyle.Key4;
         public KeyCode[] key12 = [
@@ -969,6 +1044,14 @@ public class KeyViewer : Feature {
         public int TotalCount;
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
+        public Color Background = KeyViewer.Background;
+        public Color BackgroundClicked = KeyViewer.BackgroundClicked;
+        public Color Outline = KeyViewer.Outline;
+        public Color OutlineClicked = KeyViewer.OutlineClicked;
+        public Color Text = KeyViewer.Text;
+        public Color TextClicked = KeyViewer.TextClicked;
+        public Color RainColor = KeyViewer.RainColor;
+        public Color RainColorUnder = KeyViewer.RainColorUnder;
 
         public KeyViewerSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;

@@ -513,6 +513,7 @@
         <Compile Include="Async\AsyncText.cs" />
         <Compile Include="BPM.cs" />
         <Compile Include="BundleLoader.cs" />
+        <Compile Include="ColorChangeCache.cs" />
         <Compile Include="Combo.cs" />
         <Compile Include="Jongyeol\BPM.cs" />
         <Compile Include="Jongyeol\Combo.cs" />
