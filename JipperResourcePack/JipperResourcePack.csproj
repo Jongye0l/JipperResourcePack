@@ -40,6 +40,9 @@
         <Reference Include="Accessibility">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Accessibility.dll</HintPath>
         </Reference>
+        <Reference Include="AdofaiTweaks">
+          <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\Mods\AdofaiTweaks\AdofaiTweaks.dll</HintPath>
+        </Reference>
         <Reference Include="Assembly-CSharp">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Assembly-CSharp.dll</HintPath>
         </Reference>
@@ -81,6 +84,9 @@
         </Reference>
         <Reference Include="JALib">
           <HintPath>..\..\JALib\JALib\obj\Debug\JALib.dll</HintPath>
+        </Reference>
+        <Reference Include="KeyboardChatterBlocker">
+          <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\Mods\KeyboardChatterBlocker\KeyboardChatterBlocker.dll</HintPath>
         </Reference>
         <Reference Include="Mono.Data.Sqlite">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Mono.Data.Sqlite.dll</HintPath>
@@ -518,6 +524,8 @@
         <Compile Include="Keyviewer\Key.cs" />
         <Compile Include="Keyviewer\KeyViewer.cs" />
         <Compile Include="Keyviewer\KeyviewerStyle.cs" />
+        <Compile Include="Keyviewer\OtherModApi\AdofaiTweaksAPI.cs" />
+        <Compile Include="Keyviewer\OtherModApi\KeyboardChatterBlockerAPI.cs" />
         <Compile Include="Keyviewer\Rain.cs" />
         <Compile Include="Keyviewer\RawRain.cs" />
         <Compile Include="Main.cs" />
@@ -526,6 +534,9 @@
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="ResourceChanger.cs" />
         <Compile Include="TimingScale.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Keyviewer\KeyCodes.json" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

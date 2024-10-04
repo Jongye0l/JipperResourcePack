@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using JALib.Core;
+using JALib.Core.Patch;
 using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Async;
+using JipperResourcePack.Keyviewer.OtherModApi;
 using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityModManagerNet;
+using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
 
 namespace JipperResourcePack.Keyviewer;
@@ -40,6 +47,10 @@ public class KeyViewer : Feature {
         Background = new Color(0.5607843f, 0.2352941f, 1, 0.1960784f);
         Outline = new Color(0.5529412f, 0.2431373f, 1);
         RainColor = new Color(0.5137255f, 0.1254902f, 0.858823538f);
+        if(ADOBase.platform != Platform.Windows) return;
+        Patcher.AddPatch(Load);
+        AdofaiTweaksAPI.Setup();
+        KeyboardChatterBlockerAPI.Setup();
     }
 
     protected override void OnEnable() {
@@ -81,6 +92,7 @@ public class KeyViewer : Feature {
         KeyinputListener = new Thread(ListenKey);
         KeyinputListener.Start();
         Application.wantsToQuit += Application_wantsToQuit;
+        UpdateKeyLimit();
     }
 
     private bool Application_wantsToQuit() {
@@ -112,6 +124,8 @@ public class KeyViewer : Feature {
         KeyViewerSettings settings = KeyViewerSettings.Settings;
         settingGUI.AddSettingToggle(ref KeyShare, localization["keyViewer.keyShare"]);
         settingGUI.AddSettingToggle(ref settings.DownLocation, localization["keyViewer.downLocation"], ResetKeyViewer);
+        if(ADOBase.platform == Platform.Windows && (AdofaiTweaksAPI.IsExist || KeyboardChatterBlockerAPI.IsExist))
+            settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
         KeyCode[] keyCodes = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12 : settings.key16;
@@ -220,6 +234,7 @@ public class KeyViewer : Feature {
                     Keys[SelectedKey].text.tmp.text = (SelectedKey < 16 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
                     SelectedKey = -1;
                     WinAPICool = 0;
+                    UpdateKeyLimit();
                     Main.Instance.SaveSetting();
                     break;
                 }
@@ -233,6 +248,7 @@ public class KeyViewer : Feature {
                     Keys[SelectedKey].text.tmp.text = (SelectedKey < 16 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
                     SelectedKey = -1;
                     WinAPICool = 0;
+                    UpdateKeyLimit();
                     Main.Instance.SaveSetting();
                 }
             }
@@ -252,184 +268,190 @@ public class KeyViewer : Feature {
         int code = (int) keyCode - 0x1000;
         switch(ADOBase.platform) {
             case Platform.Windows:
-                if(code is >= 0x7C and <= 0x87) return "F" + (code - 0x6F);
-                if(code is >= 0x92 and <= 0x96 or 0xE1 or 0xE3 or 0xE4 or >= 0xE9 and <= 0xF5) return "OEM" + code;
                 return code switch {
-                    0x15 => "RightAlt",
-                    0x16 => "IME ON",
-                    0x17 => "Junja",
-                    0x18 => "Final",
-                    0x19 => "RightControl",
-                    0x1A => "IME OFF",
-                    0x1C => "Convert",
-                    0x1D => "NonConvert",
-                    0x1E => "Accept",
-                    0x1F => "ModeChange",
-                    0xA6 => "BrowserBack",
-                    0xA7 => "BrowserForward",
-                    0xA8 => "BrowserRefresh",
-                    0xA9 => "BrowserStop",
-                    0xAA => "BrowserSearch",
-                    0xAB => "BrowserFavorites",
-                    0xAC => "BrowserHome",
-                    0xAD => "VolumeMute",
-                    0xAE => "VolumeDown",
-                    0xAF => "VolumeUp",
-                    0xB0 => "MediaNextTrack",
-                    0xB1 => "MediaPreviousTrack",
-                    0xB2 => "MediaStop",
-                    0xB3 => "MediaPlayPause",
-                    0xB4 => "LaunchMail",
-                    0xB5 => "SelectMedia",
-                    0xB6 => "LaunchApplication1",
-                    0xB7 => "LaunchApplication2",
-                    0xDF => "OME8",
-                    0xE2 => @"\\|",
-                    0xE5 => "Process",
-                    0xE7 => "Packet",
-                    0xF6 => "Attn",
-                    0xF7 => "CrSel",
-                    0xF8 => "ExSel",
-                    0xF9 => "EraseEOF",
-                    0xFA => "Play",
-                    0xFB => "Zoom",
-                    0xFC => "NoName",
-                    0xFD => "PA1",
-                    0xFE => "Clear",
-                    _ => "Key" + code
+                    >= 0x7C and <= 0x87 => "F" + (code - 0x6F),
+                    >= 0x92 and <= 0x96 or 0xE1 or 0xE3 or 0xE4 or >= 0xE9 and <= 0xF5 => "OEM" + code,
+                    _ => code switch {
+                        0x15 => "RightAlt",
+                        0x16 => "IME ON",
+                        0x17 => "Junja",
+                        0x18 => "Final",
+                        0x19 => "RightControl",
+                        0x1A => "IME OFF",
+                        0x1C => "Convert",
+                        0x1D => "NonConvert",
+                        0x1E => "Accept",
+                        0x1F => "ModeChange",
+                        0xA6 => "BrowserBack",
+                        0xA7 => "BrowserForward",
+                        0xA8 => "BrowserRefresh",
+                        0xA9 => "BrowserStop",
+                        0xAA => "BrowserSearch",
+                        0xAB => "BrowserFavorites",
+                        0xAC => "BrowserHome",
+                        0xAD => "VolumeMute",
+                        0xAE => "VolumeDown",
+                        0xAF => "VolumeUp",
+                        0xB0 => "MediaNextTrack",
+                        0xB1 => "MediaPreviousTrack",
+                        0xB2 => "MediaStop",
+                        0xB3 => "MediaPlayPause",
+                        0xB4 => "LaunchMail",
+                        0xB5 => "SelectMedia",
+                        0xB6 => "LaunchApplication1",
+                        0xB7 => "LaunchApplication2",
+                        0xC1 => @"-\ろ",
+                        0xDF => "OME8",
+                        0xE2 => @"\\|",
+                        0xE5 => "Process",
+                        0xE7 => "Packet",
+                        0xEB => "変換",
+                        0xF6 => "Attn",
+                        0xF7 => "CrSel",
+                        0xF8 => "ExSel",
+                        0xF9 => "EraseEOF",
+                        0xFA => "Play",
+                        0xFB => "Zoom",
+                        0xFC => "NoName",
+                        0xFD => "PA1",
+                        0xFE => "Clear",
+                        _ => "Key" + code
+                    }
                 };
             case Platform.Linux:
-                if(code is >= 0xB7 and <= 0xC2) return "F" + (code - 0xAA);
-                if(code is 0x54 or >= 0xC3 and <= 0xC7 or >= 0xF7 and <= 0xFF) return "unnamed" + code;
                 return code switch {
-                    0x00 => "Reserved",
-                    0x55 => "Zenkakuhankaku",
-                    0x56 => "102ND",
-                    0x59 => "RO",
-                    0x5A => "Katakana",
-                    0x5B => "Hiragana",
-                    0x5C => "Henkan",
-                    0x5D => "KatakanaHiragana",
-                    0x5E => "Muhenkan",
-                    0x5F => "Comma",
-                    0x60 => "Enter",
-                    0x61 => "RightControl",
-                    0x62 => "Slash",
-                    0x63 => "SysRq",
-                    0x64 => "RightAlt",
-                    0x65 => "LineFeed",
-                    0x70 => "Macro",
-                    0x71 => "Mute",
-                    0x72 => "VolumeDown",
-                    0x73 => "VolumeUp",
-                    0x74 => "Power",
-                    0x75 => "Equal",
-                    0x76 => "PlusMinus",
-                    0x79 => "Pause",
-                    0x7A => "RightAlt",
-                    0x7B => "RightControl",
-                    0x7C => "Yen",
-                    0x7F => "Compose",
-                    0x80 => "Stop",
-                    0x81 => "Again",
-                    0x82 => "Props",
-                    0x83 => "Undo",
-                    0x84 => "Front",
-                    0x85 => "Copy",
-                    0x86 => "Open",
-                    0x87 => "Paste",
-                    0x88 => "Find",
-                    0x89 => "Cut",
-                    0x8A => "Help",
-                    0x8B => "Menu",
-                    0x8C => "Calc",
-                    0x8D => "Setup",
-                    0x8E => "Sleep",
-                    0x8F => "WakeUp",
-                    0x90 => "File",
-                    0x91 => "SendFile",
-                    0x92 => "DeleteFile",
-                    0x93 => "Xfer",
-                    0x94 => "Prog1",
-                    0x95 => "Prog2",
-                    0x96 => "WWW",
-                    0x97 => "MSDOS",
-                    0x99 => "Direction",
-                    0x9A => "CycleWindows",
-                    0x9B => "Mail",
-                    0x9C => "Bookmarks",
-                    0x9D => "Computer",
-                    0x9E => "Back",
-                    0x9F => "Forward",
-                    0xA0 => "CloseCD",
-                    0xA1 => "EjectCD",
-                    0xA2 => "EjectCloseCD",
-                    0xA3 => "NextSong",
-                    0xA4 => "PlayPause",
-                    0xA5 => "PreviousSong",
-                    0xA6 => "StopCD",
-                    0xA7 => "Record",
-                    0xA8 => "Rewind",
-                    0xA9 => "Phone",
-                    0xAA => "ISO",
-                    0xAB => "Config",
-                    0xAC => "HomePage",
-                    0xAD => "Refresh",
-                    0xAE => "Exit",
-                    0xAF => "Move",
-                    0xB0 => "Edit",
-                    0xB3 => "LeftParen",
-                    0xB4 => "RightParen",
-                    0xB5 => "New",
-                    0xB6 => "Redo",
-                    0xC8 => "PlayCD",
-                    0xC9 => "PauseCD",
-                    0xCA => "Prog3",
-                    0xCB => "Prog4",
-                    0xCC => "Dashboard",
-                    0xCD => "Suspend",
-                    0xCE => "Close",
-                    0xCF => "Play",
-                    0xD0 => "FastForward",
-                    0xD1 => "BassBoost",
-                    0xD2 => "Print",
-                    0xD3 => "HP",
-                    0xD4 => "Camera",
-                    0xD5 => "Sound",
-                    0xD6 => "Question",
-                    0xD7 => "Email",
-                    0xD8 => "Chat",
-                    0xD9 => "Search",
-                    0xDA => "Connect",
-                    0xDB => "Finance",
-                    0xDC => "Sport",
-                    0xDD => "Shop",
-                    0xDE => "AltErase",
-                    0xDF => "Cancel",
-                    0xE0 => "BrightnessDown",
-                    0xE1 => "BrightnessUp",
-                    0xE2 => "Media",
-                    0xE3 => "SwitchVideoMode",
-                    0xE4 => "KbdIllumToggle",
-                    0xE5 => "KbdIllumDown",
-                    0xE6 => "KbdIllumUp",
-                    0xE7 => "Send",
-                    0xE8 => "Reply",
-                    0xE9 => "ForwardMail",
-                    0xEA => "Save",
-                    0xEB => "Documents",
-                    0xEC => "Battery",
-                    0xED => "Bluetooth",
-                    0xEE => "WLAN",
-                    0xEF => "UWB",
-                    0xF0 => "Unknown",
-                    0xF1 => "VideoNext",
-                    0xF2 => "VideoPrev",
-                    0xF3 => "BrightnessCycle",
-                    0xF4 => "BrightnessZero",
-                    0xF5 => "DisplayOff",
-                    0xF6 => "Wimax",
-                    _ => "Key" + code
+                    >= 0xB7 and <= 0xC2 => "F" + (code - 0xAA),
+                    0x54 or >= 0xC3 and <= 0xC7 or >= 0xF7 and <= 0xFF => "unnamed" + code,
+                    _ => code switch {
+                        0x00 => "Reserved",
+                        0x55 => "Zenkakuhankaku",
+                        0x56 => "102ND",
+                        0x59 => "RO",
+                        0x5A => "Katakana",
+                        0x5B => "Hiragana",
+                        0x5C => "Henkan",
+                        0x5D => "KatakanaHiragana",
+                        0x5E => "Muhenkan",
+                        0x5F => "Comma",
+                        0x60 => "Enter",
+                        0x61 => "RightControl",
+                        0x62 => "Slash",
+                        0x63 => "SysRq",
+                        0x64 => "RightAlt",
+                        0x65 => "LineFeed",
+                        0x70 => "Macro",
+                        0x71 => "Mute",
+                        0x72 => "VolumeDown",
+                        0x73 => "VolumeUp",
+                        0x74 => "Power",
+                        0x75 => "Equal",
+                        0x76 => "PlusMinus",
+                        0x79 => "Pause",
+                        0x7A => "RightAlt",
+                        0x7B => "RightControl",
+                        0x7C => "Yen",
+                        0x7F => "Compose",
+                        0x80 => "Stop",
+                        0x81 => "Again",
+                        0x82 => "Props",
+                        0x83 => "Undo",
+                        0x84 => "Front",
+                        0x85 => "Copy",
+                        0x86 => "Open",
+                        0x87 => "Paste",
+                        0x88 => "Find",
+                        0x89 => "Cut",
+                        0x8A => "Help",
+                        0x8B => "Menu",
+                        0x8C => "Calc",
+                        0x8D => "Setup",
+                        0x8E => "Sleep",
+                        0x8F => "WakeUp",
+                        0x90 => "File",
+                        0x91 => "SendFile",
+                        0x92 => "DeleteFile",
+                        0x93 => "Xfer",
+                        0x94 => "Prog1",
+                        0x95 => "Prog2",
+                        0x96 => "WWW",
+                        0x97 => "MSDOS",
+                        0x99 => "Direction",
+                        0x9A => "CycleWindows",
+                        0x9B => "Mail",
+                        0x9C => "Bookmarks",
+                        0x9D => "Computer",
+                        0x9E => "Back",
+                        0x9F => "Forward",
+                        0xA0 => "CloseCD",
+                        0xA1 => "EjectCD",
+                        0xA2 => "EjectCloseCD",
+                        0xA3 => "NextSong",
+                        0xA4 => "PlayPause",
+                        0xA5 => "PreviousSong",
+                        0xA6 => "StopCD",
+                        0xA7 => "Record",
+                        0xA8 => "Rewind",
+                        0xA9 => "Phone",
+                        0xAA => "ISO",
+                        0xAB => "Config",
+                        0xAC => "HomePage",
+                        0xAD => "Refresh",
+                        0xAE => "Exit",
+                        0xAF => "Move",
+                        0xB0 => "Edit",
+                        0xB3 => "LeftParen",
+                        0xB4 => "RightParen",
+                        0xB5 => "New",
+                        0xB6 => "Redo",
+                        0xC8 => "PlayCD",
+                        0xC9 => "PauseCD",
+                        0xCA => "Prog3",
+                        0xCB => "Prog4",
+                        0xCC => "Dashboard",
+                        0xCD => "Suspend",
+                        0xCE => "Close",
+                        0xCF => "Play",
+                        0xD0 => "FastForward",
+                        0xD1 => "BassBoost",
+                        0xD2 => "Print",
+                        0xD3 => "HP",
+                        0xD4 => "Camera",
+                        0xD5 => "Sound",
+                        0xD6 => "Question",
+                        0xD7 => "Email",
+                        0xD8 => "Chat",
+                        0xD9 => "Search",
+                        0xDA => "Connect",
+                        0xDB => "Finance",
+                        0xDC => "Sport",
+                        0xDD => "Shop",
+                        0xDE => "AltErase",
+                        0xDF => "Cancel",
+                        0xE0 => "BrightnessDown",
+                        0xE1 => "BrightnessUp",
+                        0xE2 => "Media",
+                        0xE3 => "SwitchVideoMode",
+                        0xE4 => "KbdIllumToggle",
+                        0xE5 => "KbdIllumDown",
+                        0xE6 => "KbdIllumUp",
+                        0xE7 => "Send",
+                        0xE8 => "Reply",
+                        0xE9 => "ForwardMail",
+                        0xEA => "Save",
+                        0xEB => "Documents",
+                        0xEC => "Battery",
+                        0xED => "Bluetooth",
+                        0xEE => "WLAN",
+                        0xEF => "UWB",
+                        0xF0 => "Unknown",
+                        0xF1 => "VideoNext",
+                        0xF2 => "VideoPrev",
+                        0xF3 => "BrightnessCycle",
+                        0xF4 => "BrightnessZero",
+                        0xF5 => "DisplayOff",
+                        0xF6 => "Wimax",
+                        _ => "Key" + code
+                    }
                 };
             case Platform.Mac:
                 return code switch {
@@ -442,7 +464,6 @@ public class KeyViewer : Feature {
                     80 => "F19",
                     90 => "F20",
                     63 => "fn",
-                    71 => "Clear",
                     261 => "Option",
                     55 => "Super",
                     _ => "Key" + code
@@ -842,6 +863,72 @@ public class KeyViewer : Feature {
         };
     }
 
+    private static void UpdateKeyLimit() {
+        if(ADOBase.platform != Platform.Windows || !KeyViewerSettings.Settings.AutoSetupKeyLimit || !AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
+        Dictionary<KeyCode, List<int>> codeDictionary = GetKeyCodes();
+        KeyCode[] keyCodes = KeyViewerSettings.Settings.KeyViewerStyle == KeyviewerStyle.Key12 ? KeyViewerSettings.Settings.key12 : KeyViewerSettings.Settings.key16;
+        KeyCode[] footKeyCodes = KeyViewerSettings.Settings.FootKeyViewerStyle switch {
+            FootKeyviewerStyle.Key2 => KeyViewerSettings.Settings.footkey2,
+            FootKeyviewerStyle.Key4 => KeyViewerSettings.Settings.footkey4,
+            FootKeyviewerStyle.Key6 => KeyViewerSettings.Settings.footkey6,
+            FootKeyviewerStyle.Key8 => KeyViewerSettings.Settings.footkey8,
+            _ => []
+        };
+        HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
+        foreach(KeyCode keyCode in footKeyCodes) if((int) keyCode < 0x1000) keys.Add(keyCode);
+        HashSet<ushort> asyncKeys = [];
+        foreach(KeyCode code in keyCodes) {
+            if((int) code < 0x1000) {
+                if(!codeDictionary.TryGetValue(code, out List<int> value)) continue;
+                foreach(int i in value) asyncKeys.Add((ushort) i);
+            } else asyncKeys.Add((ushort) ((int) code - 0x1000));
+        }
+        foreach(KeyCode code in footKeyCodes) {
+            if((int) code < 0x1000) {
+                if(!codeDictionary.TryGetValue(code, out List<int> value)) continue;
+                foreach(int i in value) asyncKeys.Add((ushort) i);
+            } else asyncKeys.Add((ushort) ((int) code - 0x1000));
+        }
+        List<KeyCode> keyList = keys.ToList();
+        List<ushort> asyncKeyList = asyncKeys.ToList();
+        if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
+        if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
+    }
+
+    private static Dictionary<KeyCode, List<int>> GetKeyCodes() {
+        JArray array = JArray.Parse(File.ReadAllText(Path.Combine(Main.Instance.Path, "KeyCodes.json")));
+        Dictionary<KeyCode, List<int>> dictionary = new();
+        int i = -1;
+        KeyCode lastCode = KeyCode.None;
+        foreach(KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
+            if(i == -1) {
+                i++;
+                continue;
+            }
+            if(keyCode > KeyCode.Mouse6) break;
+            if(lastCode == keyCode) continue;
+            lastCode = keyCode;
+            JToken token = array[i++];
+            if(token.Type == JTokenType.Array) {
+                List<int> list = [];
+                list.AddRange(token.Select(t => t.Value<int>()));
+                dictionary.Add(keyCode, list);
+            } else {
+                int value = token.Value<int>();
+                if(value == -1) continue;
+                dictionary.Add(keyCode, [value]);
+            }
+        }
+        return dictionary;
+    }
+
+    [JAPatch(typeof(UnityModManager.ModEntry), "Load", PatchType.Postfix, false, TryingCatch = false)]
+    private static void Load() {
+        AdofaiTweaksAPI.Setup();
+        KeyboardChatterBlockerAPI.Setup();
+        UpdateKeyLimit();
+    }
+
     public class KeyViewerSettings : JASetting {
         public static KeyViewerSettings Settings;
         public KeyviewerStyle KeyViewerStyle = KeyviewerStyle.Key16;
@@ -863,6 +950,7 @@ public class KeyViewer : Feature {
         public int[] Count = new int[24];
         public int TotalCount;
         public bool DownLocation;
+        public bool AutoSetupKeyLimit = true;
 
         public KeyViewerSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;
