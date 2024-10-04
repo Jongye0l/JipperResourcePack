@@ -140,12 +140,16 @@ public class KeyViewer : Feature {
         };
         string[] keyTexts = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12Text : settings.key16Text;
         GUILayout.Space(12f);
-        KeyChangeExpanded = GUILayout.Toggle(KeyChangeExpanded, (KeyChangeExpanded ? "◢" : "▶") + localization["keyViewer.keyChange"]);
+        GUIStyle style = new() {
+            fixedWidth = 10f,
+            normal = new GUIStyleState { textColor = Color.white },
+            margin = new RectOffset(4, 2, 6, 6)
+        };
+        KeyChangeExpanded = GUILayout.Toggle(KeyChangeExpanded, (KeyChangeExpanded ? "◢" : "▶") + localization["keyViewer.keyChange"], style);
         if(KeyChangeExpanded) {
             GUILayout.BeginHorizontal();
             GUILayout.Space(24f);
             GUILayout.BeginVertical();
-            GUILayout.Label(localization["keyViewer.keyChange"]);
             GUILayout.BeginHorizontal();
             for(int i = 0; i < 8; i++) CreateButton(i, false);
             GUILayout.FlexibleSpace();
@@ -183,12 +187,11 @@ public class KeyViewer : Feature {
             GUILayout.EndHorizontal();
             GUILayout.Space(12f);
         }
-        TextChangeExpanded = GUILayout.Toggle(TextChangeExpanded, (TextChangeExpanded ? "◢" : "▶") + localization["keyViewer.textChange"]);
+        TextChangeExpanded = GUILayout.Toggle(TextChangeExpanded, (TextChangeExpanded ? "◢" : "▶") + localization["keyViewer.textChange"], style);
         if(TextChangeExpanded) {
             GUILayout.BeginHorizontal();
             GUILayout.Space(24f);
             GUILayout.BeginVertical();
-            GUILayout.Label(localization["keyViewer.textChange"]);
             GUILayout.BeginHorizontal();
             for(int i = 0; i < 8; i++) CreateButton(i, true);
             GUILayout.FlexibleSpace();
