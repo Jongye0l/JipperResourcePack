@@ -678,7 +678,7 @@ public class KeyViewer : Feature {
                     _ => []
                 };
                 for(int i = 0; i < keyCodes.Length; i++) {
-                    bool current = Input.GetKey(keyCodes[i]);
+                    bool current = CheckKey(keyCodes[i]);
                     Key key = Keys[i + 16];
                     if(!key || current == keyState[i + 16]) continue;
                     keyState[i + 16] = current;
