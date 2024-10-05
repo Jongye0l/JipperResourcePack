@@ -21,6 +21,8 @@ public class KeyboardChatterBlockerAPI {
             Main.Instance.Log("KeyboardChatterBlockerAPI is loaded.");
         } catch (FileNotFoundException) {
             Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
+        } catch (TypeLoadException) {
+            Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
         } catch (Exception e) {
             Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
             Main.Instance.LogException(e);
