@@ -12,6 +12,7 @@ using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Async;
 using JipperResourcePack.Keyviewer.OtherModApi;
+using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
@@ -46,8 +47,7 @@ public class KeyViewer : Feature {
     private bool KeyShare;
     private bool KeyChangeExpanded;
     private bool TextChangeExpanded;
-    private bool ColorExpanded;
-    private Dictionary<int, ColorChangeCache> caches = new();
+    private bool[] ColorExpanded;
 
     public int SelectedKey = -1;
     public int WinAPICool;
@@ -260,11 +260,11 @@ public class KeyViewer : Feature {
             GUILayout.Space(12f);
         }
         GUILayout.BeginHorizontal();
-        ColorExpanded = GUILayout.Toggle(ColorExpanded, ColorExpanded ? "◢" : "▶", toggleStyle);
-        if(GUILayout.Button(localization["keyViewer.color"], GUI.skin.label)) ColorExpanded = !ColorExpanded;
+        ColorExpanded = GUILayout.Toggle(ColorExpanded != null, ColorExpanded != null ? "◢" : "▶", toggleStyle) ? new bool[8] : null;
+        if(GUILayout.Button(localization["keyViewer.color"], GUI.skin.label)) ColorExpanded = ColorExpanded == null ? new bool[8] : null;
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
-        if(ColorExpanded) {
+        if(ColorExpanded != null) {
             GUILayout.BeginHorizontal();
             GUILayout.Space(18f);
             GUILayout.BeginVertical();
@@ -279,24 +279,16 @@ public class KeyViewer : Feature {
                 "RainColorUnder"
             ];
             for(int i = 0; i < 8; i++) {
-                bool ep = caches.ContainsKey(i);
                 GUILayout.BeginHorizontal();
-                ep = GUILayout.Toggle(ep, ep ? "◢" : "▶", toggleStyle);
-                if(GUILayout.Button(localization["keyViewer.color." + char.ToLower(names[i][0]) + names[i][1..]], GUI.skin.label)) ep = !ep;
-                if(!ep && caches.ContainsKey(i)) caches.Remove(i);
+                ColorExpanded[i] = GUILayout.Toggle(ColorExpanded[i], ColorExpanded[i] ? "◢" : "▶", toggleStyle);
+                if(GUILayout.Button(localization["keyViewer.color." + char.ToLower(names[i][0]) + names[i][1..]], GUI.skin.label)) ColorExpanded[i] = !ColorExpanded[i];
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
-                if(!ep) continue;
+                if(!ColorExpanded[i]) continue;
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
-                Color color = settings.GetValue<Color>(names[i]);
-                if(!caches.ContainsKey(i)) caches.Add(i, new ColorChangeCache(color));
-                ColorChangeCache cache = caches[i];
-                Color original = color;
-                cache.SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]), ref color);
-                if(color != original) {
-                    settings.SetValue(names[i], color);
+                if(settings.GetValue<ColorChangeCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
                     for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
                     if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 16, CheckKey(footKeyCodes[i2]));
                     Kps.background.color = Total.background.color = settings.Background;
@@ -1044,14 +1036,14 @@ public class KeyViewer : Feature {
         public int TotalCount;
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
-        public Color Background = KeyViewer.Background;
-        public Color BackgroundClicked = KeyViewer.BackgroundClicked;
-        public Color Outline = KeyViewer.Outline;
-        public Color OutlineClicked = KeyViewer.OutlineClicked;
-        public Color Text = KeyViewer.Text;
-        public Color TextClicked = KeyViewer.TextClicked;
-        public Color RainColor = KeyViewer.RainColor;
-        public Color RainColorUnder = KeyViewer.RainColorUnder;
+        public ColorChangeCache Background = new(KeyViewer.Background);
+        public ColorChangeCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
+        public ColorChangeCache Outline = new(KeyViewer.Outline);
+        public ColorChangeCache OutlineClicked = new(KeyViewer.OutlineClicked);
+        public ColorChangeCache Text = new(KeyViewer.Text);
+        public ColorChangeCache TextClicked = new(KeyViewer.TextClicked);
+        public ColorChangeCache RainColor = new(KeyViewer.RainColor);
+        public ColorChangeCache RainColorUnder = new(KeyViewer.RainColorUnder);
 
         public KeyViewerSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;
