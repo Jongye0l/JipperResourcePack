@@ -216,9 +216,9 @@ public class Overlay {
         material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
         material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
         material.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, 0.5f));
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.2f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.2f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.0f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.8f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.8f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.3f);
         material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.2f);
         text.fontSharedMaterial = material;
     }
@@ -230,11 +230,11 @@ public class Overlay {
         material.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
         material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
         material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
-        material.SetColor(ShaderUtilities.ID_UnderlayColor, Color.black);
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.7f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.7f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.0f);
-        material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.7f);
+        material.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, 0.7f));
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 1f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1f);
+        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0f);
+        material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
         text.fontSharedMaterial = material;
     }
 
