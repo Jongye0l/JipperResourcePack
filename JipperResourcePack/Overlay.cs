@@ -337,11 +337,9 @@ public class Overlay {
         }
     }
 
-    protected virtual Color UpdateComboColor(int combo) {
-        // R: 223 - 183 = 40, 40 / 1000 = 0.04, 223 / 255 = 0.8745098039215686, 0.04 / 255 = 0.0001568627450980392
-        // G: 181 - 89 = 92, 92 / 1000 = 0.092, 181 / 255 = 0.7098039215686275, 0.092 / 255 = 0.0003607843137254902
-        if(combo > 1000) combo = 1000;
-        return new Color(0.8745098039215686f - 0.0001568627450980392f * combo, 0.7098039215686275f - 0.0003607843137254902f * combo, 1);
+    public virtual Color UpdateComboColor(int combo) {
+        if(combo > Combo.Settings.ComboColorMax) combo = Combo.Settings.ComboColorMax;
+        return Combo.Settings.ComboColor.GetColor((float) combo / Combo.Settings.ComboColorMax);
     }
 
     public void UpdateComboSize() {

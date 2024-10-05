@@ -131,7 +131,7 @@ public class JOverlay : Overlay {
         float GetMaptime() => (float) (conductor.songposition_minusi - conductor.addoffset);
     }
 
-    protected override Color UpdateComboColor(int combo) {
+    public override Color UpdateComboColor(int combo) {
         if(purePerfect) CheckPurePerfect();
         if(purePerfect) return PurePerfectColor;
         float value = (float) combo / (scrController.instance.currentSeqID - startTile + hit[0] + hit[6] + 1) * 2;
