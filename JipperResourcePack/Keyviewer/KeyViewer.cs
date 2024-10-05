@@ -286,11 +286,7 @@ public class KeyViewer : Feature {
                 if(GUILayout.Button(localization["keyViewer.color." + char.ToLower(names[i][0]) + names[i][1..]], GUI.skin.label)) ColorExpanded[i] = !ColorExpanded[i];
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
-                if(changed != ColorExpanded[i]) {
-                    Main.Instance.Log("changed != ColorExpanded[i] : " + ColorExpanded[i]);
-                }
                 if(!ColorExpanded[i]) continue;
-                Main.Instance.Log("ColorExpanded[i] is true");
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
