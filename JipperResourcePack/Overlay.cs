@@ -368,14 +368,15 @@ public class Overlay {
         float cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
         if(lastTileBPM == bpm && lastCurBPM == cbpm) return;
-        BPMText.text = $"<color=white>TBPM | <color=#FF{(int) (0xFF - Math.Min(bpm / 31.25f, 0xFF)):X2}FF>{Math.Round(bpm, 2)}</color>\n" +
+        BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(BPM.Settings.BpmColor.GetColor(bpm / BPM.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
                        $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
                        $"<color=white>KPS |</color> {Math.Round(kps, 2)}";
-        if(lastCurBPM != cbpm) BPMText.color = new Color(1, 1 - Math.Min(cbpm / 8000, 1), 1);
+        if(lastCurBPM != cbpm) BPMText.color = BPM.Settings.BpmColor.GetColor(cbpm / BPM.Settings.BpmColorMax);
         lastTileBPM = bpm;
         lastCurBPM = cbpm;
     }
-    
+
+    protected static string ColorToHex(Color color) => $"{Mathf.RoundToInt(color.r * 255):X2}{Mathf.RoundToInt(color.g * 255):X2}{Mathf.RoundToInt(color.b * 255):X2}{(color.a == 1 ? "" : Mathf.RoundToInt(color.a * 255).ToString("X2"))}";
 
     public void UpdateTimingScale() {
         if(!GameObject.activeSelf) return;

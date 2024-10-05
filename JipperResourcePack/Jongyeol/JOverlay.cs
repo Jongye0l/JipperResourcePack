@@ -231,10 +231,10 @@ public class JOverlay : Overlay {
         float kps = cbpm / 60;
         if(isPesudo) kps *= count;
         if(lastTileBPM == bpm && lastCurBPM == cbpm && lastCurKPS == kps) return;
-        BPMText.text = $"<color=white>TBPM | <color=#{ColorToString(GetColorBPM(bpm))}>{Math.Round(bpm, 2)}</color>\n" +
+        BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(BPM.Settings.BpmColor.GetColor(bpm / BPM.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
                        $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
-                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToString(GetColorBPM(cbpm * count))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
-        if(lastCurBPM != cbpm) BPMText.color = GetColorBPM(cbpm);
+                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(BPM.Settings.BpmColor.GetColor(cbpm * count / BPM.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
+        if(lastCurBPM != cbpm) BPMText.color = BPM.Settings.BpmColor.GetColor(cbpm / BPM.Settings.BpmColorMax);
         lastTileBPM = bpm;
         lastCurBPM = cbpm;
         lastCurKPS = kps;
@@ -244,21 +244,6 @@ public class JOverlay : Overlay {
         if(perToCom) return;
         ComboTitle.text = "Combo";
         perToCom = true;
-    }
-
-    private Color GetColorBPM(float value) {
-        return value < 400f   ? new Color(0.37254901960784315f, 1, 0.3058823529411765f) :
-               value < 1600f  ? new Color(0.37254901960784315f + (value - 400f) / 1200f * 0.6156862745098039f, 1, 0.3058823529411765f - (value - 400f) / 1200f * 0.3058823529411765f) :
-               value < 6000f  ? new Color(0.9882352941176471f + (value - 1600f) / 4400f * 0.0117647058823529f, 1 - (value - 1600f) / 4400f * 0.11372549019607843f, 0.3019607843137255f) :
-               value < 12000f ? new Color(1, 0.4352941176470588f - (value - 6000f) / 8000f * 0.4352941176470588f, 0.3019607843137255f - (value - 6000f) / 8000f * 0.3019607843137255f) :
-                                new Color(1, 0, 0);
-    }
-
-    private static string ColorToString(Color color) {
-        int r = (int) (color.r * 255);
-        int g = (int) (color.g * 255);
-        int b = (int) (color.b * 255);
-        return $"{r:X2}{g:X2}{b:X2}";
     }
 
     private bool CheckPseudo(scrFloor curFloor, float bpm, out float cbpm, out int count) {
