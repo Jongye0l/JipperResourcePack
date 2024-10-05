@@ -293,7 +293,7 @@ public class Overlay {
                 else if(time == 0 && songPlaying) time = totalTime;
                 TimeSpan now = TimeSpan.FromSeconds(time);
                 TimeSpan length = TimeSpan.FromSeconds(totalTime);
-                TimeText.text = $@"음악 시간 | {now:m\:ss}~{length:m\:ss}";
+                TimeText.text = $@"<color=white>음악 시간 |</color> {now:m\:ss}~{length:m\:ss}";
                 lastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
@@ -309,7 +309,7 @@ public class Overlay {
                (!requireMusicToMap || lastTime == (int) time)) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            string text = $@"맵 시간 | {now:m\:ss}~{length:m\:ss}";
+            string text = $@"<color=white>맵 시간 |</color> {now:m\:ss}~{length:m\:ss}";
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 lastMapTime = (int) time;
