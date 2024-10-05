@@ -25,7 +25,7 @@ public class Overlay {
     public TextMeshProUGUI BPMText;
     public TextMeshProUGUI JudgementText;
     public TextMeshProUGUI TimingScaleText;
-    public RectTransform LineTransform;
+    public ProgressBar ProgressBar;
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
     public float Progress;
     public int[] hit = scrMistakesManager.hitMarginsCount;
@@ -189,7 +189,7 @@ public class Overlay {
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
         transform.anchoredPosition = new Vector2(0, -10);
         transform.sizeDelta = new Vector2(642, 18);
-        LineTransform = gameObject.transform.Find("line").gameObject.GetComponent<RectTransform>();
+        ProgressBar = gameObject.AddComponent<ProgressBar>();
         Status.ProgressBarObject = gameObject;
     }
 
@@ -240,18 +240,17 @@ public class Overlay {
 
     public virtual void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
+        float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
+        xacc.SetIfNaN(1);
         if(Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
-            float maxAcc = 1 + (scrController.instance.currentSeqID - startTile) * 0.0001f;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - startTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
-            AccuracyText.color = scrController.instance.mistakesManager == null || scrController.instance.mistakesManager.percentXAcc == 1 ? PurePerfectColor :
-                                     new Color(1, Math.Max((acc - maxAcc) * 0.98f, 0) * 50, 1);
+            AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
         if(Status.Settings.ShowXAccuracy) {
-            float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
-            if(float.IsNaN(xacc)) xacc = 1;
             XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, 2)}%";
-            XAccuracyText.color = xacc == 1 ? PurePerfectColor : new Color(1, Math.Max(xacc - 0.98f, 0) * 50, 1);
+            XAccuracyText.color = Status.Settings.XAccuracyColor.GetColor(xacc);
         }
     }
     
@@ -259,14 +258,19 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         Progress = scrController.instance.percentComplete;
         if(Status.Settings.ShowProgress) UpdateProgressText();
-        if(Status.Settings.ShowProgressBar) LineTransform.SizeDeltaX(Progress * 638);
+        if(Status.Settings.ShowProgressBar) UpdateProgressBar();
     }
 
-    protected virtual void UpdateProgressText() {
+    public void UpdateProgressBar() {
+        ProgressBar.LineTransform.SizeDeltaX(Progress * 638);
+        ProgressBar.BackgroundImage.color = Status.Settings.ProgressBarBackgroundColor.GetColor(Progress);
+        ProgressBar.LineImage.color = Status.Settings.ProgressBarColor.GetColor(Progress);
+        ProgressBar.BorderImage.color = Status.Settings.ProgressBarBorderColor.GetColor(Progress);
+    }
+
+    public virtual void UpdateProgressText() {
         ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, 2)}%";
-        // R: 255 - 223 = 32, 32 / 255 = 0.12549019607843137
-        // G: 255 - 181 = 74, 74 / 255 = 0.29019607843137255
-        ProgressText.color = new Color(1 - Progress * 0.12549019607843137f,1 - Progress * 0.29019607843137255f, 1);
+        ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
     }
 
     public void UpdateJudgement() {
@@ -291,13 +295,14 @@ public class Overlay {
                 TimeSpan length = TimeSpan.FromSeconds(totalTime);
                 TimeText.text = $@"음악 시간 | {now:m\:ss}~{length:m\:ss}";
                 lastTime = (int) time;
+                TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
         if(Status.Settings.ShowMapTime || requireMusicToMap) {
-            double time;
-            double totalTime;
-            time = scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi;
-            totalTime = scrLevelMaker.instance.listFloors.Last().entryTime;
+            float time;
+            float totalTime;
+            time = (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
+            totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if((!Status.Settings.ShowMapTime || lastMapTime == (int) time) &&
@@ -308,10 +313,12 @@ public class Overlay {
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 lastMapTime = (int) time;
+                MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
             }
             if(requireMusicToMap) {
                 TimeText.text = text;
                 lastTime = (int) time;
+                TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
     }

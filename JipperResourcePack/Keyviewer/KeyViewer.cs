@@ -260,7 +260,8 @@ public class KeyViewer : Feature {
             GUILayout.Space(12f);
         }
         GUILayout.BeginHorizontal();
-        ColorExpanded = GUILayout.Toggle(ColorExpanded != null, ColorExpanded != null ? "◢" : "▶", toggleStyle) ? new bool[8] : null;
+        bool a = GUILayout.Toggle(ColorExpanded != null, ColorExpanded != null ? "◢" : "▶", toggleStyle);
+        if(ColorExpanded != null != a) ColorExpanded = a ? new bool[8] : null;
         if(GUILayout.Button(localization["keyViewer.color"], GUI.skin.label)) ColorExpanded = ColorExpanded == null ? new bool[8] : null;
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
@@ -280,15 +281,20 @@ public class KeyViewer : Feature {
             ];
             for(int i = 0; i < 8; i++) {
                 GUILayout.BeginHorizontal();
+                bool changed = ColorExpanded[i];
                 ColorExpanded[i] = GUILayout.Toggle(ColorExpanded[i], ColorExpanded[i] ? "◢" : "▶", toggleStyle);
                 if(GUILayout.Button(localization["keyViewer.color." + char.ToLower(names[i][0]) + names[i][1..]], GUI.skin.label)) ColorExpanded[i] = !ColorExpanded[i];
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
+                if(changed != ColorExpanded[i]) {
+                    Main.Instance.Log("changed != ColorExpanded[i] : " + ColorExpanded[i]);
+                }
                 if(!ColorExpanded[i]) continue;
+                Main.Instance.Log("ColorExpanded[i] is true");
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
-                if(settings.GetValue<ColorChangeCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
+                if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
                     for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
                     if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 16, CheckKey(footKeyCodes[i2]));
                     Kps.background.color = Total.background.color = settings.Background;
@@ -1036,14 +1042,14 @@ public class KeyViewer : Feature {
         public int TotalCount;
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
-        public ColorChangeCache Background = new(KeyViewer.Background);
-        public ColorChangeCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
-        public ColorChangeCache Outline = new(KeyViewer.Outline);
-        public ColorChangeCache OutlineClicked = new(KeyViewer.OutlineClicked);
-        public ColorChangeCache Text = new(KeyViewer.Text);
-        public ColorChangeCache TextClicked = new(KeyViewer.TextClicked);
-        public ColorChangeCache RainColor = new(KeyViewer.RainColor);
-        public ColorChangeCache RainColorUnder = new(KeyViewer.RainColorUnder);
+        public ColorCache Background = new(KeyViewer.Background);
+        public ColorCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
+        public ColorCache Outline = new(KeyViewer.Outline);
+        public ColorCache OutlineClicked = new(KeyViewer.OutlineClicked);
+        public ColorCache Text = new(KeyViewer.Text);
+        public ColorCache TextClicked = new(KeyViewer.TextClicked);
+        public ColorCache RainColor = new(KeyViewer.RainColor);
+        public ColorCache RainColorUnder = new(KeyViewer.RainColorUnder);
 
         public KeyViewerSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;

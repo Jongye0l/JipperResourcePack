@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JipperResourcePack.SettingTool;
 
-public class ColorChangeCache(Color color) {
+public class ColorCache(Color color) {
     public float r = color.r;
     [JsonIgnore] public string rString;
     public float g = color.g;
@@ -27,7 +27,7 @@ public class ColorChangeCache(Color color) {
         return new Color(r, g, b, a);
     }
 
-    public static implicit operator Color(ColorChangeCache cache) {
+    public static implicit operator Color(ColorCache cache) {
         return cache.GetColor();
     }
 }

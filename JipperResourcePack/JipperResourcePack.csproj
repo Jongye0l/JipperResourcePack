@@ -530,7 +530,10 @@
         <Compile Include="Keyviewer\RawRain.cs" />
         <Compile Include="Main.cs" />
         <Compile Include="Overlay.cs" />
-        <Compile Include="SettingTool\ColorChangeCache.cs" />
+        <Compile Include="ProgressBar.cs" />
+        <Compile Include="SettingTool\ColorCache.cs" />
+        <Compile Include="SettingTool\ColorPerDictionary.cs" />
+        <Compile Include="SettingTool\ProgressColorCache.cs" />
         <Compile Include="Status.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="ResourceChanger.cs" />

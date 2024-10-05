@@ -31,11 +31,6 @@ public class JOverlay : Overlay {
 
     public JOverlay() {
         Instance = this;
-        // #c0d2ff
-        // c0 => 192, d2 => 210, ec => 236
-        // 192 / 255 = 0.7529411764705882
-        // 210 / 255 = 0.8235294117647059
-        LineTransform.GetComponent<Image>().color = new Color(0.7529411764705882f, 0.8235294117647059f, 1);
     }
 
     protected override void InitializeMain() {
@@ -75,27 +70,26 @@ public class JOverlay : Overlay {
         UpdateDeath();
     }
 
-    protected override void UpdateProgressText() {
+    public override void UpdateProgressText() {
         int cur = scrController.instance.currentSeqID;
         int last = ADOBase.lm.listFloors.Count - 1;
         ProgressText.text = $"<color=white>Progress |</color> {cur} / {last}{(cur == last ? "" : $" [-{last - cur}]")} ({Math.Round(Progress * 100, 5)}%)";
-        ProgressText.color = GetColor(Progress);
+        ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
     }
 
     public override void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
-        float acc;
+        float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
+        xacc.SetIfNaN(1);
         if(JipperResourcePack.Status.Settings.ShowAccuracy) {
-            acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
+            float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - startTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
-            AccuracyText.color = scrController.instance.mistakesManager == null || scrController.instance.mistakesManager.percentXAcc == 1f ? PurePerfectColor :
-                                     GetColor((float) Math.Round(acc / (1 + 0.0001f * (scrController.instance.currentSeqID - startTile)), 8));
+            AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
         if(JipperResourcePack.Status.Settings.ShowXAccuracy) {
-            acc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
-            if(float.IsNaN(acc)) acc = 1;
-            XAccuracyText.text = $"<color=white>X-Accuracy |</color> {Math.Round(acc * 100, 4)}%";
-            XAccuracyText.color = GetColor(acc);
+            XAccuracyText.text = $"<color=white>X-Accuracy |</color> {Math.Round(xacc * 100, 4)}%";
+            XAccuracyText.color = GetColor(xacc);
         }
     }
 
@@ -113,7 +107,7 @@ public class JOverlay : Overlay {
                 if(Math.Abs(lastTime - (int) (time * 10f)) <= 1) time = totalTime;
                 else return;
             }
-            TimeText.color = GetColor(time / totalTime);
+            TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             if(lastTime == (int) (time * 10f)) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
@@ -125,11 +119,11 @@ public class JOverlay : Overlay {
             float totalTime = (float) ADOBase.lm.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
+            MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
             if(lastMapTime == (int) (time * 10f)) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
             MapTimeText.text = $@"<color=white>MapTime |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
-            MapTimeText.color = GetColor(time / totalTime);
             lastMapTime = (int) (time * 10f);
         }
         return;
