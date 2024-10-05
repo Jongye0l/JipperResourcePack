@@ -33,7 +33,7 @@ public class KeyViewer : Feature {
     public static readonly Color Text = Color.white;
     public static readonly Color TextClicked = Color.black;
     public static readonly Color RainColor = new(0.5137255f, 0.1254902f, 0.858823538f);
-    public static readonly Color RainColorUnder = Color.white;
+    public static readonly Color RainColor2 = Color.white;
     public GameObject KeyViewerObject;
     public Canvas Canvas;
     public Key[] Keys;
@@ -277,7 +277,7 @@ public class KeyViewer : Feature {
                 "Text",
                 "TextClicked",
                 "RainColor",
-                "RainColorUnder"
+                "RainColor2"
             ];
             for(int i = 0; i < 8; i++) {
                 GUILayout.BeginHorizontal();
@@ -1045,7 +1045,7 @@ public class KeyViewer : Feature {
         public ColorCache Text = new(KeyViewer.Text);
         public ColorCache TextClicked = new(KeyViewer.TextClicked);
         public ColorCache RainColor = new(KeyViewer.RainColor);
-        public ColorCache RainColorUnder = new(KeyViewer.RainColorUnder);
+        public ColorCache RainColor2 = new(KeyViewer.RainColor2);
 
         public KeyViewerSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;

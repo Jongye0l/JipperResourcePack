@@ -20,7 +20,7 @@ public class Key : MonoBehaviour {
         while(rawRainQueue.TryDequeue(out RawRain rawRain)) {
             Rain rainComponent = CreateRain(rawRain.transform);
             rainComponent.rawRain = rawRain;
-            rainComponent.image.color = isGreenColor ? KeyViewer.Settings.RainColorUnder : KeyViewer.Settings.RainColor;
+            rainComponent.image.color = isGreenColor ? KeyViewer.Settings.RainColor2 : KeyViewer.Settings.RainColor;
             rainComponent.transform.SetSiblingIndex(isGreenColor ? 1 : 0);
         }
     }
