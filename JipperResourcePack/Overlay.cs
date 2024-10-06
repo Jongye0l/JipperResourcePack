@@ -267,10 +267,15 @@ public class Overlay {
     }
 
     public void UpdateProgressBar() {
-        ProgressBar.LineTransform.SizeDeltaX(Progress * 638);
-        ProgressBar.BackgroundImage.color = Status.Settings.ProgressBarBackgroundColor.GetColor(Progress);
-        ProgressBar.LineImage.color = Status.Settings.ProgressBarColor.GetColor(Progress);
-        ProgressBar.BorderImage.color = Status.Settings.ProgressBarBorderColor.GetColor(Progress);
+        try {
+            if(!ProgressBar.LineTransform) return;
+            ProgressBar.LineTransform.SizeDeltaX(Progress * 638);
+            ProgressBar.BackgroundImage.color = Status.Settings.ProgressBarBackgroundColor.GetColor(Progress);
+            ProgressBar.LineImage.color = Status.Settings.ProgressBarColor.GetColor(Progress);
+            ProgressBar.BorderImage.color = Status.Settings.ProgressBarBorderColor.GetColor(Progress);
+        } catch (Exception e) {
+            Main.Instance.LogException(e);
+        }
     }
 
     public virtual void UpdateProgressText() {
