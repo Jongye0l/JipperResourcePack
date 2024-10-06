@@ -704,6 +704,7 @@ public class KeyViewer : Feature {
                 Save = false;
                 repeat = 0;
             }
+        } catch (ThreadAbortException) {
         } catch (Exception e) {
             if(KeyinputListener is not { IsAlive: true }) return;
             Main.Instance.LogException(e);
