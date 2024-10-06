@@ -125,6 +125,7 @@ public class Overlay {
         BPMText.lineSpacing = 30;
         BPMText.fontSize = 25;
         SetupShadow(BPMText);
+        gameObject.SetActive(false);
         BPM.BPMObject = gameObject;
     }
 
@@ -141,6 +142,7 @@ public class Overlay {
         JudgementText.alignment = TextAlignmentOptions.Bottom;
         JudgementText.color = new Color(0.8509804f, 0.345098f, 1);
         SetupShadow(JudgementText);
+        gameObject.SetActive(false);
         Judgement.JudgementObject = gameObject;
     }
 
@@ -179,6 +181,7 @@ public class Overlay {
         fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         SetupDarkShadow(ComboText);
+        gameObject.SetActive(false);
         Combo.ComboObject = gameObject;
     }
 
@@ -190,6 +193,7 @@ public class Overlay {
         transform.anchoredPosition = new Vector2(0, -10);
         transform.sizeDelta = new Vector2(642, 18);
         ProgressBar = gameObject.AddComponent<ProgressBar>();
+        gameObject.SetActive(false);
         Status.ProgressBarObject = gameObject;
     }
 
@@ -205,6 +209,7 @@ public class Overlay {
         TimingScaleText.fontSize = 20;
         TimingScaleText.alignment = TextAlignmentOptions.Bottom;
         SetupShadow(TimingScaleText);
+        gameObject.SetActive(false);
         TimingScale.TimingScaleObject = gameObject;
     }
 
