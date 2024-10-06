@@ -80,6 +80,7 @@ public class Main : JAMod {
         URLLabel(Localization["credit.developer"] + ": Jongyeol", "https://www.youtube.com/@Jongyeol");
         URLLabel(Localization["credit.design"] + ": Jipper", "https://www.youtube.com/@jipper1214");
         URLLabel(Localization["credit.translator"] + ": changhyeon", "https://www.youtube.com/@changhyeon7492");
+        URLLabel(Localization["credit.translator"] + ": sjk / Phrygia", "https://www.youtube.com/@sjk04_");
         URLLabel(Localization["credit.tester"] + ": dofaer", "https://www.youtube.com/@%EB%8F%84%ED%8E%98");
         URLLabel(Localization["credit.tester"] + ": NTure", "https://www.youtube.com/@NTure_1253");
         GUILayout.Space(25f);
