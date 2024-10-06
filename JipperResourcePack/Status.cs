@@ -121,7 +121,7 @@ public class Status : Feature {
         RectTransform transform = ___txtLevelName.GetComponent<RectTransform>();
         transform.anchoredPosition = new Vector3(0, -28);
         transform.localScale = new Vector3(0.5f, 0.5f);
-        transform.sizeDelta = new Vector2(transform.sizeDelta.x * 2.5f, transform.sizeDelta.y);
+        transform.sizeDelta = new Vector2(Math.Abs(transform.sizeDelta.x * 2.5f), transform.sizeDelta.y);
         ___txtLevelName.text = ___txtLevelName.text.Replace('\n', ' ');
     }
 }
