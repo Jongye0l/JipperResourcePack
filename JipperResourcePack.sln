@@ -2,8 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JipperResourcePack", "JipperResourcePack\JipperResourcePack.csproj", "{F601ED78-FCBD-4553-96DF-823484985679}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bootstrap", "Bootstrap\Bootstrap.csproj", "{B0D6490C-77B6-453B-BDB3-0CB4827CA355}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer\Installer.csproj", "{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UMMAutoInstaller", "UMMAutoInstaller\UMMAutoInstaller.csproj", "{2DCC54F1-4E1E-40F3-B9DD-92560CB6E89D}"
@@ -18,10 +16,6 @@ Global
 		{F601ED78-FCBD-4553-96DF-823484985679}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F601ED78-FCBD-4553-96DF-823484985679}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F601ED78-FCBD-4553-96DF-823484985679}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B0D6490C-77B6-453B-BDB3-0CB4827CA355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0D6490C-77B6-453B-BDB3-0CB4827CA355}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0D6490C-77B6-453B-BDB3-0CB4827CA355}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0D6490C-77B6-453B-BDB3-0CB4827CA355}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
