@@ -553,6 +553,7 @@
 
     <Target Name="AfterBuild">
         <Copy SourceFiles="bin/Debug/JipperResourcePack.dll" DestinationFolder="D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\Mods\JipperResourcePack"/>
+        <Copy SourceFiles="bin/Release/JipperResourcePack.dll" DestinationFolder="D:\ModRelease/JipperResourcePack"/>
     </Target>
 
 </Project>
