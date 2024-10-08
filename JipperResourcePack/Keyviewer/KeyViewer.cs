@@ -755,7 +755,11 @@ public class KeyViewer : Feature {
     private void Initialize1KeyViewer() {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 320 - remove, 50, 0);
-        for(int i = 0; i < 8; i++) Keys[BackSequence16[i]] = CreateKey(BackSequence16[i], 54 * i, 266 - remove, 50, 1);
+        for(int i = 0; i < 8; i++) {
+            int j = BackSequence16[i];
+            Keys[j] = CreateKey(j, 54 * i, 266 - remove, 50, 1);
+            Keys[j].rain = Keys[i].rain;
+        }
         Kps = CreateKey(-1, 0, 220 - remove, 212, -1, true);
         Total = CreateKey(-2, 216, 220 - remove, 212, -1, true);
     }
@@ -763,7 +767,11 @@ public class KeyViewer : Feature {
     private void Initialize2KeyViewer() {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 333 - remove, 50, 0);
-        for(int i = 0; i < 8; i++) Keys[BackSequence20[i]] = CreateKey(BackSequence20[i], 54 * i, 279 - remove, 50, 1);
+        for(int i = 0; i < 8; i++) {
+            int j = BackSequence20[i];
+            Keys[j] = CreateKey(j, 54 * i, 279 - remove, 50, 1);
+            Keys[j].rain = Keys[i].rain;
+        }
         Keys[16] = CreateKey(16, 81 + 54, 225 - remove, 77, 3);
         Keys[17] = CreateKey(17, 81, 225 - remove, 50, 3);
         Keys[18] = CreateKey(18, 54 * 4, 225 - remove, 77, 3);
@@ -773,9 +781,10 @@ public class KeyViewer : Feature {
     }
 
     private void InitializeFootKeyViewer(int size) {
+        size += 20;
         int x = 432;
-        for(int i = 0; i < 2; i++) for(int j = i; j < size; j++) {
-            Keys[j] = CreateKey(j++ + 20, x, 15, 30, -1, true, false);
+        for(int i = 20; i < 22; i++) for(int j = i; j < size; j++) {
+            Keys[j] = CreateKey(j++, x, 15, 30, -1, true, false);
             x += 34;
         }
     }
