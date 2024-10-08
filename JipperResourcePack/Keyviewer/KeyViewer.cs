@@ -87,16 +87,16 @@ public class KeyViewer : Feature {
         }
         switch(settings.FootKeyViewerStyle) {
             case FootKeyviewerStyle.Key2:
-                Initialize0FootKeyViewer();
+                InitializeFootKeyViewer(2);
                 break;
             case FootKeyviewerStyle.Key4:
-                Initialize1FootKeyViewer();
+                InitializeFootKeyViewer(4);
                 break;
             case FootKeyviewerStyle.Key6:
-                Initialize2FootKeyViewer();
+                InitializeFootKeyViewer(6);
                 break;
             case FootKeyviewerStyle.Key8:
-                Initialize3FootKeyViewer();
+                InitializeFootKeyViewer(8);
                 break;
         }
         Object.DontDestroyOnLoad(KeyViewerObject);
@@ -667,16 +667,16 @@ public class KeyViewer : Feature {
         }
         switch(Settings.FootKeyViewerStyle) {
             case FootKeyviewerStyle.Key2:
-                Initialize0FootKeyViewer();
+                InitializeFootKeyViewer(2);
                 break;
             case FootKeyviewerStyle.Key4:
-                Initialize1FootKeyViewer();
+                InitializeFootKeyViewer(4);
                 break;
             case FootKeyviewerStyle.Key6:
-                Initialize2FootKeyViewer();
+                InitializeFootKeyViewer(6);
                 break;
             case FootKeyviewerStyle.Key8:
-                Initialize3FootKeyViewer();
+                InitializeFootKeyViewer(8);
                 break;
         }
     }
@@ -834,36 +834,12 @@ public class KeyViewer : Feature {
         Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
     }
 
-    private void Initialize0FootKeyViewer() {
-        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
-        Keys[21] = CreateKey(21, 466, 15, 30, -1, true, false);
-    }
-
-    private void Initialize1FootKeyViewer() {
-        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
-        Keys[21] = CreateKey(21, 500, 15, 30, -1, true, false);
-        Keys[22] = CreateKey(22, 466, 15, 30, -1, true, false);
-        Keys[23] = CreateKey(23, 534, 15, 30, -1, true, false);
-    }
-
-    private void Initialize2FootKeyViewer() {
-        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
-        Keys[21] = CreateKey(21, 534, 15, 30, -1, true, false);
-        Keys[22] = CreateKey(22, 466, 15, 30, -1, true, false);
-        Keys[23] = CreateKey(23, 568, 15, 30, -1, true, false);
-        Keys[24] = CreateKey(24, 500, 15, 30, -1, true, false);
-        Keys[25] = CreateKey(25, 602, 15, 30, -1, true, false);
-    }
-
-    private void Initialize3FootKeyViewer() {
-        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
-        Keys[21] = CreateKey(21, 568, 15, 30, -1, true, false);
-        Keys[22] = CreateKey(22, 466, 15, 30, -1, true, false);
-        Keys[23] = CreateKey(23, 602, 15, 30, -1, true, false);
-        Keys[24] = CreateKey(24, 500, 15, 30, -1, true, false);
-        Keys[25] = CreateKey(25, 636, 15, 30, -1, true, false);
-        Keys[26] = CreateKey(26, 534, 15, 30, -1, true, false);
-        Keys[27] = CreateKey(27, 670, 15, 30, -1, true, false);
+    private void InitializeFootKeyViewer(int size) {
+        int x = 432;
+        for(int i = 0; i < 2; i++) for(int j = i; j < size; j++) {
+            Keys[j] = CreateKey(j++ + 20, x, 15, 30, -1, true, false);
+            x += 34;
+        }
     }
 
     private Key CreateKey(int i, float x, float y, float sizeX, int raining, bool slim = false, bool count = true) {
