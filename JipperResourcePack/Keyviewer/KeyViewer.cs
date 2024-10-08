@@ -35,6 +35,9 @@ public class KeyViewer : Feature {
     public static readonly Color RainColor = new(0.5137255f, 0.1254902f, 0.858823538f);
     public static readonly Color RainColor2 = Color.white;
     public static readonly Color RainColor3 = Color.magenta;
+    public static readonly byte[] BackSequence12 = [9, 8, 10, 11];
+    public static readonly byte[] BackSequence16 = [12, 13, 9, 8, 10, 11, 14, 15];
+    public static readonly byte[] BackSequence20 = [12, 13, 9, 8, 10, 11, 14, 15, 17, 16, 18, 19];
     public GameObject KeyViewerObject;
     public Canvas Canvas;
     public Key[] Keys;
@@ -165,32 +168,13 @@ public class KeyViewer : Feature {
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            switch(settings.KeyViewerStyle) {
-                case KeyviewerStyle.Key12:
-                    CreateButton(9, false);
-                    CreateButton(8, false);
-                    CreateButton2(10, false);
-                    break;
-                case KeyviewerStyle.Key16:
-                    CreateButton2(12, false);
-                    CreateButton(9, false);
-                    CreateButton(8, false);
-                    CreateButton2(10, false);
-                    CreateButton2(14, false);
-                    break;
-                case KeyviewerStyle.Key20:
-                    CreateButton2(12, false);
-                    CreateButton(9, false);
-                    CreateButton(8, false);
-                    CreateButton2(10, false);
-                    CreateButton2(14, false);
-                    GUILayout.FlexibleSpace();
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    CreateButton(17, false);
-                    CreateButton(16, false);
-                    CreateButton2(18, false);
-                    break;
+            byte[] backSequence = GetBackSequence();
+            for(int i = 0; i < backSequence.Length && i < 8; i++) CreateButton(backSequence[i], false);
+            if(backSequence.Length > 8) {
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                for(int i = 8; i < backSequence.Length; i++) CreateButton(backSequence[i], false);
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -220,32 +204,13 @@ public class KeyViewer : Feature {
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            switch(settings.KeyViewerStyle) {
-                case KeyviewerStyle.Key12:
-                    CreateButton(9, true);
-                    CreateButton(8, true);
-                    CreateButton2(10, true);
-                    break;
-                case KeyviewerStyle.Key16:
-                    CreateButton2(12, true);
-                    CreateButton(9, true);
-                    CreateButton(8, true);
-                    CreateButton2(10, true);
-                    CreateButton2(14, true);
-                    break;
-                case KeyviewerStyle.Key20:
-                    CreateButton2(12, true);
-                    CreateButton(9, true);
-                    CreateButton(8, true);
-                    CreateButton2(10, true);
-                    CreateButton2(14, true);
-                    GUILayout.FlexibleSpace();
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    CreateButton(17, true);
-                    CreateButton(16, true);
-                    CreateButton2(18, true);
-                    break;
+            byte[] backSequence = GetBackSequence();
+            for(int i = 0; i < backSequence.Length && i < 8; i++) CreateButton(backSequence[i], true);
+            if(backSequence.Length > 8) {
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                for(int i = 8; i < backSequence.Length; i++) CreateButton(backSequence[i], true);
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -301,7 +266,6 @@ public class KeyViewer : Feature {
             for(int i = 0; i < 9; i++) {
                 if(i == 8 && Settings.KeyViewerStyle != KeyviewerStyle.Key20) continue;
                 GUILayout.BeginHorizontal();
-                bool changed = ColorExpanded[i];
                 ColorExpanded[i] = GUILayout.Toggle(ColorExpanded[i], ColorExpanded[i] ? "◢" : "▶", toggleStyle);
                 if(GUILayout.Button(localization["keyViewer.color." + char.ToLower(names[i][0]) + names[i][1..]], GUI.skin.label)) ColorExpanded[i] = !ColorExpanded[i];
                 GUILayout.FlexibleSpace();
@@ -343,11 +307,6 @@ public class KeyViewer : Feature {
             }
         }
         return;
-
-        void CreateButton2(int i, bool textChanged) {
-            CreateButton(i, textChanged);
-            CreateButton(i + 1, textChanged);
-        }
 
         void CreateButton(int i, bool textChanged) {
             if(!GUILayout.Button(Bold(i < 20 ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - 20]),
@@ -391,6 +350,15 @@ public class KeyViewer : Feature {
             KeyviewerStyle.Key12 => Settings.key12Text,
             KeyviewerStyle.Key16 => Settings.key16Text,
             KeyviewerStyle.Key20 => Settings.key20Text,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    private static byte[] GetBackSequence() {
+        return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key12 => BackSequence12,
+            KeyviewerStyle.Key16 => BackSequence16,
+            KeyviewerStyle.Key20 => BackSequence20,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -787,22 +755,7 @@ public class KeyViewer : Feature {
     private void Initialize1KeyViewer() {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 320 - remove, 50, 0);
-        Keys[8] = CreateKey(8, 54 * 3, 266 - remove, 50, 1);
-        Keys[8].rain = Keys[3].rain;
-        Keys[9] = CreateKey(9, 54 * 2, 266 - remove, 50, 1);
-        Keys[9].rain = Keys[2].rain;
-        Keys[10] = CreateKey(10, 54 * 4, 266 - remove, 50, 1);
-        Keys[10].rain = Keys[4].rain;
-        Keys[11] = CreateKey(11, 54 * 5, 266 - remove, 50, 1);
-        Keys[11].rain = Keys[5].rain;
-        Keys[12] = CreateKey(12, 0, 266 - remove, 50, 1);
-        Keys[12].rain = Keys[0].rain;
-        Keys[13] = CreateKey(13, 54, 266 - remove, 50, 1);
-        Keys[13].rain = Keys[1].rain;
-        Keys[14] = CreateKey(14, 54 * 6, 266 - remove, 50, 1);
-        Keys[14].rain = Keys[6].rain;
-        Keys[15] = CreateKey(15, 54 * 7, 266 - remove, 50, 1);
-        Keys[15].rain = Keys[7].rain;
+        for(int i = 0; i < 8; i++) Keys[BackSequence16[i]] = CreateKey(BackSequence16[i], 54 * i, 266 - remove, 50, 1);
         Kps = CreateKey(-1, 0, 220 - remove, 212, -1, true);
         Total = CreateKey(-2, 216, 220 - remove, 212, -1, true);
     }
@@ -810,22 +763,7 @@ public class KeyViewer : Feature {
     private void Initialize2KeyViewer() {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 333 - remove, 50, 0);
-        Keys[8] = CreateKey(8, 54 * 3, 279 - remove, 50, 1);
-        Keys[8].rain = Keys[3].rain;
-        Keys[9] = CreateKey(9, 54 * 2, 279 - remove, 50, 1);
-        Keys[9].rain = Keys[2].rain;
-        Keys[10] = CreateKey(10, 54 * 4, 279 - remove, 50, 1);
-        Keys[10].rain = Keys[4].rain;
-        Keys[11] = CreateKey(11, 54 * 5, 279 - remove, 50, 1);
-        Keys[11].rain = Keys[5].rain;
-        Keys[12] = CreateKey(12, 0, 279 - remove, 50, 1);
-        Keys[12].rain = Keys[0].rain;
-        Keys[13] = CreateKey(13, 54, 279 - remove, 50, 1);
-        Keys[13].rain = Keys[1].rain;
-        Keys[14] = CreateKey(14, 54 * 6, 279 - remove, 50, 1);
-        Keys[14].rain = Keys[6].rain;
-        Keys[15] = CreateKey(15, 54 * 7, 279 - remove, 50, 1);
-        Keys[15].rain = Keys[7].rain;
+        for(int i = 0; i < 8; i++) Keys[BackSequence20[i]] = CreateKey(BackSequence20[i], 54 * i, 279 - remove, 50, 1);
         Keys[16] = CreateKey(16, 81 + 54, 225 - remove, 77, 3);
         Keys[17] = CreateKey(17, 81, 225 - remove, 50, 3);
         Keys[18] = CreateKey(18, 54 * 4, 225 - remove, 77, 3);
