@@ -37,24 +37,25 @@ public class Status : Feature {
         SettingGUI settingGUI = Main.SettingGUI;
         JALocalization localization = Main.Instance.Localization;
         settingGUI.AddSettingToggle(ref Settings.ShowProgress, localization["progress.showProgress"], Overlay.Instance.SetupLocationMain);
+        if(Settings.ShowProgress && Settings.ProgressColor.SettingGUI(settingGUI, localization["progress.progressColor"]))
+            Overlay.Instance.UpdateProgressText();
         settingGUI.AddSettingToggle(ref Settings.ShowAccuracy, localization["progress.showAccuracy"], Overlay.Instance.SetupLocationMain);
+        if(Settings.ShowAccuracy && Settings.AccuracyColor.SettingGUI(settingGUI, localization["progress.accuracyColor"]))
+            Overlay.Instance.UpdateAccuracy();
         settingGUI.AddSettingToggle(ref Settings.ShowXAccuracy, localization["progress.showXAccuracy"], Overlay.Instance.SetupLocationMain);
+        if(Settings.ShowXAccuracy && Settings.XAccuracyColor.SettingGUI(settingGUI, localization["progress.xAccuracyColor"]))
+            Overlay.Instance.UpdateAccuracy();
         settingGUI.AddSettingToggle(ref Settings.ShowMusicTime, localization["progress.showMusicTime"], Overlay.Instance.SetupLocationMain);
+        if(Settings.ShowMusicTime && Settings.MusicTimeColor.SettingGUI(settingGUI, localization["progress.musicTimeColor"]))
+            Overlay.Instance.UpdateTime();
         settingGUI.AddSettingToggle(ref Settings.ShowMapTime, localization["progress.showMapTime"], Overlay.Instance.SetupLocationMain);
-        settingGUI.AddSettingToggle(ref Settings.ShowMapTimeIfNotMusic, localization["progress.showMapTimeIfNotMusic"]);
+        settingGUI.AddSettingToggle(ref Settings.ShowMapTimeIfNotMusic, localization["progress.showMapTimeIfNotMusic"], Overlay.Instance.UpdateTime);
+        if(Settings.ShowMapTime && Settings.MapTimeColor.SettingGUI(settingGUI, localization["progress.mapTimeColor"]))
+            Overlay.Instance.UpdateTime();
+        settingGUI.AddSettingEnum(ref Settings.TimeTextType, localization["progress.timeTextType"], Overlay.Instance.UpdateTime);
         settingGUI.AddSettingToggle(ref Settings.ShowProgressBar, localization["progress.showProgressBar"], () => {
             ProgressBarObject?.SetActive(Settings.ShowProgressBar);
         });
-        if(Settings.ShowProgress && Settings.ProgressColor.SettingGUI(settingGUI, localization["progress.progressColor"]))
-            Overlay.Instance.UpdateProgressText();
-        if(Settings.ShowAccuracy && Settings.AccuracyColor.SettingGUI(settingGUI, localization["progress.accuracyColor"]))
-            Overlay.Instance.UpdateAccuracy();
-        if(Settings.ShowXAccuracy && Settings.XAccuracyColor.SettingGUI(settingGUI, localization["progress.xAccuracyColor"]))
-            Overlay.Instance.UpdateAccuracy();
-        if(Settings.ShowMusicTime && Settings.MusicTimeColor.SettingGUI(settingGUI, localization["progress.musicTimeColor"]))
-            Overlay.Instance.UpdateTime();
-        if(Settings.ShowMapTime && Settings.MapTimeColor.SettingGUI(settingGUI, localization["progress.mapTimeColor"]))
-            Overlay.Instance.UpdateTime();
         if(!Settings.ShowProgressBar) return;
         if(Settings.ProgressBarColor.SettingGUI(settingGUI, localization["progress.progressBarColor"]) ||
            Settings.ProgressBarBackgroundColor.SettingGUI(settingGUI, localization["progress.progressBarBackgroundColor"]) ||
@@ -83,6 +84,7 @@ public class Status : Feature {
         public bool ShowMapTime = false;
         public ColorPerDictionary MapTimeColor = new([(1f, Color.white)]);
         public bool ShowMapTimeIfNotMusic = true;
+        public TimeTextType TimeTextType = TimeTextType.Korean;
         public bool ShowProgressBar = true;
         public ColorPerDictionary ProgressBarColor = new([(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
         public ColorPerDictionary ProgressBarBackgroundColor = new([(1f, Color.white)]);

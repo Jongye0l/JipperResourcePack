@@ -537,6 +537,7 @@
         <Compile Include="Status.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="ResourceChanger.cs" />
+        <Compile Include="TimeTextType.cs" />
         <Compile Include="TimingScale.cs" />
     </ItemGroup>
     <ItemGroup>

@@ -111,7 +111,7 @@ public class JOverlay : Overlay {
             if(lastTime == (int) (time * 10f)) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            TimeText.text = $@"<color=white>Time |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+            TimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
             lastTime = (int) (time * 10f);
         }
         if(JipperResourcePack.Status.Settings.ShowMapTime) {
@@ -123,7 +123,7 @@ public class JOverlay : Overlay {
             if(lastMapTime == (int) (time * 10f)) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            MapTimeText.text = $@"<color=white>MapTime |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+            MapTimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
             lastMapTime = (int) (time * 10f);
         }
         return;

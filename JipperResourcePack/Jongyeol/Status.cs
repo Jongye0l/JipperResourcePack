@@ -32,9 +32,10 @@ public class Status : JipperResourcePack.Status {
     [JAPatch(typeof(scrShowIfDebug), "Update", PatchType.Prefix, false)]
     private static bool HideDebugText(Text ___txt) => !Settings.HideDebugText || (___txt.enabled = false);
 
-    [JAPatch(typeof(RDC), "auto.set", PatchType.Postfix, false)]
+    [JAPatch(typeof(RDC), "set_auto", PatchType.Postfix, false)]
     private static void OnAutoChange() {
         if(!ADOBase.isScnGame) return;
+        JipperResourcePack.Main.Instance.Log("Auto: " + RDC.auto);
         JOverlay.Instance.SetupLocationMain();
         JOverlay.Instance.UpdateState();
     }
