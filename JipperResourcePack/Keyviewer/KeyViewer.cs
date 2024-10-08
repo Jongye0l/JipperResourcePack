@@ -34,6 +34,7 @@ public class KeyViewer : Feature {
     public static readonly Color TextClicked = Color.black;
     public static readonly Color RainColor = new(0.5137255f, 0.1254902f, 0.858823538f);
     public static readonly Color RainColor2 = Color.white;
+    public static readonly Color RainColor3 = Color.magenta;
     public GameObject KeyViewerObject;
     public Canvas Canvas;
     public Key[] Keys;
@@ -48,6 +49,7 @@ public class KeyViewer : Feature {
     private bool KeyChangeExpanded;
     private bool TextChangeExpanded;
     private bool[] ColorExpanded;
+    private KeyviewerStyle currentKeyViewerStyle;
 
     public int SelectedKey = -1;
     public int WinAPICool;
@@ -56,6 +58,7 @@ public class KeyViewer : Feature {
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSettings)) {
         if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
+        currentKeyViewerStyle = Settings.KeyViewerStyle;
         AdofaiTweaksAPI.Setup();
         KeyboardChatterBlockerAPI.Setup();
     }
@@ -69,7 +72,7 @@ public class KeyViewer : Feature {
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
-        Keys = new Key[24];
+        Keys = new Key[28];
         KeyViewerSettings settings = Settings;
         switch(settings.KeyViewerStyle) {
             case KeyviewerStyle.Key12:
@@ -77,6 +80,9 @@ public class KeyViewer : Feature {
                 break;
             case KeyviewerStyle.Key16:
                 Initialize1KeyViewer();
+                break;
+            case KeyviewerStyle.Key20:
+                Initialize2KeyViewer();
                 break;
         }
         switch(settings.FootKeyViewerStyle) {
@@ -135,15 +141,9 @@ public class KeyViewer : Feature {
             settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
-        KeyCode[] keyCodes = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12 : settings.key16;
-        KeyCode[] footKeyCodes = settings.FootKeyViewerStyle switch {
-            FootKeyviewerStyle.Key2 => settings.footkey2,
-            FootKeyviewerStyle.Key4 => settings.footkey4,
-            FootKeyviewerStyle.Key6 => settings.footkey6,
-            FootKeyviewerStyle.Key8 => settings.footkey8,
-            _ => null
-        };
-        string[] keyTexts = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12Text : settings.key16Text;
+        KeyCode[] keyCodes = GetKeyCode();
+        KeyCode[] footKeyCodes = GetFootKeyCode();
+        string[] keyTexts = GetKeyText();
         GUILayout.Space(12f);
         GUIStyle toggleStyle = new() {
             fixedWidth = 10f,
@@ -169,26 +169,35 @@ public class KeyViewer : Feature {
                 case KeyviewerStyle.Key12:
                     CreateButton(9, false);
                     CreateButton(8, false);
-                    CreateButton(10, false);
-                    CreateButton(11, false);
+                    CreateButton2(10, false);
                     break;
                 case KeyviewerStyle.Key16:
-                    CreateButton(12, false);
-                    CreateButton(13, false);
+                    CreateButton2(12, false);
                     CreateButton(9, false);
                     CreateButton(8, false);
-                    CreateButton(10, false);
-                    CreateButton(11, false);
-                    CreateButton(14, false);
-                    CreateButton(15, false);
+                    CreateButton2(10, false);
+                    CreateButton2(14, false);
+                    break;
+                case KeyviewerStyle.Key20:
+                    CreateButton2(12, false);
+                    CreateButton(9, false);
+                    CreateButton(8, false);
+                    CreateButton2(10, false);
+                    CreateButton2(14, false);
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    CreateButton(17, false);
+                    CreateButton(16, false);
+                    CreateButton2(18, false);
                     break;
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             if(footKeyCodes != null) {
                 GUILayout.BeginHorizontal();
-                for(int i = 0; i < footKeyCodes.Length; i++) CreateButton(i++ + 16, false);
-                for(int i = 1; i < footKeyCodes.Length; i++) CreateButton(i++ + 16, false);
+                for(int i = 0; i < footKeyCodes.Length; i++) CreateButton(i++ + 20, false);
+                for(int i = 1; i < footKeyCodes.Length; i++) CreateButton(i++ + 20, false);
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }
@@ -215,18 +224,27 @@ public class KeyViewer : Feature {
                 case KeyviewerStyle.Key12:
                     CreateButton(9, true);
                     CreateButton(8, true);
-                    CreateButton(10, true);
-                    CreateButton(11, true);
+                    CreateButton2(10, true);
                     break;
                 case KeyviewerStyle.Key16:
-                    CreateButton(12, true);
-                    CreateButton(13, true);
+                    CreateButton2(12, true);
                     CreateButton(9, true);
                     CreateButton(8, true);
-                    CreateButton(10, true);
-                    CreateButton(11, true);
-                    CreateButton(14, true);
-                    CreateButton(15, true);
+                    CreateButton2(10, true);
+                    CreateButton2(14, true);
+                    break;
+                case KeyviewerStyle.Key20:
+                    CreateButton2(12, true);
+                    CreateButton(9, true);
+                    CreateButton(8, true);
+                    CreateButton2(10, true);
+                    CreateButton2(14, true);
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    CreateButton(17, true);
+                    CreateButton(16, true);
+                    CreateButton2(18, true);
                     break;
             }
             GUILayout.FlexibleSpace();
@@ -277,9 +295,11 @@ public class KeyViewer : Feature {
                 "Text",
                 "TextClicked",
                 "RainColor",
-                "RainColor2"
+                "RainColor2",
+                "RainColor3"
             ];
-            for(int i = 0; i < 8; i++) {
+            for(int i = 0; i < 9; i++) {
+                if(i == 8 && Settings.KeyViewerStyle != KeyviewerStyle.Key20) continue;
                 GUILayout.BeginHorizontal();
                 bool changed = ColorExpanded[i];
                 ColorExpanded[i] = GUILayout.Toggle(ColorExpanded[i], ColorExpanded[i] ? "◢" : "▶", toggleStyle);
@@ -292,7 +312,7 @@ public class KeyViewer : Feature {
                 GUILayout.BeginVertical();
                 if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
                     for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
-                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 16, CheckKey(footKeyCodes[i2]));
+                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 20, CheckKey(footKeyCodes[i2]));
                     Kps.background.color = Total.background.color = settings.Background;
                     Kps.outline.color = Total.outline.color = settings.Outline;
                     Kps.text.color = Kps.value.color = Total.text.color = Total.value.color = settings.Text;
@@ -324,22 +344,55 @@ public class KeyViewer : Feature {
         }
         return;
 
+        void CreateButton2(int i, bool textChanged) {
+            CreateButton(i, textChanged);
+            CreateButton(i + 1, textChanged);
+        }
+
         void CreateButton(int i, bool textChanged) {
-            if(!GUILayout.Button(Bold(i < 16 ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - 16]),
+            if(!GUILayout.Button(Bold(i < 20 ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - 20]),
                    i == SelectedKey && textChanged == TextChanged))) return;
             SelectedKey = i;
             TextChanged = textChanged;
         }
 
         void SetupKey(KeyCode keyCode) {
-            if(SelectedKey < 16) keyCodes[SelectedKey] = keyCode;
-            else footKeyCodes[SelectedKey - 16] = keyCode;
-            Keys[SelectedKey].text.tmp.text = (SelectedKey < 16 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+            if(SelectedKey < 20) keyCodes[SelectedKey] = keyCode;
+            else footKeyCodes[SelectedKey - 20] = keyCode;
+            Keys[SelectedKey].text.tmp.text = (SelectedKey < 20 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
             SelectedKey = -1;
             WinAPICool = 0;
             UpdateKeyLimit();
             Main.Instance.SaveSetting();
         }
+    }
+
+    private static KeyCode[] GetKeyCode() {
+        return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key12 => Settings.key12,
+            KeyviewerStyle.Key16 => Settings.key16,
+            KeyviewerStyle.Key20 => Settings.key20,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    private static KeyCode[] GetFootKeyCode() {
+        return Settings.FootKeyViewerStyle switch {
+            FootKeyviewerStyle.Key2 => Settings.footkey2,
+            FootKeyviewerStyle.Key4 => Settings.footkey4,
+            FootKeyviewerStyle.Key6 => Settings.footkey6,
+            FootKeyviewerStyle.Key8 => Settings.footkey8,
+            _ => []
+        };
+    }
+
+    private static string[] GetKeyText() {
+        return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key12 => Settings.key12Text,
+            KeyviewerStyle.Key16 => Settings.key16Text,
+            KeyviewerStyle.Key20 => Settings.key20Text,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     private static string ToString(KeyCode keyCode) {
@@ -553,40 +606,42 @@ public class KeyViewer : Feature {
 
 
     private void ChangeKeyViewer() {
+        KeyViewerSettings settings = Settings;
         if(KeyShare) {
-            KeyCode[] keyCode1;
+            KeyCode[] keyCode1 = GetKeyCode();
             KeyCode[] keyCode2;
-            string[] keyText1;
+            string[] keyText1 = GetKeyText();
             string[] keyText2;
-            KeyViewerSettings settings = Settings;
-            switch(settings.KeyViewerStyle) {
+            switch(currentKeyViewerStyle) {
                 case KeyviewerStyle.Key12:
-                    keyCode1 = settings.key12;
-                    keyCode2 = settings.key16;
-                    keyText1 = settings.key12Text;
-                    keyText2 = settings.key16Text;
+                    keyCode2 = settings.key12;
+                    keyText2 = settings.key12Text;
                     break;
                 case KeyviewerStyle.Key16:
-                    keyCode1 = settings.key16;
-                    keyCode2 = settings.key12;
-                    keyText1 = settings.key16Text;
-                    keyText2 = settings.key12Text;
+                    keyCode2 = settings.key16;
+                    keyText2 = settings.key16Text;
+                    break;
+                case KeyviewerStyle.Key20:
+                    keyCode2 = settings.key20;
+                    keyText2 = settings.key20Text;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            for(int i = 0; i < 12; i++) {
+            int size = Math.Min(keyCode1.Length, keyCode2.Length);
+            for(int i = 0; i < size; i++) {
                 keyCode1[i] = keyCode2[i];
                 keyText1[i] = keyText2[i];
             }
             Mod.SaveSetting();
         }
+        currentKeyViewerStyle = settings.KeyViewerStyle;
         ResetKeyViewer();
     }
 
     private void ResetKeyViewer() {
         SelectedKey = -1;
-        for(int i = 0; i < 16; i++) {
+        for(int i = 0; i < 20; i++) {
             Key key = Keys[i];
             if(key) Object.Destroy(key.gameObject);
         }
@@ -599,11 +654,14 @@ public class KeyViewer : Feature {
             case KeyviewerStyle.Key16:
                 Initialize1KeyViewer();
                 break;
+            case KeyviewerStyle.Key20:
+                Initialize2KeyViewer();
+                break;
         }
     }
 
     private void ResetFootKeyViewer() {
-        for(int i = 16; i < 24; i++) {
+        for(int i = 20; i < 28; i++) {
             Key key = Keys[i];
             if(key) Object.Destroy(key.gameObject);
         }
@@ -644,11 +702,11 @@ public class KeyViewer : Feature {
     private void ListenKey() {
         try {
             KeyViewerSettings settings = Settings;
-            bool[] keyState = new bool[24];
+            bool[] keyState = new bool[28];
             int repeat = 0;
             while(KeyinputListener is { IsAlive: true } && Enabled) {
                 long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
-                KeyCode[] keyCodes = settings.KeyViewerStyle == 0 ? settings.key12 : settings.key16;
+                KeyCode[] keyCodes = GetKeyCode();
                 for(int i = 0; i < keyCodes.Length; i++) {
                     bool current = CheckKey(keyCodes[i]);
                     Key key = Keys[i];
@@ -667,27 +725,22 @@ public class KeyViewer : Feature {
                     key.value.text = (++settings.Count[i]).ToString();
                     Total.value.text = (++settings.TotalCount).ToString();
                     PressTimes.Enqueue(elapsedMilliseconds);
-                    RawRain rawRain = new(key.rain.transform, elapsedMilliseconds, key.isGreenColor);
+                    RawRain rawRain = new(key.rain.transform, elapsedMilliseconds, key.color);
                     key.rawRainQueue.Enqueue(rawRain);
                     key.rainList.Add(rawRain);
                     Save = true;
                 }
-                keyCodes = settings.FootKeyViewerStyle switch {
-                    FootKeyviewerStyle.Key2 => settings.footkey2,
-                    FootKeyviewerStyle.Key4 => settings.footkey4,
-                    FootKeyviewerStyle.Key6 => settings.footkey6,
-                    FootKeyviewerStyle.Key8 => settings.footkey8,
-                    _ => []
-                };
+                keyCodes = GetFootKeyCode();
                 for(int i = 0; i < keyCodes.Length; i++) {
                     bool current = CheckKey(keyCodes[i]);
-                    Key key = Keys[i + 16];
-                    if(!key || current == keyState[i + 16]) continue;
-                    keyState[i + 16] = current;
-                    UpdateKey(i + 16, current);
+                    int index = i + 20;
+                    Key key = Keys[index];
+                    if(!key || current == keyState[index]) continue;
+                    keyState[index] = current;
+                    UpdateKey(index, current);
                     if(!current) continue;
                     PressTimes.Enqueue(elapsedMilliseconds);
-                    settings.Count[i + 16]++;
+                    settings.Count[index]++;
                     Total.value.text = (++settings.TotalCount).ToString();
                     Save = true;
                 }
@@ -754,36 +807,63 @@ public class KeyViewer : Feature {
         Total = CreateKey(-2, 216, 220 - remove, 212, -1, true);
     }
 
+    private void Initialize2KeyViewer() {
+        int remove = Settings.DownLocation ? 200 : 0;
+        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 333 - remove, 50, 0);
+        Keys[8] = CreateKey(8, 54 * 3, 279 - remove, 50, 1);
+        Keys[8].rain = Keys[3].rain;
+        Keys[9] = CreateKey(9, 54 * 2, 279 - remove, 50, 1);
+        Keys[9].rain = Keys[2].rain;
+        Keys[10] = CreateKey(10, 54 * 4, 279 - remove, 50, 1);
+        Keys[10].rain = Keys[4].rain;
+        Keys[11] = CreateKey(11, 54 * 5, 279 - remove, 50, 1);
+        Keys[11].rain = Keys[5].rain;
+        Keys[12] = CreateKey(12, 0, 279 - remove, 50, 1);
+        Keys[12].rain = Keys[0].rain;
+        Keys[13] = CreateKey(13, 54, 279 - remove, 50, 1);
+        Keys[13].rain = Keys[1].rain;
+        Keys[14] = CreateKey(14, 54 * 6, 279 - remove, 50, 1);
+        Keys[14].rain = Keys[6].rain;
+        Keys[15] = CreateKey(15, 54 * 7, 279 - remove, 50, 1);
+        Keys[15].rain = Keys[7].rain;
+        Keys[16] = CreateKey(16, 81 + 54, 225 - remove, 77, 3);
+        Keys[17] = CreateKey(17, 81, 225 - remove, 50, 3);
+        Keys[18] = CreateKey(18, 54 * 4, 225 - remove, 77, 3);
+        Keys[19] = CreateKey(19, 54 * 4 + 81, 225 - remove, 50, 3);
+        Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
+        Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
+    }
+
     private void Initialize0FootKeyViewer() {
-        Keys[16] = CreateKey(16, 432, 15, 30, -1, true, false);
-        Keys[17] = CreateKey(17, 466, 15, 30, -1, true, false);
+        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
+        Keys[21] = CreateKey(21, 466, 15, 30, -1, true, false);
     }
 
     private void Initialize1FootKeyViewer() {
-        Keys[16] = CreateKey(16, 432, 15, 30, -1, true, false);
-        Keys[17] = CreateKey(17, 500, 15, 30, -1, true, false);
-        Keys[18] = CreateKey(18, 466, 15, 30, -1, true, false);
-        Keys[19] = CreateKey(19, 534, 15, 30, -1, true, false);
+        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
+        Keys[21] = CreateKey(21, 500, 15, 30, -1, true, false);
+        Keys[22] = CreateKey(22, 466, 15, 30, -1, true, false);
+        Keys[23] = CreateKey(23, 534, 15, 30, -1, true, false);
     }
 
     private void Initialize2FootKeyViewer() {
-        Keys[16] = CreateKey(16, 432, 15, 30, -1, true, false);
-        Keys[17] = CreateKey(17, 534, 15, 30, -1, true, false);
-        Keys[18] = CreateKey(18, 466, 15, 30, -1, true, false);
-        Keys[19] = CreateKey(19, 568, 15, 30, -1, true, false);
-        Keys[20] = CreateKey(20, 500, 15, 30, -1, true, false);
-        Keys[21] = CreateKey(21, 602, 15, 30, -1, true, false);
+        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
+        Keys[21] = CreateKey(21, 534, 15, 30, -1, true, false);
+        Keys[22] = CreateKey(22, 466, 15, 30, -1, true, false);
+        Keys[23] = CreateKey(23, 568, 15, 30, -1, true, false);
+        Keys[24] = CreateKey(24, 500, 15, 30, -1, true, false);
+        Keys[25] = CreateKey(25, 602, 15, 30, -1, true, false);
     }
 
     private void Initialize3FootKeyViewer() {
-        Keys[16] = CreateKey(16, 432, 15, 30, -1, true, false);
-        Keys[17] = CreateKey(17, 568, 15, 30, -1, true, false);
-        Keys[18] = CreateKey(18, 466, 15, 30, -1, true, false);
-        Keys[19] = CreateKey(19, 602, 15, 30, -1, true, false);
-        Keys[20] = CreateKey(20, 500, 15, 30, -1, true, false);
-        Keys[21] = CreateKey(21, 636, 15, 30, -1, true, false);
-        Keys[22] = CreateKey(22, 534, 15, 30, -1, true, false);
-        Keys[23] = CreateKey(23, 670, 15, 30, -1, true, false);
+        Keys[20] = CreateKey(20, 432, 15, 30, -1, true, false);
+        Keys[21] = CreateKey(21, 568, 15, 30, -1, true, false);
+        Keys[22] = CreateKey(22, 466, 15, 30, -1, true, false);
+        Keys[23] = CreateKey(23, 602, 15, 30, -1, true, false);
+        Keys[24] = CreateKey(24, 500, 15, 30, -1, true, false);
+        Keys[25] = CreateKey(25, 636, 15, 30, -1, true, false);
+        Keys[26] = CreateKey(26, 534, 15, 30, -1, true, false);
+        Keys[27] = CreateKey(27, 670, 15, 30, -1, true, false);
     }
 
     private Key CreateKey(int i, float x, float y, float sizeX, int raining, bool slim = false, bool count = true) {
@@ -865,8 +945,8 @@ public class KeyViewer : Feature {
             key.value = gameObject.AddComponent<AsyncText>();
         }
         UpdateKeyText(key, i);
-        key.isGreenColor = raining != 0;
-        if(raining != 0 && raining != 2) return key;
+        key.color = (byte) (raining < 2 ? raining + 1 : raining);
+        if(raining != 0 && raining != 2 && raining != 3) return key;
         key.rain = new GameObject("RainLine");
         transform = key.rain.AddComponent<RectTransform>();
         transform.SetParent(obj.transform);
@@ -890,19 +970,14 @@ public class KeyViewer : Feature {
             default:
                 KeyCode[] keyCodes;
                 KeyViewerSettings settings = Settings;
-                if(i < 16) {
-                    keyCodes = settings.KeyViewerStyle == 0 ? settings.key12 : settings.key16;
-                    string[] keyText = settings.KeyViewerStyle == 0 ? settings.key12Text : settings.key16Text;
+                if(i < 20) {
+                    keyCodes = GetKeyCode();
+                    string[] keyText = GetKeyText();
                     key.text.tmp.text = keyText[i] ?? KeyToString(keyCodes[i]);
                     key.value.tmp.text = settings.Count[i].ToString();
                 } else {
-                    keyCodes = settings.FootKeyViewerStyle switch {
-                        FootKeyviewerStyle.Key2 => settings.footkey2,
-                        FootKeyviewerStyle.Key6 => settings.footkey6,
-                        FootKeyviewerStyle.Key8 => settings.footkey8,
-                        _ => settings.footkey4
-                    };
-                    key.text.tmp.text = KeyToString(keyCodes[i - 16]);
+                    keyCodes = GetFootKeyCode();
+                    key.text.tmp.text = KeyToString(keyCodes[i - 20]);
                 }
                 break;
         }
@@ -955,14 +1030,8 @@ public class KeyViewer : Feature {
         KeyViewerSettings settings = Settings;
         if(ADOBase.platform != Platform.Windows || !settings.AutoSetupKeyLimit || !AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
         Dictionary<KeyCode, List<int>> codeDictionary = GetKeyCodes();
-        KeyCode[] keyCodes = settings.KeyViewerStyle == KeyviewerStyle.Key12 ? settings.key12 : settings.key16;
-        KeyCode[] footKeyCodes = settings.FootKeyViewerStyle switch {
-            FootKeyviewerStyle.Key2 => settings.footkey2,
-            FootKeyviewerStyle.Key4 => settings.footkey4,
-            FootKeyviewerStyle.Key6 => settings.footkey6,
-            FootKeyviewerStyle.Key8 => settings.footkey8,
-            _ => []
-        };
+        KeyCode[] keyCodes = GetKeyCode();
+        KeyCode[] footKeyCodes = GetFootKeyCode();
         HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
         foreach(KeyCode keyCode in footKeyCodes) if((int) keyCode < 0x1000) keys.Add(keyCode);
         HashSet<ushort> asyncKeys = [];
@@ -1031,11 +1100,17 @@ public class KeyViewer : Feature {
             KeyCode.Space, KeyCode.C, KeyCode.Comma, KeyCode.Period, KeyCode.CapsLock, KeyCode.LeftShift, KeyCode.Return, KeyCode.H
         ];
         public string[] key16Text = new string[16];
+        public KeyCode[] key20 = [
+            KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
+            KeyCode.Space, KeyCode.C, KeyCode.Comma, KeyCode.Period, KeyCode.CapsLock, KeyCode.LeftShift, KeyCode.Return, KeyCode.H,
+            KeyCode.CapsLock, KeyCode.D, KeyCode.RightShift, KeyCode.Semicolon
+        ];
+        public string[] key20Text = new string[20];
         public KeyCode[] footkey2 = [KeyCode.F2, KeyCode.F7];
         public KeyCode[] footkey4 = [KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6];
         public KeyCode[] footkey6 = [KeyCode.F1, KeyCode.F8, KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6];
         public KeyCode[] footkey8 = [KeyCode.F1, KeyCode.F8, KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F4, KeyCode.F5];
-        public int[] Count = new int[24];
+        public int[] Count = new int[28];
         public int TotalCount;
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
@@ -1047,9 +1122,15 @@ public class KeyViewer : Feature {
         public ColorCache TextClicked = new(KeyViewer.TextClicked);
         public ColorCache RainColor = new(KeyViewer.RainColor);
         public ColorCache RainColor2 = new(KeyViewer.RainColor2);
+        public ColorCache RainColor3 = new(KeyViewer.RainColor3);
 
         public KeyViewerSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;
+            if(Count.Length != 24) return;
+            int[] cur = Count;
+            Count = new int[28];
+            for(int i = 0; i < 16; i++) Count[i] = cur[i];
+            for(int i = 16; i < 24; i++) Count[i + 4] = cur[i];
         }
     }
 }

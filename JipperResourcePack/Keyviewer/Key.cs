@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using JipperResourcePack.Async;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace JipperResourcePack.Keyviewer;
 
@@ -12,7 +13,7 @@ public class Key : MonoBehaviour {
     public AsyncImage outline;
     public AsyncText value;
     public GameObject rain;
-    public bool isGreenColor;
+    public byte color;
     public List<RawRain> rainList = [];
     public ConcurrentQueue<RawRain> rawRainQueue = new();
 
@@ -20,8 +21,12 @@ public class Key : MonoBehaviour {
         while(rawRainQueue.TryDequeue(out RawRain rawRain)) {
             Rain rainComponent = CreateRain(rawRain.transform);
             rainComponent.rawRain = rawRain;
-            rainComponent.image.color = isGreenColor ? KeyViewer.Settings.RainColor2 : KeyViewer.Settings.RainColor;
-            rainComponent.transform.SetSiblingIndex(isGreenColor ? 1 : 0);
+            rainComponent.image.color = color switch {
+                1 => KeyViewer.Settings.RainColor,
+                3 => KeyViewer.Settings.RainColor3,
+                _ => KeyViewer.Settings.RainColor2
+            };
+            rainComponent.transform.SetSiblingIndex(color == 1 ? 1 : 0);
         }
     }
 

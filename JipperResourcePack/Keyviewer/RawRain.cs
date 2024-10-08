@@ -5,7 +5,7 @@ namespace JipperResourcePack.Keyviewer;
 public class RawRain {
     public Transform transform;
     public long startTime;
-    public bool isGreen;
+    public byte color;
     public Vector2 FinalSize;
     public Vector2? sizeDelta;
     public Vector2? anchoredPosition;
@@ -13,7 +13,11 @@ public class RawRain {
     
     public bool UpdateLocation(long time, bool updateSize) {
         float y = (time - startTime) / 300f * 100;
-        if(updateSize) FinalSize = new Vector2(isGreen ? 40 : 50, (time - startTime) / 300f * 100);
+        if(updateSize) FinalSize = new Vector2(color switch {
+            1 => 50,
+            3 => 30,
+            _ => 40
+        }, (time - startTime) / 300f * 100);
         if(y > 200) {
             float sizeY = FinalSize.y - y + 200;
             if(sizeY < 0) return false;
@@ -26,9 +30,9 @@ public class RawRain {
         return true;
     }
     
-    public RawRain(Transform transform, long startTime, bool isGreen) {
+    public RawRain(Transform transform, long startTime, byte color) {
         this.transform = transform;
         this.startTime = startTime;
-        this.isGreen = isGreen;
+        this.color = color;
     }
 }
