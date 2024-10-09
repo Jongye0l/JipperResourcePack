@@ -117,7 +117,9 @@ public class InstallScreen : Screen {
             DownloadProgressStart = 10;
             DownloadProgressEnd = 60;
             await Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", Path.Combine(ummPath, "UnityModManagerInstaller"));
-            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnityModManagerNet", "Params.xml"), $"""
+            string ummFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnityModManagerNet");
+            if(!File.Exists(ummFolder)) Directory.CreateDirectory(ummFolder);
+            File.WriteAllText(Path.Combine(ummPath, "Params.xml"), $"""
                  <?xml version="1.0" encoding="utf-8"?>
                  <Param xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                    <LastSelectedGame>A Dance of Fire and Ice</LastSelectedGame>
