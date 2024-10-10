@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ public class Overlay {
     public TextMeshProUGUI XAccuracyText;
     public TextMeshProUGUI TimeText;
     public TextMeshProUGUI MapTimeText;
+    public TextMeshProUGUI CheckpointText;
     public GameObject ComboObject;
     public TextMeshProUGUI ComboTitle;
     public TextMeshProUGUI ComboText;
@@ -33,6 +35,9 @@ public class Overlay {
     protected int lastTime = -1;
     protected int lastMapTime = -1;
     protected int startTile;
+    protected int lastCheckpoint = -1;
+    protected int[] checkpoints;
+    protected int curCheck;
     protected float lastTileBPM = -1;
     protected float lastCurBPM = -1;
     private Stopwatch Stopwatch;
@@ -50,7 +55,7 @@ public class Overlay {
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
         Stopwatch = new Stopwatch();
         GameObject.SetActive(false);
-        InitializeMain();
+        InitializeStatus();
         InitializeBPM();
         InitializeJudgement();
         InitializeCombo();
@@ -60,7 +65,7 @@ public class Overlay {
         if(ADOBase.controller && ADOBase.conductor && ADOBase.conductor.isGameWorld) Show();
     }
 
-    protected virtual void InitializeMain() {
+    protected virtual void InitializeStatus() {
         GameObject gameObject = new("Main");
         RectTransform transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(Canvas.transform);
@@ -74,7 +79,7 @@ public class Overlay {
         SetupMainText("XAccuracy", ref XAccuracyText);
         SetupMainText("MusicTime", ref TimeText);
         SetupMainText("MapTime", ref MapTimeText);
-        SetupLocationMain();
+        SetupMainText("Checkpoint", ref CheckpointText);
     }
 
     protected void SetupMainText(string name, ref TextMeshProUGUI text) {
@@ -96,6 +101,7 @@ public class Overlay {
         SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
+        SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
         UpdateProgress();
         UpdateAccuracy();
         UpdateTime();
@@ -263,6 +269,7 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         Progress = scrController.instance.percentComplete;
         if(Status.Settings.ShowProgress) UpdateProgressText();
+        if(Status.Settings.ShowCheckpoint) UpdateCheckPointText();
         if(Status.Settings.ShowProgressBar) UpdateProgressBar();
     }
 
@@ -281,6 +288,19 @@ public class Overlay {
     public virtual void UpdateProgressText() {
         ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, 2)}%";
         ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
+    }
+
+    public void UpdateCheckPointText() {
+        checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
+        if(checkpoints.Length == 0) return;
+        bool updated = false;
+        while(checkpoints.Length > curCheck + 1 && scrController.instance.currentSeqID >= checkpoints[curCheck + 1]) {
+            curCheck++;
+            updated = true;
+        }
+        if(lastCheckpoint == scrController.checkpointsUsed && !updated) return;
+        CheckpointText.text = $"<color=white>CheckPoint |</color> {scrController.checkpointsUsed} ({curCheck}/{checkpoints.Length})";
+        lastCheckpoint = scrController.checkpointsUsed;
     }
 
     public void UpdateJudgement() {
@@ -397,6 +417,10 @@ public class Overlay {
         if(startTile == -1) startTile = scrController.instance.currentSeqID;
         if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
         GameObject.SetActive(true);
+        lastCheckpoint = -1;
+        checkpoints = null;
+        curCheck = 0;
+        SetupLocationMain();
         UpdateProgress();
         scrMistakesManager manager = scrController.instance.mistakesManager;
         if(manager != null) {

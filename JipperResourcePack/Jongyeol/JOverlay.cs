@@ -13,12 +13,10 @@ public class JOverlay : Overlay {
     public TextMeshProUGUI FPSText;
     public TextMeshProUGUI AuthorText;
     public TextMeshProUGUI StateText;
-    public TextMeshProUGUI CheckpointText;
     public TextMeshProUGUI DeathText;
     public TextMeshProUGUI StartText;
     public TextMeshProUGUI TimingText;
 
-    private int lastCheckpoint;
     private List<float> timings;
     private bool purePerfect;
     private int death;
@@ -33,8 +31,8 @@ public class JOverlay : Overlay {
         Instance = this;
     }
 
-    protected override void InitializeMain() {
-        base.InitializeMain();
+    protected override void InitializeStatus() {
+        base.InitializeStatus();
         SetupMainText("FPS", ref FPSText);
         SetupMainText("Author", ref AuthorText);
         SetupMainText("State", ref StateText);
@@ -56,7 +54,6 @@ public class JOverlay : Overlay {
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(StateText, Status.Settings.ShowState, ref y);
-        SetupLocationMainText(CheckpointText, scrController.checkpointsUsed != 0 && Status.Settings.ShowCheckpoint, ref y);
         SetupLocationMainText(DeathText, scrController.instance.noFail && Status.Settings.ShowDeath, ref y);
         SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && Status.Settings.ShowTiming, ref y);
@@ -66,7 +63,6 @@ public class JOverlay : Overlay {
         if(!GameObject.activeSelf) return;
         base.UpdateProgress();
         UpdateState();
-        UpdateCheckpoint();
         UpdateDeath();
     }
 
@@ -190,12 +186,6 @@ public class JOverlay : Overlay {
                 return;
             }
         }
-    }
-
-    public void UpdateCheckpoint() {
-        if(!Status.Settings.ShowCheckpoint || lastCheckpoint == scrController.checkpointsUsed || !GameObject.activeSelf) return;
-        CheckpointText.text = $"Checkpoint | {scrController.checkpointsUsed}";
-        SetupLocationMain();
     }
 
     public void UpdateDeath() {
@@ -325,8 +315,6 @@ public class JOverlay : Overlay {
         base.Show();
         UpdateAuthor();
         UpdateState();
-        lastCheckpoint = -1;
-        UpdateCheckpoint();
         UpdateDeath();
         UpdateStart();
         timings = new List<float>();

@@ -22,7 +22,6 @@ public class Status : JipperResourcePack.Status {
         settingGUI.AddSettingToggle(ref Settings.ShowAuthor, localization["progress.showAuthor"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowState, localization["progress.showState"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.HideDebugText, localization["progress.hideDebugText"], JOverlay.Instance.SetupLocationMain);
-        settingGUI.AddSettingToggle(ref Settings.ShowCheckpoint, localization["progress.showCheckpoint"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowDeath, localization["progress.showDeath"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowStart, localization["progress.showStart"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowTiming, localization["progress.showTiming"], JOverlay.Instance.SetupLocationMain);
@@ -52,7 +51,6 @@ public class Status : JipperResourcePack.Status {
         public bool ShowAuthor = true;
         public bool ShowState = true;
         public bool HideDebugText = true;
-        public bool ShowCheckpoint = true;
         public bool ShowDeath = true;
         public bool ShowStart = true;
         public bool ShowTiming = true;
