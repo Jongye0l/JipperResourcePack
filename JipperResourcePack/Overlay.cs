@@ -448,7 +448,6 @@ public class Overlay {
         if(startTile == -1) {
             startTile = scrController.instance.currentSeqID;
             startProgress = scrController.instance.percentComplete;
-            Main.Instance.Log("Start Progress: " + startProgress);
         } else if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
         autoOnceEnabled = RDC.auto;
         if(Status.Instance.Enabled && !RDC.auto) PlayCount.AddAttempts();

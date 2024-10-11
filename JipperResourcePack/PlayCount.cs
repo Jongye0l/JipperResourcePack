@@ -56,7 +56,6 @@ public class PlayCount {
     }
 
     public static void SetBest(float start, float cur) {
-        Main.Instance.Log("SetBest Was Called With " + start + " " + cur);
         Hash hash = GetMapHash();
         if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
         datas[hash].SetBest(start, cur);
