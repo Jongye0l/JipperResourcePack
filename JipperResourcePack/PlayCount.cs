@@ -15,6 +15,8 @@ public class PlayCount {
     public static Dictionary<Hash, PlayData> datas;
     private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
 
+    public static float Multiplier => (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+
     public static void Load() {
         string path = FilePath;
         datas = new Dictionary<Hash, PlayData>();
@@ -53,7 +55,8 @@ public class PlayCount {
     public static void AddAttempts() {
         Hash hash = GetMapHash();
         if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
-        datas[hash].AddAttempts(scrController.instance.percentComplete);
+        scrController controller = ADOBase.controller;
+        datas[hash].AddAttempts(controller.percentComplete, Multiplier);
     }
 
     public static void SetBest(float start, float cur) {
@@ -80,22 +83,25 @@ public class PlayCount {
 
     public class PlayData {
         public int totalAttempts;
-        public Dictionary<float, int> attempts = new();
-        public Dictionary<float, float> best = new();
+        public Dictionary<(float, float), int> attempts = new();
+        public Dictionary<(float, float), float> best = new();
 
-        public int this[float progress] => attempts.GetValueOrDefault(progress, 0);
-
-        public void AddAttempts(float progress) {
-            if(!attempts.TryAdd(progress, 1)) attempts[progress]++;
+        public void AddAttempts(float progress, float multiplier) {
+            if(!attempts.TryAdd((progress, multiplier), 1)) attempts[(progress, multiplier)]++;
             totalAttempts++;
             Save();
         }
 
         public void SetBest(float start, float cur) {
-            if(best.TryAdd(start, cur)) return;
-            if(best[start] < cur) best[start] = cur;
+            (float, float) key = (start, Multiplier);
+            if(best.TryAdd(key, cur)) return;
+            if(best[key] < cur) best[key] = cur;
             Save();
         }
+
+        public float GetBest(float start) => best.GetValueOrDefault((start, Multiplier), 0);
+
+        public int GetAttempts(float progress) => attempts.GetValueOrDefault((progress, Multiplier), 0);
 
         public static implicit operator int(PlayData data) => data.totalAttempts;
     }

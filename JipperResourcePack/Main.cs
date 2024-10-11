@@ -50,12 +50,14 @@ public class Main : JAMod {
     
     protected override void OnEnable() {
         BundleLoader.LoadBundle();
+        PlayCount.Load();
         if(Jongyeol.Main.CheckEnable(Setting)) new JOverlay();
         else new Overlay();
         Patcher.Patch();
     }
     
     protected override void OnDisable() {
+        PlayCount.Dispose();
         SaveSetting();
         Patcher.Unpatch();
         Overlay.Instance.Destroy();

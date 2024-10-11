@@ -324,12 +324,12 @@ public class Overlay {
 
     public void UpdateAttempts() {
         if(!Status.Settings.ShowAttempt) return;
-        AttemptText.text = $"<color=white>Attempt |</color> {PlayCount.GetData().attempts.GetValueOrDefault(startProgress, 0)}";
+        AttemptText.text = $"<color=white>Attempt |</color> {PlayCount.GetData().GetAttempts(startProgress)}";
     }
 
     public void UpdateBest() {
         if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
-        if(curBest == -1) curBest = PlayCount.GetData().best.GetValueOrDefault(startProgress, 0);
+        if(curBest == -1) curBest = PlayCount.GetData().GetBest(startProgress);
         else if(curBest > Progress || autoOnceEnabled) return;
         BestText.text = $"<color=white>Best |</color> {(curBest > Progress || autoOnceEnabled ? curBest : Progress) * 100}%";
     }

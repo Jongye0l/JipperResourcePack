@@ -27,7 +27,6 @@ public class Status : Feature {
     
     protected override void OnEnable() {
         ProgressObject?.SetActive(true);
-        PlayCount.Load();
         if(scrLevelMaker.instance) Overlay.Instance?.SetupLocationMain();
         if(Settings.ShowProgressBar) ProgressBarObject?.SetActive(true);
     }
@@ -35,7 +34,6 @@ public class Status : Feature {
     protected override void OnDisable() {
         ProgressObject?.SetActive(false);
         if(Settings.ShowProgressBar) ProgressBarObject?.SetActive(false);
-        PlayCount.Dispose();
     }
 
     protected override void OnGUI() {
