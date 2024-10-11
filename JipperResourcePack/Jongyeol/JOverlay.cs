@@ -53,6 +53,9 @@ public class JOverlay : Overlay {
         SetupLocationMainText(XAccuracyText, checkAuto && Status.Settings.ShowXAccuracy, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
+        SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
+        SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
+        SetupLocationMainText(AttemptText, Status.Settings.ShowAttempt, ref y);
         SetupLocationMainText(StateText, Status.Settings.ShowState, ref y);
         SetupLocationMainText(DeathText, scrController.instance.noFail && Status.Settings.ShowDeath, ref y);
         SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);

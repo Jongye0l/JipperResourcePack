@@ -13,10 +13,10 @@ namespace JipperResourcePack;
 public class PlayCount {
 
     public static Dictionary<Hash, PlayData> datas;
-    private static string filePath => Path.Combine(Main.Instance.Path, "Plays.dat");
+    private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
 
     public static void Load() {
-        string path = filePath;
+        string path = FilePath;
         datas = new Dictionary<Hash, PlayData>();
         if(File.Exists(path)) {
             try {
@@ -55,14 +55,15 @@ public class PlayCount {
         datas[hash].AddAttempts(scrController.instance.percentComplete);
     }
 
-    public static void SetBest(float start) {
+    public static void SetBest(float start, float cur) {
+        Main.Instance.Log("SetBest Was Called With " + start + " " + cur);
         Hash hash = GetMapHash();
         if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
-        datas[hash].SetBest(start, scrController.instance.percentComplete);
+        datas[hash].SetBest(start, cur);
     }
 
     public static void Save() {
-        string path = filePath;
+        string path = FilePath;
         if(File.Exists(path)) File.Copy(path, path + ".bak", true);
         using FileStream fileStream = File.OpenWrite(path);
         fileStream.WriteByte(0);

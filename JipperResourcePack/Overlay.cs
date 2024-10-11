@@ -86,6 +86,8 @@ public class Overlay {
         SetupMainText("MusicTime", ref TimeText);
         SetupMainText("MapTime", ref MapTimeText);
         SetupMainText("Checkpoint", ref CheckpointText);
+        SetupMainText("Best", ref BestText);
+        SetupMainText("Attempt", ref AttemptText);
     }
 
     protected void SetupMainText(string name, ref TextMeshProUGUI text) {
@@ -107,6 +109,7 @@ public class Overlay {
         SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
+        checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
         SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
         SetupLocationMainText(AttemptText, Status.Settings.ShowAttempt, ref y);
@@ -308,7 +311,6 @@ public class Overlay {
     }
 
     public void UpdateCheckPointText() {
-        checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
         if(checkpoints.Length == 0) return;
         bool updated = false;
         while(checkpoints.Length > curCheck + 1 && scrController.instance.currentSeqID >= checkpoints[curCheck + 1]) {
@@ -329,7 +331,7 @@ public class Overlay {
         if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
         if(curBest == -1) curBest = PlayCount.GetData().best.GetValueOrDefault(startProgress, 0);
         else if(curBest > Progress || autoOnceEnabled) return;
-        BestText.text = $"<color=white>Best |</color> {(curBest > Progress || autoOnceEnabled ? curBest : Progress)}%";
+        BestText.text = $"<color=white>Best |</color> {(curBest > Progress || autoOnceEnabled ? curBest : Progress) * 100}%";
     }
 
     public void UpdateJudgement() {
@@ -446,9 +448,10 @@ public class Overlay {
         if(startTile == -1) {
             startTile = scrController.instance.currentSeqID;
             startProgress = scrController.instance.percentComplete;
-            autoOnceEnabled = RDC.auto;
-            if(Status.Instance.Enabled && !RDC.auto) PlayCount.AddAttempts();
-        }
+            Main.Instance.Log("Start Progress: " + startProgress);
+        } else if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
+        autoOnceEnabled = RDC.auto;
+        if(Status.Instance.Enabled && !RDC.auto) PlayCount.AddAttempts();
         if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
         GameObject.SetActive(true);
         curBest = lastCheckpoint = -1;
@@ -470,8 +473,8 @@ public class Overlay {
     
     public virtual void Hide() {
         GameObject.SetActive(false);
+        if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
         startProgress = startTile = -1;
-        if(autoOnceEnabled) PlayCount.SetBest(Progress);
     }
 
     public void Destroy() {
