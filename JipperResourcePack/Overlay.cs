@@ -66,6 +66,7 @@ public class Overlay {
         InitializeCombo();
         InitializeProgressBar();
         InitializeTimingScale();
+        UpdateSize();
         Object.DontDestroyOnLoad(Canvas.gameObject);
         if(ADOBase.controller && ADOBase.conductor && ADOBase.conductor.isGameWorld) Show();
     }
@@ -225,6 +226,13 @@ public class Overlay {
         SetupShadow(TimingScaleText);
         gameObject.SetActive(false);
         TimingScale.TimingScaleObject = gameObject;
+    }
+
+    public void UpdateSize() {
+        Transform transform = GameObject.transform;
+        int count = transform.childCount;
+        Vector3 scale = new(Main.Settings.Size, Main.Settings.Size, 1);
+        for(int i = 0; i < count; i++) transform.GetChild(i).localScale = scale;
     }
 
     protected void SetupShadow(TextMeshProUGUI text) {

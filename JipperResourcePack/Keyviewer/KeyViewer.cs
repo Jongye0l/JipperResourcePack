@@ -57,6 +57,7 @@ public class KeyViewer : Feature {
     public int SelectedKey = -1;
     public int WinAPICool;
     public bool TextChanged;
+    private string sizeString;
 
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSettings)) {
         if(ADOBase.platform != Platform.Windows) return;
@@ -75,6 +76,7 @@ public class KeyViewer : Feature {
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
+        KeyViewerObject.transform.localScale = new Vector3(Settings.Size, Settings.Size, 1);
         Keys = new Key[28];
         KeyViewerSettings settings = Settings;
         switch(settings.KeyViewerStyle) {
@@ -144,6 +146,9 @@ public class KeyViewer : Feature {
             settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
+        settingGUI.AddSettingSliderFloat(ref settings.Size, 1, ref sizeString, localization["size"], 0, 2, () => {
+            KeyViewerObject.transform.localScale = new Vector3(settings.Size, settings.Size, 1);
+        });
         KeyCode[] keyCodes = GetKeyCode();
         KeyCode[] footKeyCodes = GetFootKeyCode();
         string[] keyTexts = GetKeyText();
@@ -659,6 +664,7 @@ public class KeyViewer : Feature {
 
     protected override void OnHideGUI() {
         WinAPICool = 0;
+        sizeString = null;
         if(SelectedKey == -1) return;
         Main.Instance.SaveSetting();
         SelectedKey = -1;
@@ -1051,6 +1057,7 @@ public class KeyViewer : Feature {
         public int TotalCount;
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
+        public float Size = 1;
         public ColorCache Background = new(KeyViewer.Background);
         public ColorCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
         public ColorCache Outline = new(KeyViewer.Outline);

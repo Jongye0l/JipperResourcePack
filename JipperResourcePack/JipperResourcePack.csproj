@@ -532,6 +532,7 @@
         <Compile Include="Main.cs" />
         <Compile Include="Overlay.cs" />
         <Compile Include="ProgressBar.cs" />
+        <Compile Include="ResourcePackSetting.cs" />
         <Compile Include="SettingTool\ColorCache.cs" />
         <Compile Include="SettingTool\ColorPerDictionary.cs" />
         <Compile Include="SettingTool\ProgressColorCache.cs" />

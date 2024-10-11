@@ -10,19 +10,23 @@ using UnityEngine;
 using UnityModManagerNet;
 
 namespace JipperResourcePack;
+
 public class Main : JAMod {
     public static Main Instance;
     public static JAPatcher Patcher;
     public static SettingGUI SettingGUI;
+    public static ResourcePackSetting Settings;
     private static bool CreditsShown;
+    private string sizeString;
     
-    public Main(UnityModManager.ModEntry modEntry) : base(modEntry, true, typeof(JASetting), discord: "https://discord.gg/qTbnPhY7YA", gid: 1313107549) {
+    public Main(UnityModManager.ModEntry modEntry) : base(modEntry, true, typeof(ResourcePackSetting), discord: "https://discord.gg/qTbnPhY7YA", gid: 1313107549) {
         Instance = this;
         Patcher = new JAPatcher(this);
         Patcher.AddPatch(OnGameStart);
         Patcher.AddPatch(OnGameStop);
         Patcher.AddPatch(OnGameReset);
 		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
+        Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
     }
 
@@ -62,6 +66,14 @@ public class Main : JAMod {
         Overlay.Instance.UpdateTime();
         Overlay.Instance.UpdateComboSize();
         Jongyeol.Main.Update(deltaTime);
+    }
+
+    protected override void OnGUI() {
+        SettingGUI.AddSettingSliderFloat(ref Settings.Size, 1, ref sizeString, Localization["size"], 0, 2, Overlay.Instance.UpdateSize);
+    }
+
+    protected override void OnHideGUI() {
+        base.OnHideGUI();
     }
 
     protected override void OnGUIBehind() {
