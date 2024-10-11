@@ -21,6 +21,8 @@ public class Overlay {
     public TextMeshProUGUI TimeText;
     public TextMeshProUGUI MapTimeText;
     public TextMeshProUGUI CheckpointText;
+    public TextMeshProUGUI AttemptText;
+    public TextMeshProUGUI BestText;
     public GameObject ComboObject;
     public TextMeshProUGUI ComboTitle;
     public TextMeshProUGUI ComboText;
@@ -42,6 +44,7 @@ public class Overlay {
     protected float lastCurBPM = -1;
     private Stopwatch Stopwatch;
     protected bool songPlaying;
+    private float startProgress;
 
     public Overlay() {
         Instance = this;
@@ -102,9 +105,12 @@ public class Overlay {
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
+        SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
+        SetupLocationMainText(AttemptText, Status.Settings.ShowAttempt, ref y);
         UpdateProgress();
         UpdateAccuracy();
         UpdateTime();
+        UpdatePlayData();
     }
 
     protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
@@ -303,6 +309,12 @@ public class Overlay {
         lastCheckpoint = scrController.checkpointsUsed;
     }
 
+    public void UpdatePlayData() {
+        PlayCount.PlayData data = PlayCount.GetData();
+        if(Status.Settings.ShowBest) BestText.text = $"<color=white>Best |</color> {data.best.GetValueOrDefault(startProgress, 0)}%";
+        if(Status.Settings.ShowAttempt) AttemptText.text = $"<color=white>Attempt |</color> {data.attempts.GetValueOrDefault(startProgress, 0)}";
+    }
+
     public void UpdateJudgement() {
         if(!GameObject.activeSelf) return;
         int[] hits = hit;
@@ -414,23 +426,23 @@ public class Overlay {
     }
     
     public virtual void Show() {
-        if(startTile == -1) startTile = scrController.instance.currentSeqID;
+        if(startTile == -1) {
+            startTile = scrController.instance.currentSeqID;
+            startProgress = scrController.instance.percentComplete;
+        }
         if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
         GameObject.SetActive(true);
         lastCheckpoint = -1;
         checkpoints = null;
         curCheck = 0;
-        SetupLocationMain();
-        UpdateProgress();
         scrMistakesManager manager = scrController.instance.mistakesManager;
         if(manager != null) {
             manager.percentAcc = 1;
             manager.percentXAcc = 1;
         }
-        UpdateAccuracy();
-        UpdateJudgement();
         songPlaying = false;
-        UpdateTime();
+        SetupLocationMain();
+        UpdateJudgement();
         UpdateCombo(0, false);
         UpdateBPM();
         UpdateTimingScale();
@@ -439,11 +451,8 @@ public class Overlay {
     
     public virtual void Hide() {
         GameObject.SetActive(false);
-        startTile = -1;
-    }
+        startProgress = startTile = -1;
 
-    public void Fail() {
-        startTile = -1;
     }
 
     public void Destroy() {

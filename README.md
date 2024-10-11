@@ -55,6 +55,7 @@
   * [AdofaiTweaks](https://github.com/PizzaLovers007/AdofaiTweaks)
   * [MovingManN](https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js)
   * [MoreTimeTags](https://github.com/Jongye0l/MoreTimeTags)
+  * [BetterCalibration](https://github.com/Jongye0l/BetterCalibration)
   * [State](https://github.com/Jongye0l/State)
   * [AdvancedCombo](https://github.com/Jongye0l/AdvancedCombo)
   * [AdofaiModInstaller](https://github.com/tjwogud/AdofaiModInstaller)
