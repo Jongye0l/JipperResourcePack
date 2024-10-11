@@ -63,12 +63,9 @@ public class PlayCount {
 
     public static void Save() {
         string path = filePath;
-        if(File.Exists(path)) {
-            string backupPath = path + ".bak";
-            if(File.Exists(backupPath)) File.Delete(backupPath);
-            File.Move(path, backupPath);
-        }
-        using FileStream fileStream = new(path, FileMode.Create);
+        if(File.Exists(path)) File.Copy(path, path + ".bak", true);
+        using FileStream fileStream = File.OpenWrite(path);
+        fileStream.WriteByte(0);
         fileStream.WriteInt(datas.Count);
         foreach(KeyValuePair<Hash, PlayData> pair in datas) {
             fileStream.Write(pair.Key.data);

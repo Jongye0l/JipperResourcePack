@@ -13,11 +13,13 @@ public class BPM : Feature {
     public static GameObject BPMObject;
     public static BPMSettings Settings;
     private string BpmColorMaxString;
+    public static BPM Instance;
 
     public BPM() : this(nameof(BPM), typeof(BPMSettings)) {
     }
 
     public BPM(string name, Type settingType) : base(Main.Instance, name, true, typeof(BPM), settingType) {
+        Instance = this;
     }
 
     protected override void OnEnable() {

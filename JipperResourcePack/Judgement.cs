@@ -7,9 +7,14 @@ using UnityEngine;
 
 namespace JipperResourcePack;
 
-public class Judgement() : Feature(Main.Instance, nameof(Judgement), true, typeof(Judgement), typeof(JudgementSettings)) {
+public class Judgement : Feature {
     public static GameObject JudgementObject;
     public static JudgementSettings Settings;
+    public static Judgement Instance;
+
+    public Judgement() : base(Main.Instance, nameof(Judgement), true, typeof(Judgement), typeof(JudgementSettings)) {
+        Instance = this;
+    }
 
     protected override void OnEnable() {
         JudgementObject?.SetActive(true);

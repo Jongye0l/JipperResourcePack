@@ -7,8 +7,10 @@ namespace JipperResourcePack;
 
 public class TimingScale : Feature {
     public static GameObject TimingScaleObject;
+    public static TimingScale Instance;
 
     public TimingScale() : base(Main.Instance, nameof(TimingScale), true, typeof(TimingScale)) {
+        Instance = this;
     }
     
     protected override void OnEnable() {

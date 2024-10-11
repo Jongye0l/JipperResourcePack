@@ -57,6 +57,18 @@ public class JOverlay : Overlay {
         SetupLocationMainText(DeathText, scrController.instance.noFail && Status.Settings.ShowDeath, ref y);
         SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && Status.Settings.ShowTiming, ref y);
+        UpdateProgress();
+        UpdateAccuracy();
+        UpdateTime();
+        UpdateAttempts();
+        UpdateAuthor();
+        UpdateState();
+        UpdateDeath();
+        UpdateStart();
+        if(timings == null) timings = [];
+        else timings.Clear();
+        UpdateTiming(0);
+        timings.Clear();
     }
 
     public override void UpdateProgress() {
@@ -90,7 +102,7 @@ public class JOverlay : Overlay {
     }
 
     public override void UpdateTime() {
-        if(!GameObject.activeSelf) return;
+        if(!GameObject.activeSelf || !Status.Instance.Enabled) return;
         scrConductor conductor = scrConductor.instance;
         if(JipperResourcePack.Status.Settings.ShowMusicTime) {
             AudioSource song = conductor.song;
@@ -313,13 +325,6 @@ public class JOverlay : Overlay {
         pseudoFloor = -1;
         ComboTitle.text = "Perfect";
         base.Show();
-        UpdateAuthor();
-        UpdateState();
-        UpdateDeath();
-        UpdateStart();
-        timings = new List<float>();
-        UpdateTiming(0);
-        timings.Clear();
     }
 
     public override void Hide() {

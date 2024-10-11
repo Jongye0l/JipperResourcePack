@@ -15,16 +15,19 @@ public class Status : Feature {
     public static ProgressSetting Settings;
     public static GameObject ProgressObject;
     public static GameObject ProgressBarObject;
+    public static Status Instance;
     
     public Status() : this(nameof(Status), typeof(ProgressSetting)) {
     }
 
     protected Status(string name, Type settingType) : base(Main.Instance, name, true, typeof(Status), settingType) {
         Settings = (ProgressSetting) Setting;
+        Instance = this;
     }
     
     protected override void OnEnable() {
         ProgressObject?.SetActive(true);
+        Overlay.Instance?.SetupLocationMain();
         if(Settings.ShowProgressBar) ProgressBarObject?.SetActive(true);
         PlayCount.Load();
     }
