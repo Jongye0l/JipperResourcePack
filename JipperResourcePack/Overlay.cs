@@ -313,7 +313,7 @@ public class Overlay {
     public void UpdateCheckPointText() {
         if(checkpoints.Length == 0) return;
         bool updated = false;
-        while(checkpoints.Length > curCheck + 1 && scrController.instance.currentSeqID >= checkpoints[curCheck + 1]) {
+        while(checkpoints.Length > curCheck && scrController.instance.currentSeqID >= checkpoints[curCheck]) {
             curCheck++;
             updated = true;
         }
