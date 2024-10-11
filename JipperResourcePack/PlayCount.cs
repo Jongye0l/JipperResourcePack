@@ -37,6 +37,7 @@ public class PlayCount {
 
     private static void LoadFile(string path) {
         FileStream fileStream = File.OpenRead(path);
+        fileStream.ReadByte();
         int count = fileStream.ReadInt();
         for(int i = 0; i < count; i++) {
             Hash key = fileStream.ReadBytes(16);
