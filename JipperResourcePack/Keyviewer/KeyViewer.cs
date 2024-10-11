@@ -889,7 +889,7 @@ public class KeyViewer : Feature {
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = new Vector2(0, raining switch {
             0 => -223,
-            3 => -277,
+            3 => -115,
             _ => -169
         });
         transform.localScale = Vector3.one;
