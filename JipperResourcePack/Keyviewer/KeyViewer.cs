@@ -365,6 +365,8 @@ public class KeyViewer : Feature {
 
     private static string ToString(KeyCode keyCode) {
         if((int) keyCode < 0x1000) return keyCode.ToString();
+        #region Custom KeyCode To String
+
         int code = (int) keyCode - 0x1000;
         switch(ADOBase.platform) {
             case Platform.Windows:
@@ -570,6 +572,8 @@ public class KeyViewer : Feature {
                 };
         }
         return "Key" + code;
+
+        #endregion
     }
 
 
@@ -910,6 +914,8 @@ public class KeyViewer : Feature {
         }
     }
 
+    #region KeyCode To Showing String
+
     public static string KeyToString(KeyCode keyCode) {
         string keyString = ToString(keyCode);
         if(keyString.StartsWith("Alpha")) keyString = keyString[5..];
@@ -952,6 +958,8 @@ public class KeyViewer : Feature {
             _ => keyString
         };
     }
+
+    #endregion
 
     private static void UpdateKeyLimit() {
         KeyViewerSettings settings = Settings;
