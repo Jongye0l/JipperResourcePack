@@ -46,6 +46,7 @@ public class Overlay {
     protected bool songPlaying;
     private float startProgress;
     private float curBest = -1;
+    private bool autoOnceEnabled;
 
     public Overlay() {
         Instance = this;
@@ -317,9 +318,10 @@ public class Overlay {
     }
 
     public void UpdateBest() {
+        if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
         if(curBest == -1) curBest = PlayCount.GetData().best.GetValueOrDefault(startProgress, 0);
-        else if(curBest > Progress) return;
-        BestText.text = $"<color=white>Best |</color> {PlayCount.GetData().best.GetValueOrDefault(startProgress, 0)}%";
+        else if(curBest > Progress || autoOnceEnabled) return;
+        BestText.text = $"<color=white>Best |</color> {(curBest > Progress || autoOnceEnabled ? curBest : Progress)}%";
     }
 
     public void UpdateJudgement() {
@@ -436,7 +438,8 @@ public class Overlay {
         if(startTile == -1) {
             startTile = scrController.instance.currentSeqID;
             startProgress = scrController.instance.percentComplete;
-            if(Status.Instance.Enabled) PlayCount.AddAttempts();
+            autoOnceEnabled = RDC.auto;
+            if(Status.Instance.Enabled && !RDC.auto) PlayCount.AddAttempts();
         }
         if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
         GameObject.SetActive(true);
@@ -460,7 +463,7 @@ public class Overlay {
     public virtual void Hide() {
         GameObject.SetActive(false);
         startProgress = startTile = -1;
-        PlayCount.SetBest(Progress);
+        if(autoOnceEnabled) PlayCount.SetBest(Progress);
     }
 
     public void Destroy() {
