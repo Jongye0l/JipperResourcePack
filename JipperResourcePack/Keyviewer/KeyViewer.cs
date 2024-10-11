@@ -875,7 +875,11 @@ public class KeyViewer : Feature {
         transform.SetParent(obj.transform);
         transform.sizeDelta = new Vector2(sizeX, 275);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
-        transform.anchoredPosition = new Vector2(0, raining == 0 ? -223 : -169);
+        transform.anchoredPosition = new Vector2(0, raining switch {
+            0 => -223,
+            3 => -277,
+            _ => -169
+        });
         transform.localScale = Vector3.one;
         return key;
     }
