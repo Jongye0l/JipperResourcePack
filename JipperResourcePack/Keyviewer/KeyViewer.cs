@@ -1047,7 +1047,7 @@ public class KeyViewer : Feature {
         public KeyCode[] footkey4 = [KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6];
         public KeyCode[] footkey6 = [KeyCode.F1, KeyCode.F8, KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6];
         public KeyCode[] footkey8 = [KeyCode.F1, KeyCode.F8, KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F4, KeyCode.F5];
-        public int[] Count = new int[28];
+        public int[] Count = new int[36];
         public int TotalCount;
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
@@ -1065,7 +1065,7 @@ public class KeyViewer : Feature {
             Settings = this;
             if(Count.Length != 24) return;
             int[] cur = Count;
-            Count = new int[28];
+            Count = new int[36];
             for(int i = 0; i < 16; i++) Count[i] = cur[i];
             for(int i = 16; i < 24; i++) Count[i + 4] = cur[i];
         }
