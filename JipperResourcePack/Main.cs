@@ -73,7 +73,7 @@ public class Main : JAMod {
     }
 
     protected override void OnHideGUI() {
-        base.OnHideGUI();
+        sizeString = null;
     }
 
     protected override void OnGUIBehind() {
