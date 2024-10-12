@@ -458,12 +458,17 @@ public class Overlay {
     }
     
     public virtual void Show() {
+        bool same;
         if(startTile == -1) {
             startTile = scrController.instance.currentSeqID;
             startProgress = scrController.instance.percentComplete;
-        } else if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
+            same = false;
+        } else {
+            if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
+            same = startProgress == Progress;
+        }
         autoOnceEnabled = RDC.auto;
-        if(Status.Instance.Enabled && !RDC.auto) PlayCount.AddAttempts();
+        if(Status.Instance.Enabled && !RDC.auto && !same) PlayCount.AddAttempts();
         if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
         GameObject.SetActive(true);
         curBest = lastCheckpoint = -1;
@@ -487,6 +492,7 @@ public class Overlay {
     public virtual void Hide() {
         GameObject.SetActive(false);
         if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
+        if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
         startProgress = startTile = -1;
     }
 

@@ -55,8 +55,13 @@ public class PlayCount {
     public static void AddAttempts() {
         Hash hash = GetMapHash();
         if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
-        scrController controller = ADOBase.controller;
-        datas[hash].AddAttempts(controller.percentComplete, Multiplier);
+        datas[hash].AddAttempts(ADOBase.controller.percentComplete, Multiplier);
+    }
+
+    public static void RemoveAttempts(float progress) {
+        Hash hash = GetMapHash();
+        if(!datas.ContainsKey(hash)) return;
+        datas[hash].RemoveAttempts(progress, Multiplier);
     }
 
     public static void SetBest(float start, float cur) {
@@ -89,6 +94,14 @@ public class PlayCount {
         public void AddAttempts(float progress, float multiplier) {
             if(!attempts.TryAdd((progress, multiplier), 1)) attempts[(progress, multiplier)]++;
             totalAttempts++;
+            Save();
+        }
+
+        public void RemoveAttempts(float progress, float multiplier) {
+            if(!attempts.TryGetValue((progress, multiplier), out int value)) return;
+            if(value == 1) attempts.Remove((progress, multiplier));
+            else attempts[(progress, multiplier)]--;
+            totalAttempts--;
             Save();
         }
 
