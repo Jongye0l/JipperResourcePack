@@ -54,8 +54,8 @@ public class JOverlay : Overlay {
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
-        SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
-        SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
+        SetupLocationMainText(CheckpointText, checkAuto && Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
+        SetupLocationMainText(BestText, checkAuto && Status.Settings.ShowBest, ref y);
         SetupLocationMainText(StateText, Status.Settings.ShowState, ref y);
         SetupLocationMainText(DeathText, scrController.instance.noFail && Status.Settings.ShowDeath, ref y);
         SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);
