@@ -44,9 +44,9 @@ public class Overlay {
     protected float lastCurBPM = -1;
     private Stopwatch Stopwatch;
     protected bool songPlaying;
-    private float startProgress;
-    private float curBest = -1;
-    private bool autoOnceEnabled;
+    protected float startProgress;
+    protected float curBest = -1;
+    protected bool autoOnceEnabled;
 
     public Overlay() {
         Instance = this;
@@ -344,7 +344,13 @@ public class Overlay {
         if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
         if(curBest == -1) curBest = PlayCount.GetData().GetBest(startProgress);
         else if(curBest > Progress || autoOnceEnabled) return;
-        BestText.text = $"<color=white>Best |</color> {(curBest > Progress || autoOnceEnabled ? curBest : Progress) * 100}%";
+        UpdateBestText();
+    }
+
+    public virtual void UpdateBestText() {
+        float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
+        BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
+        BestText.color = Status.Settings.BestColor.GetColor(curBest);
     }
 
     public void UpdateJudgement() {

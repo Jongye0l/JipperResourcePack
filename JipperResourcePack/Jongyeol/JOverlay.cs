@@ -149,6 +149,12 @@ public class JOverlay : Overlay {
         return GetColor(value, 0.2f, false);
     }
 
+    public override void UpdateBestText() {
+        float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
+        BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
+        BestText.color = Status.Settings.BestColor.GetColor(curBest);
+    }
+
     private Color GetColor(float value, float middle = 0.5f, bool ppColor = true) {
         return value < middle         ? new Color(1 - value / middle * 0.0117647058823529f,value / middle, value / middle * 0.3019607843137255f) :
                value < 1f || !ppColor ? new Color(0.9882352941176471f - (value - middle) / (1 - middle) * 0.6156862745098039f, 1, 0.3019607843137255f + (value - middle) / (1 - middle) * 0.01f) :
