@@ -467,8 +467,8 @@ public class Overlay {
             if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
             same = startProgress == Progress;
         }
-        autoOnceEnabled = RDC.auto;
-        if(Status.Instance.Enabled && !RDC.auto && !same) PlayCount.AddAttempts();
+        autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
+        if(Status.Instance.Enabled && !autoOnceEnabled && !same) PlayCount.AddAttempts();
         if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
         GameObject.SetActive(true);
         curBest = lastCheckpoint = -1;
