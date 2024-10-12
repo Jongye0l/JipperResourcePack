@@ -66,6 +66,7 @@ public class Overlay {
         InitializeCombo();
         InitializeProgressBar();
         InitializeTimingScale();
+        InitializeAttempt();
         UpdateSize();
         Object.DontDestroyOnLoad(Canvas.gameObject);
         if(ADOBase.controller && ADOBase.conductor && ADOBase.conductor.isGameWorld) Show();
@@ -87,7 +88,6 @@ public class Overlay {
         SetupMainText("MapTime", ref MapTimeText);
         SetupMainText("Checkpoint", ref CheckpointText);
         SetupMainText("Best", ref BestText);
-        SetupMainText("Attempt", ref AttemptText);
     }
 
     protected void SetupMainText(string name, ref TextMeshProUGUI text) {
@@ -112,11 +112,9 @@ public class Overlay {
         checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
         SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
-        SetupLocationMainText(AttemptText, Status.Settings.ShowAttempt, ref y);
         UpdateProgress();
         UpdateAccuracy();
         UpdateTime();
-        UpdateAttempts();
     }
 
     protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
@@ -231,6 +229,22 @@ public class Overlay {
         TimingScale.TimingScaleObject = gameObject;
     }
 
+    protected void InitializeAttempt() {
+        GameObject gameObject = new("Attempt");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
+        transform.anchoredPosition = new Vector2(210, 5);
+        transform.sizeDelta = new Vector2(300, 30);
+        AttemptText = gameObject.AddComponent<TextMeshProUGUI>();
+        AttemptText.font = BundleLoader.FontAsset;
+        AttemptText.fontSize = 25;
+        AttemptText.alignment = TextAlignmentOptions.Bottom;
+        SetupShadow(AttemptText);
+        gameObject.SetActive(false);
+        Attempt.AttemptObject = gameObject;
+    }
+
     public void UpdateSize() {
         Transform transform = GameObject.transform;
         int count = transform.childCount;
@@ -323,8 +337,7 @@ public class Overlay {
     }
 
     public void UpdateAttempts() {
-        if(!Status.Settings.ShowAttempt) return;
-        AttemptText.text = $"<color=white>Attempt |</color> {PlayCount.GetData().GetAttempts(startProgress)}";
+        AttemptText.text = $"Attempt {PlayCount.GetData().GetAttempts(startProgress)}";
     }
 
     public void UpdateBest() {
@@ -467,6 +480,7 @@ public class Overlay {
         if(Combo.Instance.Enabled) UpdateCombo(0, false);
         if(BPM.Instance.Enabled) UpdateBPM();
         if(TimingScale.Instance.Enabled) UpdateTimingScale();
+        if(Attempt.Instance.Enabled) UpdateAttempts();
         Combo.combo = 0;
     }
     

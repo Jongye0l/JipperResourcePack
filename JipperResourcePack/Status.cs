@@ -57,7 +57,6 @@ public class Status : Feature {
             Overlay.Instance.UpdateTime();
         settingGUI.AddSettingEnum(ref Settings.TimeTextType, localization["progress.timeTextType"], Overlay.Instance.UpdateTime);
         settingGUI.AddSettingToggle(ref Settings.ShowCheckpoint, localization["progress.showCheckpoint"], Overlay.Instance.SetupLocationMain);
-        settingGUI.AddSettingToggle(ref Settings.ShowAttempt, localization["progress.showAttempt"], Overlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowBest, localization["progress.showBest"], Overlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowProgressBar, localization["progress.showProgressBar"], () => {
             ProgressBarObject?.SetActive(Settings.ShowProgressBar);
@@ -92,7 +91,6 @@ public class Status : Feature {
         public bool ShowMapTimeIfNotMusic = true;
         public TimeTextType TimeTextType = TimeTextType.Korean;
         public bool ShowCheckpoint = false;
-        public bool ShowAttempt = false;
         public bool ShowBest = false;
         public bool ShowProgressBar = true;
         public ColorPerDictionary ProgressBarColor = new([(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
