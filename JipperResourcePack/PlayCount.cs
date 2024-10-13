@@ -52,23 +52,14 @@ public class PlayCount {
         datas = null;
     }
 
-    public static void AddAttempts() {
-        Hash hash = GetMapHash();
-        if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
-        datas[hash].AddAttempts(ADOBase.controller.percentComplete, Multiplier);
-    }
+    public static void AddAttempts() => GetData().AddAttempts(ADOBase.controller.percentComplete, Multiplier);
 
-    public static void RemoveAttempts(float progress) {
-        Hash hash = GetMapHash();
-        if(!datas.ContainsKey(hash)) return;
-        datas[hash].RemoveAttempts(progress, Multiplier);
-    }
 
-    public static void SetBest(float start, float cur) {
-        Hash hash = GetMapHash();
-        if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
-        datas[hash].SetBest(start, cur);
-    }
+    public static void RemoveAttempts(float progress) => GetData().RemoveAttempts(progress, Multiplier);
+
+
+    public static void SetBest(float start, float cur) => GetData().SetBest(start, cur);
+
 
     public static void Save() {
         string path = FilePath;
@@ -83,7 +74,9 @@ public class PlayCount {
     }
 
     public static PlayData GetData() {
-        return datas.GetValueOrDefault(GetMapHash());
+        Hash hash = GetMapHash();
+        if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
+        return datas[hash];
     }
 
     public class PlayData {

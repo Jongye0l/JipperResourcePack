@@ -337,12 +337,12 @@ public class Overlay {
     }
 
     public void UpdateAttempts() {
-        AttemptText.text = $"Attempt {PlayCount.GetData().GetAttempts(startProgress)}";
+        AttemptText.text = $"Attempt {PlayCount.GetData()?.GetAttempts(startProgress) ?? 0}";
     }
 
     public void UpdateBest() {
         if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
-        if(curBest == -1) curBest = PlayCount.GetData().GetBest(startProgress);
+        if(curBest == -1) curBest = PlayCount.GetData()?.GetBest(startProgress) ?? 0;
         else if(curBest > Progress || autoOnceEnabled) return;
         UpdateBestText();
     }
