@@ -1051,10 +1051,10 @@ public class KeyViewer : Feature {
             KeyCode.CapsLock, KeyCode.D, KeyCode.RightShift, KeyCode.Semicolon
         ];
         public string[] key20Text = new string[20];
-        public KeyCode[] footkey2 = [KeyCode.F2, KeyCode.F7];
-        public KeyCode[] footkey4 = [KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6];
-        public KeyCode[] footkey6 = [KeyCode.F1, KeyCode.F8, KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6];
-        public KeyCode[] footkey8 = [KeyCode.F1, KeyCode.F8, KeyCode.F2, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F4, KeyCode.F5];
+        public KeyCode[] footkey2 = [KeyCode.F8, KeyCode.F3];
+        public KeyCode[] footkey4 = [KeyCode.F8, KeyCode.F3, KeyCode.F7, KeyCode.F2];
+        public KeyCode[] footkey6 = [KeyCode.F8, KeyCode.F3, KeyCode.F7, KeyCode.F2, KeyCode.F6, KeyCode.F1];
+        public KeyCode[] footkey8 = [KeyCode.F8, KeyCode.F4, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F2, KeyCode.F5, KeyCode.F1];
         public int[] Count = new int[36];
         public int TotalCount;
         public bool DownLocation;
