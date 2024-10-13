@@ -464,38 +464,35 @@ public class Overlay {
     }
     
     public virtual void Show() {
-        bool same;
-        if(startTile == -1) {
-            startTile = scrController.instance.currentSeqID;
-            startProgress = scrController.instance.percentComplete;
-            same = false;
-        } else {
-            if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
-            same = startProgress == Progress;
-        }
+        bool active = GameObject.activeSelf;
         autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
-        if(Status.Instance.Enabled && !autoOnceEnabled && !same) PlayCount.AddAttempts();
-        if(GameObject.activeSelf) MainThread.Run(new JAction(Main.Instance, UpdateBPM));
-        GameObject.SetActive(true);
-        curBest = lastCheckpoint = -1;
-        checkpoints = null;
-        curCheck = 0;
-        scrMistakesManager manager = scrController.instance.mistakesManager;
-        if(manager != null) {
+        if(!autoOnceEnabled && active) PlayCount.SetBest(startProgress, Progress);
+        MainThread.Run(new JAction(Main.Instance, () => {
+            if(active) checkpoints = null;
+            if(!active || scrController.checkpointsUsed != 0) {
+                startTile = scrController.instance.currentSeqID;
+                startProgress = scrController.instance.percentComplete;
+                curBest = lastCheckpoint = -1;
+            }
+            if(Status.Instance.Enabled && !autoOnceEnabled && active) PlayCount.AddAttempts();
+            GameObject.SetActive(true);
+            curCheck = 0;
+            scrMistakesManager manager = scrController.instance.mistakesManager;
             manager.percentAcc = 1;
             manager.percentXAcc = 1;
-        }
-        songPlaying = false;
-        if(Status.Instance.Enabled) SetupLocationMain();
-        if(Judgement.Instance.Enabled) UpdateJudgement();
-        if(Combo.Instance.Enabled) UpdateCombo(0, false);
-        if(BPM.Instance.Enabled) UpdateBPM();
-        if(TimingScale.Instance.Enabled) UpdateTimingScale();
-        if(Attempt.Instance.Enabled) UpdateAttempts();
-        Combo.combo = 0;
+            songPlaying = false;
+            if(Status.Instance.Enabled) SetupLocationMain();
+            if(Judgement.Instance.Enabled) UpdateJudgement();
+            if(Combo.Instance.Enabled) UpdateCombo(0, false);
+            if(BPM.Instance.Enabled) UpdateBPM();
+            if(TimingScale.Instance.Enabled) UpdateTimingScale();
+            if(Attempt.Instance.Enabled) UpdateAttempts();
+            Combo.combo = 0;
+        }));
     }
     
     public virtual void Hide() {
+        if(!GameObject.activeSelf) return;
         GameObject.SetActive(false);
         if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
         if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
@@ -505,11 +502,5 @@ public class Overlay {
     public void Destroy() {
         Object.Destroy(GameObject);
         GC.SuppressFinalize(this);
-    }
-
-    public void Reset() {
-        if(!GameObject.activeSelf || startTile == -1) return;
-        startTile = scrController.instance.currentSeqID;
-        Show();
     }
 }

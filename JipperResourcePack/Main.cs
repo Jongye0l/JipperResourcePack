@@ -24,7 +24,6 @@ public class Main : JAMod {
         Patcher = new JAPatcher(this);
         Patcher.AddPatch(OnGameStart);
         Patcher.AddPatch(OnGameStop);
-        Patcher.AddPatch(OnGameReset);
 		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
@@ -134,10 +133,5 @@ public class Main : JAMod {
     [JAPatch(typeof(scrController), "StartLoadingScene", PatchType.Postfix, false)]
     private static void OnGameStop() {
         Overlay.Instance.Hide();
-    }
-
-    [JAPatch(typeof(scrMistakesManager), "Reset", PatchType.Postfix, false)]
-    private static void OnGameReset() {
-        Overlay.Instance.Reset();
     }
 }
