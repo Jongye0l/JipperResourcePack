@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using JipperResourcePack.Async;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace JipperResourcePack.Keyviewer;
 
@@ -26,7 +25,7 @@ public class Key : MonoBehaviour {
                 3 => KeyViewer.Settings.RainColor3,
                 _ => KeyViewer.Settings.RainColor2
             };
-            rainComponent.transform.SetSiblingIndex(color == 1 ? 1 : 0);
+            rainComponent.transform.SetSiblingIndex(color - 1);
         }
     }
 
