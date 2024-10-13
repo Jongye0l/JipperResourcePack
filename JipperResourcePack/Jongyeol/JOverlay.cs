@@ -67,8 +67,8 @@ public class JOverlay : Overlay {
         UpdateState();
         UpdateDeath();
         UpdateStart();
-        if(timings == null) timings = [];
-        else timings.Clear();
+        if(timings != null) return;
+        timings = [];
         UpdateTiming(0);
         timings.Clear();
     }

@@ -34,7 +34,7 @@ public class Status : JipperResourcePack.Status {
 
     [JAPatch(typeof(RDC), "set_auto", PatchType.Postfix, false)]
     private static void OnAutoChange() {
-        if(!ADOBase.isScnGame && _auto == RDC.auto) return;
+        if(ADOBase.isScnGame || _auto == RDC.auto) return;
         JOverlay.Instance.SetupLocationMain();
         JOverlay.Instance.UpdateState();
         _auto = RDC.auto;
