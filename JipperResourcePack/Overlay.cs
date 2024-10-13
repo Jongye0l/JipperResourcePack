@@ -37,6 +37,7 @@ public class Overlay {
     protected int lastTime = -1;
     protected int lastMapTime = -1;
     protected int startTile;
+    protected int noCheckStartTile;
     protected int lastCheckpoint = -1;
     protected int[] checkpoints;
     protected int curCheck;
@@ -288,7 +289,7 @@ public class Overlay {
         xacc.SetIfNaN(1);
         if(Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
-            float maxAcc = 1 + (scrController.instance.currentSeqID - startTile + 1) * 0.0001f;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
             AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
@@ -468,7 +469,10 @@ public class Overlay {
         autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
         if(!autoOnceEnabled && active) PlayCount.SetBest(startProgress, Progress);
         MainThread.Run(new JAction(Main.Instance, () => {
-            if(active) checkpoints = null;
+            if(!active) {
+                checkpoints = null;
+                noCheckStartTile = scrController.instance.currentSeqID;
+            }
             if(!active || scrController.checkpointsUsed != 0) {
                 startTile = scrController.instance.currentSeqID;
                 startProgress = scrController.instance.percentComplete;
@@ -496,7 +500,7 @@ public class Overlay {
         GameObject.SetActive(false);
         if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
         if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
-        startProgress = startTile = -1;
+        startProgress = startTile = noCheckStartTile = -1;
     }
 
     public void Destroy() {

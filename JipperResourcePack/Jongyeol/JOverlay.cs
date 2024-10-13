@@ -93,7 +93,7 @@ public class JOverlay : Overlay {
         xacc.SetIfNaN(1);
         if(JipperResourcePack.Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
-            float maxAcc = 1 + (scrController.instance.currentSeqID - startTile + 1) * 0.0001f;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
             AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
