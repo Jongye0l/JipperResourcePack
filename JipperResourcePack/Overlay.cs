@@ -251,7 +251,7 @@ public class Overlay {
         Vector3 scale = new(size, size, 1);
         for(int i = 0; i < count; i++) transform.GetChild(i).localScale = scale;
         TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * size);
-        RectTransform txtLevelName = ADOBase.controller?.txtLevelName.GetComponent<RectTransform>();
+        RectTransform txtLevelName = ADOBase.controller?.txtLevelName?.GetComponent<RectTransform>();
         if(txtLevelName) {
             txtLevelName.anchoredPosition = new Vector2(0, -20 - 7 * size);
             txtLevelName.localScale = new Vector3(0.5f * size, 0.5f * size);
