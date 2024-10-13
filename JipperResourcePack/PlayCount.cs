@@ -52,7 +52,7 @@ public class PlayCount {
         datas = null;
     }
 
-    public static void AddAttempts() => GetData().AddAttempts(ADOBase.controller.percentComplete, Multiplier);
+    public static void AddAttempts(float progress) => GetData().AddAttempts(progress, Multiplier);
 
 
     public static void RemoveAttempts(float progress) => GetData().RemoveAttempts(progress, Multiplier);

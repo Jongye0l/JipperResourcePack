@@ -478,7 +478,7 @@ public class Overlay {
                 startProgress = scrController.instance.percentComplete;
                 curBest = lastCheckpoint = -1;
             }
-            if(Status.Instance.Enabled && !autoOnceEnabled && active) PlayCount.AddAttempts();
+            if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(startProgress);
             GameObject.SetActive(true);
             curCheck = 0;
             scrMistakesManager manager = scrController.instance.mistakesManager;
