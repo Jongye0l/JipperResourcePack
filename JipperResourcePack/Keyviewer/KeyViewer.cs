@@ -251,7 +251,7 @@ public class KeyViewer : Feature {
         }
         GUILayout.BeginHorizontal();
         bool a = GUILayout.Toggle(ColorExpanded != null, ColorExpanded != null ? "◢" : "▶", toggleStyle);
-        if(ColorExpanded != null != a) ColorExpanded = a ? new bool[8] : null;
+        if(ColorExpanded != null != a) ColorExpanded = a ? new bool[9] : null;
         if(GUILayout.Button(localization["keyViewer.color"], GUI.skin.label)) ColorExpanded = ColorExpanded == null ? new bool[8] : null;
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
