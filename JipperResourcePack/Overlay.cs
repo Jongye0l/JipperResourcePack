@@ -126,7 +126,7 @@ public class Overlay {
     }
 
     public void SetupLocationJudgement() {
-        JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 92 : 5);
+        JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 85 : 5);
     }
 
     protected void InitializeBPM() {
@@ -168,7 +168,6 @@ public class Overlay {
         RectTransform transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(Canvas.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
-        transform.anchoredPosition = new Vector2(0, -50);
         transform.sizeDelta = new Vector2(300, 200);
         GameObject gameObject2 = new("ComboTitle");
         transform = gameObject2.AddComponent<RectTransform>();
@@ -219,7 +218,6 @@ public class Overlay {
         RectTransform transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(Canvas.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
-        transform.anchoredPosition = new Vector2(0, 130);
         transform.sizeDelta = new Vector2(300, 30);
         TimingScaleText = gameObject.AddComponent<TextMeshProUGUI>();
         TimingScaleText.font = BundleLoader.FontAsset;
@@ -249,8 +247,16 @@ public class Overlay {
     public void UpdateSize() {
         Transform transform = GameObject.transform;
         int count = transform.childCount;
-        Vector3 scale = new(Main.Settings.Size, Main.Settings.Size, 1);
+        float size = Main.Settings.Size;
+        Vector3 scale = new(size, size, 1);
         for(int i = 0; i < count; i++) transform.GetChild(i).localScale = scale;
+        TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * size);
+        RectTransform txtLevelName = ADOBase.controller?.txtLevelName.GetComponent<RectTransform>();
+        if(txtLevelName) {
+            txtLevelName.anchoredPosition = new Vector2(0, -20 - 7 * size);
+            txtLevelName.localScale = new Vector3(0.5f * size, 0.5f * size);
+        }
+        Combo.ComboObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -43 - 14 * size);
     }
 
     protected void SetupShadow(TextMeshProUGUI text) {
