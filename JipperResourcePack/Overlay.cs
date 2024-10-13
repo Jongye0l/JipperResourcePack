@@ -350,7 +350,7 @@ public class Overlay {
     public virtual void UpdateBestText() {
         float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
         BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
-        BestText.color = Status.Settings.BestColor.GetColor(curBest);
+        BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
     public void UpdateJudgement() {
