@@ -8,6 +8,7 @@ namespace JipperResourcePack.Jongyeol;
 
 public class Status : JipperResourcePack.Status {
     public new static JProgressSetting Settings;
+    private static bool _auto = false;
 
     public Status() : base(nameof(Status), typeof(JProgressSetting)) {
         Settings = (JProgressSetting) Setting;
@@ -33,10 +34,10 @@ public class Status : JipperResourcePack.Status {
 
     [JAPatch(typeof(RDC), "set_auto", PatchType.Postfix, false)]
     private static void OnAutoChange() {
-        if(!ADOBase.isScnGame) return;
-        JipperResourcePack.Main.Instance.Log("Auto: " + RDC.auto);
+        if(!ADOBase.isScnGame && _auto == RDC.auto) return;
         JOverlay.Instance.SetupLocationMain();
         JOverlay.Instance.UpdateState();
+        _auto = RDC.auto;
     }
 
     [JAPatch(typeof(scrMisc), "GetHitMargin", PatchType.Postfix, false)]
