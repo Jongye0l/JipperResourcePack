@@ -39,6 +39,7 @@ public class KeyViewer : Feature {
     public static readonly byte[] BackSequence16 = [12, 13, 9, 8, 10, 11, 14, 15];
     public static readonly byte[] BackSequence20 = [12, 13, 9, 8, 10, 11, 14, 15, 17, 16, 18, 19];
     public GameObject KeyViewerObject;
+    public GameObject KeyViewerSizeObject;
     public Canvas Canvas;
     public Key[] Keys;
     public Thread KeyinputListener;
@@ -76,7 +77,9 @@ public class KeyViewer : Feature {
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
-        KeyViewerObject.transform.localScale = new Vector3(Settings.Size, Settings.Size, 1);
+        KeyViewerSizeObject = new GameObject("SizeObject");
+        KeyViewerSizeObject.transform.SetParent(KeyViewerObject.transform);
+        KeyViewerSizeObject.transform.localScale = new Vector3(Settings.Size, Settings.Size, 1);
         Keys = new Key[28];
         KeyViewerSettings settings = Settings;
         switch(settings.KeyViewerStyle) {
@@ -122,9 +125,8 @@ public class KeyViewer : Feature {
     protected override void OnDisable() {
         if(!KeyViewerObject) return;
         Object.Destroy(KeyViewerObject);
-        GC.SuppressFinalize(KeyViewerObject);
         KeyViewerObject = null;
-        GC.SuppressFinalize(Canvas);
+        KeyViewerSizeObject = null;
         Canvas = null;
         GC.SuppressFinalize(Keys);
         Keys = null;
@@ -147,7 +149,7 @@ public class KeyViewer : Feature {
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
         settingGUI.AddSettingSliderFloat(ref settings.Size, 1, ref sizeString, localization["size"], 0, 2, () => {
-            KeyViewerObject.transform.localScale = new Vector3(settings.Size, settings.Size, 1);
+            KeyViewerSizeObject.transform.localScale = new Vector3(settings.Size, settings.Size, 1);
         });
         KeyCode[] keyCodes = GetKeyCode();
         KeyCode[] footKeyCodes = GetFootKeyCode();
@@ -805,7 +807,7 @@ public class KeyViewer : Feature {
         GameObject obj = new("Key " + i);
         KeyViewerSettings settings = Settings;
         RectTransform transform = obj.AddComponent<RectTransform>();
-        transform.SetParent(KeyViewerObject.transform);
+        transform.SetParent(KeyViewerSizeObject.transform);
         transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
         transform.anchorMin = transform.anchorMax = Vector2.zero;
         transform.pivot = new Vector2(0, 0.5f);
