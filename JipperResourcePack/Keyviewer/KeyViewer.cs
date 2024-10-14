@@ -78,8 +78,10 @@ public class KeyViewer : Feature {
         scaler.matchWidthOrHeight = 0.5f;
         Canvas.gameObject.AddComponent<GraphicRaycaster>();
         KeyViewerSizeObject = new GameObject("SizeObject");
-        KeyViewerSizeObject.transform.SetParent(KeyViewerObject.transform);
-        KeyViewerSizeObject.transform.localScale = new Vector3(Settings.Size, Settings.Size, 1);
+        RectTransform rectTransform = KeyViewerSizeObject.AddComponent<RectTransform>();
+        rectTransform.SetParent(KeyViewerObject.transform);
+        rectTransform.localScale = new Vector3(Settings.Size, Settings.Size, 1);
+        rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.offsetMin = rectTransform.offsetMax = Vector2.zero;
         Keys = new Key[28];
         KeyViewerSettings settings = Settings;
         switch(settings.KeyViewerStyle) {
