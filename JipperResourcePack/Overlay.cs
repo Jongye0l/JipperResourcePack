@@ -472,17 +472,25 @@ public class Overlay {
     
     public virtual void Show() {
         bool active = GameObject.activeSelf;
+        if(active && ADOBase.isScnGame) return;
         autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
         if(!autoOnceEnabled && active) PlayCount.SetBest(startProgress, Progress);
         MainThread.Run(new JAction(Main.Instance, () => {
-            if(!active) {
+            if(ADOBase.isScnGame && scrController.checkpointsUsed == 0) {
                 checkpoints = null;
-                noCheckStartTile = scrController.instance.currentSeqID;
-            }
-            if(!active || scrController.checkpointsUsed != 0) {
-                startTile = scrController.instance.currentSeqID;
-                startProgress = scrController.instance.percentComplete;
+                noCheckStartTile = startTile = 0;
+                startProgress = 1f / ADOBase.lm.listFloors.Count;
                 curBest = lastCheckpoint = -1;
+            } else {
+                if(!active) {
+                    checkpoints = null;
+                    noCheckStartTile = scrController.instance.currentSeqID;
+                }
+                if(!active || scrController.checkpointsUsed != 0) {
+                    startTile = scrController.instance.currentSeqID;
+                    startProgress = scrController.instance.percentComplete;
+                    curBest = lastCheckpoint = -1;
+                }
             }
             if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(startProgress);
             GameObject.SetActive(true);
