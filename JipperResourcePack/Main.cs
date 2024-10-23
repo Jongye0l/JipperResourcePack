@@ -27,10 +27,15 @@ public class Main : JAMod {
 		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
+        MainThread.Run(new JAction(this, TogetherAPI.Together.Initialize));
     }
 
     private void AddFeature() {
         AddFeature(new Status(), new BPM(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
+    }
+
+    public void AddTogether() {
+        if(TogetherAPI.Together.Instance == null) AddFeature(new TogetherAPI.Together());
     }
 
     public void FeatureReset(bool jongyeolMode) {
@@ -41,6 +46,7 @@ public class Main : JAMod {
         this.GetValue<JASetting>("ModSetting").RemoveFieldData();
         if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
         else AddFeature();
+        if(TogetherAPI.Together.TogetherFound) AddTogether();
         if(!enabled) return;
         if(jongyeolMode) new JOverlay();
         else new Overlay();

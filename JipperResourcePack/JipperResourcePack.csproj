@@ -206,6 +206,12 @@
         <Reference Include="System.Xml.Linq">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Xml.Linq.dll</HintPath>
         </Reference>
+        <Reference Include="Together">
+          <HintPath>D:\asdf\Together-2-cleaned.dll</HintPath>
+        </Reference>
+        <Reference Include="TogetherBootstrap">
+          <HintPath>D:\asdf\TogetherBootstrap-2-cleaned.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.Addressables">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Unity.Addressables.dll</HintPath>
         </Reference>
@@ -542,6 +548,7 @@
         <Compile Include="ResourceChanger.cs" />
         <Compile Include="TimeTextType.cs" />
         <Compile Include="TimingScale.cs" />
+        <Compile Include="TogetherAPI\Together.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Keyviewer\KeyCodes.json" />
