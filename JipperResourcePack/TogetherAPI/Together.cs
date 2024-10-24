@@ -9,6 +9,8 @@ using HarmonyLib;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Tools;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace JipperResourcePack.TogetherAPI;
 
@@ -104,9 +106,21 @@ public class Together : Feature {
         _ = typeof(Together).Assembly;
     }
 
+    public GameObject RankingObject;
 
     protected override void OnEnable() {
-
+        RankingObject = new GameObject();
+        RectTransform transform = RankingObject.AddComponent<RectTransform>();
+        transform.SetParent(Overlay.Instance.Canvas.transform);
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(1, 0.5f);
+        transform.sizeDelta = new Vector2(300, 500);
+        GameObject background = new();
+        RectTransform backgroundTransform = background.AddComponent<RectTransform>();
+        backgroundTransform.SetParent(RankingObject.transform);
+        backgroundTransform.sizeDelta = new Vector2(300, 500);
+        Image backgroundImage = background.AddComponent<Image>();
+        backgroundImage.color = new Color(0, 0, 0, 0.6588235f);
+        RankingObject.SetActive(false);
     }
 
     protected override void OnDisable() {

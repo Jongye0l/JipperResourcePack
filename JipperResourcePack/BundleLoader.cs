@@ -13,6 +13,7 @@ public class BundleLoader {
     public static Sprite KeyBackground;
     public static Sprite KeyOutline;
     public static Texture2D SideImage;
+    public static Sprite Skull;
     
     public static void LoadBundle() {
         Bundle = AssetBundle.LoadFromFile(Path.Combine(Main.Instance.Path, "jipperresourcepackbundle"));
@@ -36,6 +37,9 @@ public class BundleLoader {
                     break;
                 case "SideImage":
                     if(asset is Texture2D t) SideImage = t;
+                    break;
+                case "Skull":
+                    if(asset is Sprite s3) Skull = s3;
                     break;
             }
         }
