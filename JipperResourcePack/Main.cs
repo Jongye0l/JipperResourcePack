@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Reflection;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -36,6 +35,12 @@ public class Main : JAMod {
 
     public void AddTogether() {
         if(TogetherAPI.Together.Instance == null) AddFeature(new TogetherAPI.Together());
+    }
+
+    public void RemoveTogether() {
+        if(TogetherAPI.Together.Instance == null) return;
+        Features.Remove(TogetherAPI.Together.Instance);
+        TogetherAPI.Together.Instance = null;
     }
 
     public void FeatureReset(bool jongyeolMode) {

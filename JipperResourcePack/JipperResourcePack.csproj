@@ -549,6 +549,7 @@
         <Compile Include="TimeTextType.cs" />
         <Compile Include="TimingScale.cs" />
         <Compile Include="TogetherAPI\Together.cs" />
+        <Compile Include="TogetherAPI\TogetherApiException.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Keyviewer\KeyCodes.json" />
