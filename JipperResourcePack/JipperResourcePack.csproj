@@ -548,6 +548,7 @@
         <Compile Include="ResourceChanger.cs" />
         <Compile Include="TimeTextType.cs" />
         <Compile Include="TimingScale.cs" />
+        <Compile Include="TogetherAPI\PlayData.cs" />
         <Compile Include="TogetherAPI\Ranking.cs" />
         <Compile Include="TogetherAPI\Together.cs" />
         <Compile Include="TogetherAPI\TogetherApiException.cs" />

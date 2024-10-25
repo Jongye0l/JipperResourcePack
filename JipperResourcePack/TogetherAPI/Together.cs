@@ -11,6 +11,7 @@ using JALib.Core.Patch;
 using JALib.Tools;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace JipperResourcePack.TogetherAPI;
 
@@ -19,11 +20,22 @@ public class Together : Feature {
     public static Together Instance;
     public List<OverlayPlayerPrefabScript> OverlayPlayerPrefabScripts;
     public List<OverlayTeamPrefabScript> OverlayTeamPrefabScripts;
+    public OverlayCanvasPrefabScript CanvasPrefab;
     public Dictionary<string, Type> packets;
     public Type packetType;
     public Type userInfoType;
     public FieldInfo usernameField;
     public FieldInfo displayNameField;
+    public MethodInfo xAccuracyMethod;
+    public MethodInfo addUserDataMethod;
+    public Type userPlayDataType;
+    public FieldInfo userData_userName;
+    public FieldInfo userData_displayName;
+    public FieldInfo userData_isReady;
+    public FieldInfo userData_xAcc;
+    public FieldInfo userData_fails;
+
+    public Dictionary<OverlayPlayerPrefabScript, PlayData> PlayData = new();
 
     public Together() : base(Main.Instance, nameof(Together)) {
         Instance = this;
@@ -73,7 +85,35 @@ public class Together : Feature {
                 if(displayNameField != null) break;
             }
             if(displayNameField == null) throw new TogetherApiException("Failed to find UserInfo fields.");
+            foreach(MethodInfo method in typeof(OverlayCanvasPrefabScript).Methods()) {
+                if(method.DeclaringType != typeof(OverlayCanvasPrefabScript) || method.ReturnType != typeof(void) ||
+                   method.GetParameters().Length != 1 || method.GetParameters()[0].ParameterType.Assembly != typeof(OverlayCanvasPrefabScript).Assembly) continue;
+                userPlayDataType = method.GetParameters()[0].ParameterType;
+                break;
+            }
+            if(userPlayDataType == null) throw new TogetherApiException("Failed to find userPlayData type.");
+            foreach(MethodInfo method in typeof(OverlayPlayerPrefabScript).Methods()) {
+                if(method.DeclaringType != typeof(OverlayPlayerPrefabScript) || method.ReturnType != typeof(void) ||
+                   method.GetParameters().Length != 1) continue;
+                if(method.GetParameters()[0].ParameterType == typeof(float)) xAccuracyMethod = method;
+                if(method.GetParameters()[0].ParameterType == userPlayDataType) addUserDataMethod = method;
+                break;
+            }
+            if(xAccuracyMethod == null) throw new TogetherApiException("Failed to find xAccuracy method.");
+            if(addUserDataMethod == null) throw new TogetherApiException("Failed to find addUserData method.");
+            object playDataTest = userPlayDataType.New("", null, false, -1, -1);
+            foreach(FieldInfo field in userPlayDataType.Fields()) {
+                if(field.FieldType == typeof(string)) {
+                    if(field.GetValue<string>(playDataTest) == "") userData_userName = field;
+                    else userData_displayName = field;
+                }
+                if(field.FieldType == typeof(bool)) userData_isReady = field;
+                if(field.FieldType == typeof(float)) userData_xAcc = field;
+                if(field.FieldType == typeof(int)) userData_fails = field;
+            }
             Patcher.AddPatch(typeof(TogetherPatches));
+            Patcher.AddPatch(TogetherPatches.SetXAccuracy, new JAPatchAttribute(xAccuracyMethod, PatchType.Postfix, true));
+            Patcher.AddPatch(TogetherPatches.AddUserDataPatch, new JAPatchAttribute(addUserDataMethod, PatchType.Transpiler, true));
         } catch (Exception e) {
             Main.Instance.LogException(e);
             Main.Instance.Log("Together API is currently disabled.");
@@ -124,9 +164,45 @@ public class Together : Feature {
     }
 
     protected override void OnDisable() {
+        Object.Destroy(RankingObject);
+    }
+
+    public void Show() {
+
+    }
+
+    public void UpdateUserData() {
 
     }
 
     public class TogetherPatches {
+        [JAPatch(typeof(OverlayCanvasPrefabScript), "Awake", PatchType.Postfix, true)]
+        public static void SetupOverlay(OverlayCanvasPrefabScript __instance) {
+            RectTransform transform = __instance.playerListObject.GetComponent<RectTransform>();
+            transform.anchoredPosition = new Vector2(-10000, -10000);
+            Instance.RankingObject.SetActive(true);
+            Instance.PlayData.Clear();
+        }
+
+        [JAPatch(typeof(OverlayCanvasPrefabScript), "OnDestroy", PatchType.Postfix, true)]
+        public static void CleanupOverlay() {
+            Instance.RankingObject.SetActive(false);
+        }
+
+        public static void SetXAccuracy(OverlayPlayerPrefabScript __instance) {
+            
+        }
+
+        public static IEnumerable<CodeInstruction> AddUserDataPatch(IEnumerable<CodeInstruction> instructions) {
+            List<CodeInstruction> list = instructions.ToList();
+            list.Add(new CodeInstruction(OpCodes.Ldarg_0),
+                new CodeInstruction(OpCodes.Ldarg_1),
+                new CodeInstruction(OpCodes.Call, ((Delegate) AddUserData).Method));
+            return list;
+        }
+
+        public static void AddUserData(OverlayCanvasPrefabScript instance, object o) {
+            Instance.PlayData.Add((OverlayPlayerPrefabScript) o, new PlayData(o));
+        }
     }
 }
