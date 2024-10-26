@@ -152,7 +152,7 @@ public class JOverlay : Overlay {
     public override void UpdateBestText() {
         float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
         BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
-        BestText.color = Status.Settings.BestColor.GetColor(curBest);
+        BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
     private Color GetColor(float value, float middle = 0.5f, bool ppColor = true) {
