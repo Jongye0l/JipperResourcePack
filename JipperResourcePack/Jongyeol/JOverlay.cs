@@ -19,7 +19,7 @@ public class JOverlay : Overlay {
 
     private List<float> timings;
     private bool purePerfect;
-    private int death;
+    private int deathCount;
     private int lastDeath = -1;
     private int pseudoFloor = -1;
     private float lastCurKPS = -1;
@@ -104,7 +104,7 @@ public class JOverlay : Overlay {
     }
 
     public override void UpdateTime() {
-        if(!GameObject.activeSelf || !Status.Instance.Enabled) return;
+        if(!GameObject.activeSelf || !Status.Instance.Enabled || death) return;
         scrConductor conductor = scrConductor.instance;
         if(JipperResourcePack.Status.Settings.ShowMusicTime) {
             AudioSource song = conductor.song;
@@ -188,7 +188,7 @@ public class JOverlay : Overlay {
             StateText.color = PurePerfectColor;
         } else {
             int[] hits = hit;
-            if(death != 0) s = "완주";
+            if(deathCount != 0) s = "완주";
             else if(hits[0] != 0) s = "클리어";
             else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
             else s = "완벽주의";
@@ -210,9 +210,9 @@ public class JOverlay : Overlay {
 
     public void UpdateDeath() {
         if(!Status.Settings.ShowDeath || !GameObject.activeSelf) return;
-        if(lastDeath != (death = hit[8] + hit[9])) DeathText.text = $"<color=white>Death |</color> {death}";
+        if(lastDeath != (deathCount = hit[8] + hit[9])) DeathText.text = $"<color=white>Death |</color> {deathCount}";
         float max = (scrController.instance.currentSeqID - startTile) * 0.05f;
-        DeathText.color = GetColor(1 - Math.Min(death, max) / max);
+        DeathText.color = GetColor(1 - Math.Min(deathCount, max) / max);
     }
 
     public void UpdateStart() {

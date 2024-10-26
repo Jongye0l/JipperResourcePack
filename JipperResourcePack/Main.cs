@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using JALib.Core;
 using JALib.Core.Patch;
@@ -6,6 +7,7 @@ using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Jongyeol;
 using JipperResourcePack.Keyviewer;
+using MonsterLove.StateMachine;
 using UnityEngine;
 using UnityModManagerNet;
 
@@ -124,6 +126,11 @@ public class Main : JAMod {
     [JAPatch(typeof(scrPressToStart), "ShowText", PatchType.Postfix, false)]
     private static void OnGameStart() {
         Overlay.Instance.Show();
+    }
+
+    [JAPatch(typeof(StateBehaviour), "ChangeState", PatchType.Postfix, true, ArgumentTypesType = [typeof(Enum)])]
+    public static void OnChangeState(Enum newState) {
+        if((States) newState == States.Fail2) Overlay.Instance.Death();
     }
 
     [JAPatch(typeof(scrUIController), "WipeToBlack", PatchType.Postfix, false)]

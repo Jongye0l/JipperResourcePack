@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,6 +47,7 @@ public class Overlay {
     protected float startProgress;
     protected float curBest = -1;
     protected bool autoOnceEnabled;
+    protected bool death;
 
     public Overlay() {
         Instance = this;
@@ -367,7 +367,7 @@ public class Overlay {
     }
     
     public virtual void UpdateTime() {
-        if(!GameObject.activeSelf || !Status.Instance.Enabled) return;
+        if(!GameObject.activeSelf || !Status.Instance.Enabled || death) return;
         bool requireMusicToMap = false;
         if(Status.Settings.ShowMusicTime) {
             AudioSource song = scrConductor.instance.song;
@@ -499,6 +499,7 @@ public class Overlay {
             manager.percentAcc = 1;
             manager.percentXAcc = 1;
             songPlaying = false;
+            death = false;
             if(Status.Instance.Enabled) SetupLocationMain();
             if(Judgement.Instance.Enabled) UpdateJudgement();
             if(Combo.Instance.Enabled) UpdateCombo(0, false);
@@ -507,6 +508,11 @@ public class Overlay {
             if(Attempt.Instance.Enabled) UpdateAttempts();
             Combo.combo = 0;
         }));
+    }
+
+    public void Death() {
+        death = true;
+        if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
     }
     
     public virtual void Hide() {
