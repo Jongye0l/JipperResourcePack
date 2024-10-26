@@ -50,8 +50,7 @@ public class Main : JAMod {
     protected override void OnEnable() {
         BundleLoader.LoadBundle();
         PlayCount.Load();
-        if(Jongyeol.Main.CheckEnable(Setting)) new JOverlay();
-        else new Overlay();
+        _ = Jongyeol.Main.CheckEnable(Setting) ? new JOverlay() : new Overlay();
         Patcher.Patch();
     }
     
