@@ -42,8 +42,7 @@ public class Main : JAMod {
         if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
         else AddFeature();
         if(!enabled) return;
-        if(jongyeolMode) new JOverlay();
-        else new Overlay();
+        _ = jongyeolMode ? new JOverlay() : new Overlay();
         foreach(Feature feature in Features.Where(feature => feature.Enabled)) feature.Invoke("Enable");
     }
     
