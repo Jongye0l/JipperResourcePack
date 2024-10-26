@@ -474,7 +474,10 @@ public class Overlay {
         bool active = GameObject.activeSelf;
         if(active && ADOBase.isScnGame) return;
         autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
-        if(!autoOnceEnabled && active) PlayCount.SetBest(startProgress, Progress);
+        if(!autoOnceEnabled && active) {
+            PlayCount.SetBest(startProgress, Progress);
+            curBest = Progress;
+        }
         MainThread.Run(new JAction(Main.Instance, () => {
             if(ADOBase.isScnGame && scrController.checkpointsUsed == 0) {
                 checkpoints = null;
@@ -512,7 +515,9 @@ public class Overlay {
 
     public void Death() {
         death = true;
-        if(!autoOnceEnabled) PlayCount.SetBest(startProgress, Progress);
+        if(autoOnceEnabled) return;
+        PlayCount.SetBest(startProgress, Progress);
+        curBest = Progress;
     }
     
     public virtual void Hide() {
