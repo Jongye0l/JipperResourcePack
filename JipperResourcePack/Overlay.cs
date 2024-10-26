@@ -233,12 +233,12 @@ public class Overlay {
         RectTransform transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(Canvas.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
-        transform.anchoredPosition = new Vector2(210, 5);
+        transform.anchoredPosition = new Vector2(300, 5);
         transform.sizeDelta = new Vector2(300, 30);
         AttemptText = gameObject.AddComponent<TextMeshProUGUI>();
         AttemptText.font = BundleLoader.FontAsset;
         AttemptText.fontSize = 25;
-        AttemptText.alignment = TextAlignmentOptions.Bottom;
+        AttemptText.alignment = TextAlignmentOptions.BottomLeft;
         SetupShadow(AttemptText);
         gameObject.SetActive(false);
         Attempt.AttemptObject = gameObject;
