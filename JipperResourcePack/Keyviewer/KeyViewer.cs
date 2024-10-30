@@ -54,6 +54,7 @@ public class KeyViewer : Feature {
     private bool TextChangeExpanded;
     private bool[] ColorExpanded;
     private KeyviewerStyle currentKeyViewerStyle;
+    private bool[] KeyPressed;
 
     public int SelectedKey = -1;
     public int WinAPICool;
@@ -308,7 +309,12 @@ public class KeyViewer : Feature {
             }
         } else {
             for(int i = 0; i < 256; i++) {
-                if((GetAsyncKeyState(i) & 0x8000) == 0) continue;
+                if((GetAsyncKeyState(i) & 0x8000) != 0 == KeyPressed[i]) continue;
+                if(KeyPressed[i]) {
+                    KeyPressed[i] = false;
+                    WinAPICool = 0;
+                    continue;
+                }
                 if(WinAPICool++ < 6) break;
                 KeyCode keyCode = (KeyCode) i + 0x1000;
                 SetupKey(keyCode);
@@ -322,6 +328,10 @@ public class KeyViewer : Feature {
                    i == SelectedKey && textChanged == TextChanged))) return;
             SelectedKey = i;
             TextChanged = textChanged;
+            if(textChanged) return;
+            WinAPICool = 0;
+            KeyPressed = new bool[256];
+            for(int i2 = 0; i2 < 256; i2++) KeyPressed[i2] = (GetAsyncKeyState(i2) & 0x8000) != 0;
         }
 
         void SetupKey(KeyCode keyCode) {
@@ -330,6 +340,7 @@ public class KeyViewer : Feature {
             Keys[SelectedKey].text.tmp.text = (SelectedKey < 20 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
             SelectedKey = -1;
             WinAPICool = 0;
+            KeyPressed = null;
             UpdateKeyLimit();
             Main.Instance.SaveSetting();
         }
@@ -669,6 +680,7 @@ public class KeyViewer : Feature {
     protected override void OnHideGUI() {
         WinAPICool = 0;
         sizeString = null;
+        KeyPressed = null;
         if(SelectedKey == -1) return;
         Main.Instance.SaveSetting();
         SelectedKey = -1;
