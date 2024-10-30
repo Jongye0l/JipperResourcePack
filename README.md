@@ -1,5 +1,5 @@
 # JipperResourcePack
-![C#](https://img.shields.io/badge/Lang-Csharp-c9c8e4.svg?&logo=csharp)
+![C#](https://img.shields.io/badge/Lang-Csharp-c9c8e4.svg?&logo=c#)
 ![Rider](https://img.shields.io/badge/IDE-Rider-c9c8e4.svg?&logo=rider)
 ![Download](https://img.shields.io/github/downloads/Jongye0l/JipperResourcePack/JipperResourcePack.zip)
 
@@ -19,6 +19,8 @@
   * 진행도 바
   * 콤보
   * 판정 강도
+  * 최고 기록
+  * 플레이 횟수
 * 키뷰어
   * 손
     * 12키
@@ -64,7 +66,7 @@
 ---
 ### 개발 환경 Development environment
 * Windows 11
-* Rider 2024.2.5
+* Rider 2024.2.7
 * .NET Framework 4.8.1
 * C# 13
 * A Dance of Fire and Ice 2.8.1(r123, 0a4e966)
