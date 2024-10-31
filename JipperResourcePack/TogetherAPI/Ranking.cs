@@ -10,8 +10,12 @@ public class Ranking : MonoBehaviour {
     public TextMeshProUGUI usernameText;
     public TextMeshProUGUI judgementText;
     public TextMeshProUGUI deathText;
+    public new RectTransform transform;
 
     private void Awake() {
+        transform = gameObject.AddComponent<RectTransform>();
+        transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
+        transform.sizeDelta = new Vector2(300, 60);
         GameObject obj = new("Profile");
         RectTransform profileTransform = obj.GetComponent<RectTransform>();
         profileTransform.SetParent(transform);
