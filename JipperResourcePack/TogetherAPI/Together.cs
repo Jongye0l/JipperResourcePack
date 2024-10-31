@@ -144,15 +144,20 @@ public class Together : Feature {
             ]);
 
         public static void AddUserData(OverlayPlayerPrefabScript instance, object o) {
-            PlayData playData = new(o);
-            Instance.PlayData.Add(instance, playData);
-            GameObject obj = new(playData.Username);
-            Ranking ranking = playData.ranking = obj.AddComponent<Ranking>();
-            ranking.transform.SetParent(Instance.RankingElement.transform);
-            ranking.usernameText.text = playData.DisplayName;
-            if(instance.avatar) ranking.profileImage.sprite = instance.avatar.sprite;
-            instance.avatar = ranking.profileImage;
-            Instance.UpdateUserData();
+            try {
+                PlayData playData = new(o);
+                Instance.PlayData.Add(instance, playData);
+                Main.Instance.Log("Added user data: " + playData.Username);
+                GameObject obj = new(playData.Username);
+                Ranking ranking = playData.ranking = obj.AddComponent<Ranking>();
+                ranking.transform.SetParent(Instance.RankingElement.transform);
+                ranking.usernameText.text = playData.DisplayName;
+                if(instance.avatar) ranking.profileImage.sprite = instance.avatar.sprite;
+                instance.avatar = ranking.profileImage;
+                Instance.UpdateUserData();
+            } catch (Exception e) {
+                Main.Instance.LogException(e);
+            }
         }
     }
 }
