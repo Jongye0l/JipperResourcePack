@@ -5,6 +5,7 @@ using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Jongyeol;
 using JipperResourcePack.Keyviewer;
+using JipperResourcePack.TogetherAPI;
 using UnityEngine;
 using UnityModManagerNet;
 
@@ -26,7 +27,7 @@ public class Main : JAMod {
 		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
-        MainThread.Run(new JAction(this, TogetherAPI.Together.Initialize));
+        MainThread.Run(new JAction(this, TogetherChecker.Initialize));
     }
 
     private void AddFeature() {
@@ -51,7 +52,7 @@ public class Main : JAMod {
         this.GetValue<JASetting>("ModSetting").RemoveFieldData();
         if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
         else AddFeature();
-        if(TogetherAPI.Together.TogetherFound) AddTogether();
+        if(TogetherChecker.TogetherFound) AddTogether();
         if(!enabled) return;
         if(jongyeolMode) new JOverlay();
         else new Overlay();

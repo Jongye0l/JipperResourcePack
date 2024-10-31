@@ -552,6 +552,7 @@
         <Compile Include="TogetherAPI\Ranking.cs" />
         <Compile Include="TogetherAPI\Together.cs" />
         <Compile Include="TogetherAPI\TogetherApiException.cs" />
+        <Compile Include="TogetherAPI\TogetherChecker.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Keyviewer\KeyCodes.json" />

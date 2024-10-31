@@ -17,7 +17,6 @@ using Object = UnityEngine.Object;
 namespace JipperResourcePack.TogetherAPI;
 
 public class Together : Feature {
-    public static bool TogetherFound;
     public static Together Instance;
     public List<OverlayPlayerPrefabScript> OverlayPlayerPrefabScripts;
     public List<OverlayTeamPrefabScript> OverlayTeamPrefabScripts;
@@ -37,6 +36,9 @@ public class Together : Feature {
     public FieldInfo userData_xAcc;
     public FieldInfo userData_fails;
 
+    public GameObject RankingObject;
+    public GameObject RankingElement;
+
     public Dictionary<OverlayPlayerPrefabScript, PlayData> PlayData = new();
 
     public Together() : base(Main.Instance, nameof(Together)) {
@@ -45,11 +47,6 @@ public class Together : Feature {
     }
 
     private void TogetherMainLoad() {
-        try {
-            CheckTogether();
-        } catch (Exception) {
-            Task.Yield().GetAwaiter().OnCompleted(TogetherMainLoad);
-        }
         try {
             foreach(FieldInfo field in typeof(OverlayCanvasPrefabScript).Fields()) {
                 if(field.FieldType == typeof(List<OverlayPlayerPrefabScript>)) OverlayPlayerPrefabScripts = field.GetValue<List<OverlayPlayerPrefabScript>>();
@@ -119,37 +116,10 @@ public class Together : Feature {
         } catch (Exception e) {
             Main.Instance.LogException(e);
             Main.Instance.Log("Together API is currently disabled.");
-            TogetherFound = false;
+            TogetherChecker.TogetherFound = false;
             Main.Instance.RemoveTogether();
         }
     }
-
-    public static void Initialize() {
-        try {
-            CheckTogetherBootstrap();
-            Main.Instance.Log("TogetherAPI is loaded.");
-        } catch (FileNotFoundException) {
-            Main.Instance.Log("TogetherAPI is not loaded.");
-        } catch (TypeLoadException) {
-            Main.Instance.Log("TogetherAPI is not loaded.");
-        } catch (Exception e) {
-            Main.Instance.Log("TogetherAPI is not loaded.");
-            Main.Instance.LogException(e);
-            return;
-        }
-        Main.Instance.AddTogether();
-    }
-
-    private static void CheckTogetherBootstrap() {
-        TogetherFound = typeof(TogetherBootstrap.Main).Assembly != null;
-    }
-
-    private static void CheckTogether() {
-        _ = typeof(Together).Assembly;
-    }
-
-    public GameObject RankingObject;
-    public GameObject RankingElement;
 
     protected override void OnEnable() {
         RankingObject = new GameObject();
@@ -169,6 +139,10 @@ public class Together : Feature {
 
     protected override void OnDisable() {
         Object.Destroy(RankingObject);
+    }
+
+    protected override void OnUnload() {
+        Instance = null;
     }
 
     public void UpdateUserData() {
