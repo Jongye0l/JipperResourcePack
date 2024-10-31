@@ -11,7 +11,7 @@ namespace JipperResourcePack.TogetherAPI;
 public class TogetherChecker {
     public static bool TogetherInit;
     private static UnityModManager.ModEntry _modEntry;
-    private static Assembly _togetherAssembly;
+    public static Assembly TogetherAssembly;
     private static JAPatcher togetherInitPatcher;
 
     public static void Initialize() {
@@ -46,7 +46,7 @@ public class TogetherChecker {
     }
 
     private static void SetTogetherAssembly(Assembly assembly) {
-        _togetherAssembly = assembly;
+        TogetherAssembly = assembly;
         AppDomain.CurrentDomain.AssemblyResolve += TogetherResolver;
         TogetherInit = true;
         Main.Instance.AddTogether();
@@ -56,5 +56,5 @@ public class TogetherChecker {
         _modEntry = typeof(TogetherBootstrap.Main).Fields().First(f => f.FieldType == typeof(UnityModManager.ModEntry)).GetValue<UnityModManager.ModEntry>();
     }
 
-    private static Assembly TogetherResolver(object sender, ResolveEventArgs args) => args.Name == "Together" ? _togetherAssembly : null;
+    private static Assembly TogetherResolver(object sender, ResolveEventArgs args) => args.Name == "Together" ? TogetherAssembly : null;
 }

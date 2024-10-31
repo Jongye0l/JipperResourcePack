@@ -18,12 +18,6 @@ public class Together : Feature {
     public static Together Instance;
     public List<OverlayPlayerPrefabScript> OverlayPlayerPrefabScripts;
     public List<OverlayTeamPrefabScript> OverlayTeamPrefabScripts;
-    public OverlayCanvasPrefabScript CanvasPrefab;
-    public Dictionary<string, Type> packets;
-    public Type packetType;
-    public Type userInfoType;
-    public FieldInfo usernameField;
-    public FieldInfo displayNameField;
     public MethodInfo xAccuracyMethod;
     public MethodInfo deathMethod;
     public MethodInfo addUserDataMethod;
@@ -51,34 +45,6 @@ public class Together : Feature {
                 if(field.FieldType == typeof(List<OverlayTeamPrefabScript>)) OverlayTeamPrefabScripts = field.GetValue<List<OverlayTeamPrefabScript>>();
             }
             if(OverlayPlayerPrefabScripts == null || OverlayTeamPrefabScripts == null) throw new TogetherApiException("Failed to find OverlayPrefabScript.");
-            foreach(Type type in typeof(global::Together.Main).Assembly.GetTypes()) {
-                FieldInfo field = type.Fields().FirstOrDefault(field => field.FieldType == typeof(Dictionary<string, Type>));
-                if(field == null) continue;
-                packetType = type;
-                packets = (Dictionary<string, Type>) field.GetValue(null);
-                if(packets.TryGetValue("UserInfo", out userInfoType)) break;
-            }
-            if(userInfoType == null) throw new TogetherApiException("Failed to find UserInfo packet.");
-            foreach(MethodInfo method in userInfoType.Methods()) {
-                if(method.DeclaringType != userInfoType || method.GetBaseDefinition().DeclaringType != packetType) continue;
-                IEnumerator<CodeInstruction> enumerator = PatchProcessor.GetCurrentInstructions(method).GetEnumerator();
-                bool first = true;
-                while(enumerator.MoveNext()) {
-                    CodeInstruction code = enumerator.Current;
-                    if(code.opcode != OpCodes.Stsfld) continue;
-                    FieldInfo field = (FieldInfo) code.operand;
-                    if(field.FieldType != typeof(string)) continue;
-                    if(first) {
-                        usernameField = field;
-                        first = false;
-                    } else {
-                        displayNameField = field;
-                        break;
-                    }
-                }
-                if(displayNameField != null) break;
-            }
-            if(displayNameField == null) throw new TogetherApiException("Failed to find UserInfo fields.");
             foreach(MethodInfo method in typeof(OverlayCanvasPrefabScript).Methods()) {
                 if(method.DeclaringType != typeof(OverlayCanvasPrefabScript) || method.ReturnType != typeof(void) ||
                    method.GetParameters().Length != 1 || method.GetParameters()[0].ParameterType.Assembly != typeof(OverlayCanvasPrefabScript).Assembly) continue;
@@ -93,7 +59,6 @@ public class Together : Feature {
                 if(parameterType == typeof(float)) xAccuracyMethod = method;
                 if(parameterType == typeof(int)) deathMethod = method;
                 if(parameterType == userPlayDataType) addUserDataMethod = method;
-                break;
             }
             if(xAccuracyMethod == null) throw new TogetherApiException("Failed to find xAccuracy method.");
             if(deathMethod == null) throw new TogetherApiException("Failed to find death method.");
@@ -109,7 +74,7 @@ public class Together : Feature {
                 if(field.FieldType == typeof(int)) userData_fails = field;
             }
             Patcher.AddPatch(typeof(TogetherPatches));
-            Patcher.AddPatch(TogetherPatches.SetXAccuracy, new JAPatchAttribute(xAccuracyMethod, PatchType.Postfix, true));
+            Patcher.AddPatch(TogetherPatches.SetXAccuracy, new JAPatchAttribute(xAccuracyMethod, PatchType.Replace, true));
             Patcher.AddPatch(TogetherPatches.AddUserDataPatch, new JAPatchAttribute(addUserDataMethod, PatchType.Transpiler, true));
         } catch (Exception e) {
             Main.Instance.LogException(e);
@@ -156,9 +121,10 @@ public class Together : Feature {
     }
 
     public class TogetherPatches {
-        [JAPatch(typeof(OverlayCanvasPrefabScript), "Awake", PatchType.Postfix, true)]
-        public static void SetupOverlay(OverlayCanvasPrefabScript __instance) {
-            RectTransform transform = __instance.playerListObject.GetComponent<RectTransform>();
+        [JAPatch(typeof(GameObject), "AddComponent", PatchType.Postfix, true, ArgumentTypesType = [typeof(Type)], Debug = true)]
+        public static void SetupOverlay(Component __result) {
+            if(__result is not OverlayCanvasPrefabScript script) return;
+            RectTransform transform =script.playerListObject.GetComponent<RectTransform>();
             transform.anchoredPosition = new Vector2(-10000, -10000);
             Instance.RankingObject.SetActive(true);
             foreach(PlayData data in Instance.PlayData.Values) Object.Destroy(data.ranking.gameObject);
