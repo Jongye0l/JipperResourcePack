@@ -1,11 +1,18 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Reflection;
+using JALib.Core.Patch;
+using JALib.Tools;
+using UnityModManagerNet;
 
 namespace JipperResourcePack.TogetherAPI;
 
 public class TogetherChecker {
-    public static bool TogetherFound;
+    public static bool TogetherInit;
+    private static UnityModManager.ModEntry _modEntry;
+    private static Assembly _togetherAssembly;
+    private static JAPatcher togetherInitPatcher;
 
     public static void Initialize() {
         try {
@@ -20,25 +27,34 @@ public class TogetherChecker {
             Main.Instance.LogException(e);
             return;
         }
-        AddTogetherWhenReady();
+        if(_modEntry.OnToggle == null) {
+            togetherInitPatcher = new JAPatcher(Main.Instance);
+            togetherInitPatcher.AddPatch(AssemblyLoadPatch);
+            togetherInitPatcher.Patch();
+            return;
+        }
+        SetTogetherAssembly(_modEntry.OnToggle.Method.DeclaringType.Assembly);
+    }
+
+    [JAPatch(typeof(Assembly), "Load", PatchType.Postfix, true, ArgumentTypesType = [typeof(byte[])])]
+    private static void AssemblyLoadPatch(Assembly __result) {
+        Main.Instance.Log(__result.GetName().Name + " is loaded.");
+        if(__result.GetName().Name != "Together") return;
+        SetTogetherAssembly(__result);
+        togetherInitPatcher.Dispose();
+        togetherInitPatcher = null;
+    }
+
+    private static void SetTogetherAssembly(Assembly assembly) {
+        _togetherAssembly = assembly;
+        AppDomain.CurrentDomain.AssemblyResolve += TogetherResolver;
+        TogetherInit = true;
+        Main.Instance.AddTogether();
     }
 
     private static void CheckTogetherBootstrap() {
-        TogetherFound = typeof(TogetherBootstrap.Main).Assembly != null;
+        _modEntry = typeof(TogetherBootstrap.Main).Fields().First(f => f.FieldType == typeof(UnityModManager.ModEntry)).GetValue<UnityModManager.ModEntry>();
     }
 
-    public static void AddTogetherWhenReady() {
-        try {
-            CheckTogether();
-            Main.Instance.AddTogether();
-        } catch (Exception) {
-            Task.Yield().GetAwaiter().OnCompleted(AddTogetherWhenReady);
-            Main.Instance.Log("Together Not Found: Retrying...");
-        }
-    }
-
-    private static void CheckTogether() {
-        _ = typeof(Together).Assembly;
-    }
-
+    private static Assembly TogetherResolver(object sender, ResolveEventArgs args) => args.Name == "Together" ? _togetherAssembly : null;
 }

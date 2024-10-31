@@ -116,7 +116,7 @@ public class Together : Feature {
         } catch (Exception e) {
             Main.Instance.LogException(e);
             Main.Instance.Log("Together API is currently disabled.");
-            TogetherChecker.TogetherFound = false;
+            TogetherChecker.TogetherInit = false;
             Main.Instance.RemoveTogether();
         }
     }

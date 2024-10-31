@@ -52,7 +52,7 @@ public class Main : JAMod {
         this.GetValue<JASetting>("ModSetting").RemoveFieldData();
         if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
         else AddFeature();
-        if(TogetherChecker.TogetherFound) AddTogether();
+        if(TogetherChecker.TogetherInit) AddTogether();
         if(!enabled) return;
         if(jongyeolMode) new JOverlay();
         else new Overlay();
