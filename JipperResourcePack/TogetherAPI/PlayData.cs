@@ -1,4 +1,5 @@
-﻿using JALib.Tools;
+﻿using System;
+using JALib.Tools;
 
 namespace JipperResourcePack.TogetherAPI;
 
@@ -14,7 +15,7 @@ public class PlayData(object original) {
     public int Fails => Together.Instance.userData_fails.GetValue<int>(original);
 
     public void UpdateText() {
-        ranking.judgementText.text = $"{XAcc:X2}%";
+        ranking.judgementText.text = $"{Math.Round(XAcc * 100, 2)}%";
         ranking.deathText.text = Fails.ToString();
         Together.Instance.UpdateUserData();
     }
