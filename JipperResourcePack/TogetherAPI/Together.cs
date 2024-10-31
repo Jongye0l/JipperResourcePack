@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using DG.Tweening;
 using HarmonyLib;
 using JALib.Core;
@@ -184,7 +182,7 @@ public class Together : Feature {
             Instance.PlayData.Add(instance, playData);
             GameObject obj = new(playData.Username);
             Ranking ranking = playData.ranking = obj.AddComponent<Ranking>();
-            ranking.transform.SetParent(Instance.RankingObject.transform);
+            ranking.transform.SetParent(Instance.RankingElement.transform);
             ranking.usernameText.text = playData.DisplayName;
             if(instance.avatar) ranking.profileImage.sprite = instance.avatar.sprite;
             instance.avatar = ranking.profileImage;
