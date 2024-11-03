@@ -26,6 +26,7 @@ public class PlayCount {
                 return;
             } catch (Exception e) {
                 Main.Instance.LogException("Error On Load File", e);
+                datas.Clear();
             }
         }
         path += ".bak";
@@ -43,8 +44,8 @@ public class PlayCount {
         int count = fileStream.ReadInt();
         for(int i = 0; i < count; i++) {
             Hash key = fileStream.ReadBytes(16);
-            PlayData value = fileStream.ReadObject<PlayData>();
-            datas.Add(key, value);
+            PlayData value = fileStream.ReadObject<PlayData>(nullable: false);
+            datas[key] = value;
         }
     }
 
@@ -62,14 +63,19 @@ public class PlayCount {
 
 
     public static void Save() {
-        string path = FilePath;
-        if(File.Exists(path)) File.Copy(path, path + ".bak", true);
-        using FileStream fileStream = File.OpenWrite(path);
-        fileStream.WriteByte(0);
-        fileStream.WriteInt(datas.Count);
-        foreach(KeyValuePair<Hash, PlayData> pair in datas) {
-            fileStream.Write(pair.Key.data);
-            fileStream.WriteObject(pair.Value);
+        try {
+            string path = FilePath;
+            if(File.Exists(path)) File.Copy(path, path + ".bak", true);
+            using FileStream fileStream = File.OpenWrite(path);
+            fileStream.WriteByte(0);
+            fileStream.WriteInt(datas.Count);
+            foreach(KeyValuePair<Hash, PlayData> pair in datas) {
+                if(pair.Value == null) continue;
+                fileStream.Write(pair.Key.data);
+                fileStream.WriteObject(pair.Value, nullable: false);
+            }
+        } catch (Exception e) {
+            Main.Instance.LogException("Error On Save File", e);
         }
     }
 
@@ -130,8 +136,7 @@ public class PlayCount {
                     memoryStream.WriteInt(levelEvent.floor);
                     memoryStream.WriteByte(0);
                     memoryStream.WriteByte((byte) levelEvent.Get<SpeedType>("speedType"));
-                    if((SpeedType) levelEvent["speedType"] == SpeedType.Bpm) memoryStream.WriteFloat((float) levelEvent["beatsPerMinute"]);
-                    else memoryStream.WriteFloat((float) levelEvent["bpmMultiplier"]);
+                    memoryStream.WriteFloat((float) levelEvent[levelEvent.Get<SpeedType>("speedType") == SpeedType.Bpm ? "beatsPerMinute" : "bpmMultiplier"]);
                     break;
                 case LevelEventType.Twirl:
                     memoryStream.WriteInt(levelEvent.floor);
@@ -140,7 +145,7 @@ public class PlayCount {
                 case LevelEventType.Hold:
                     memoryStream.WriteInt(levelEvent.floor);
                     memoryStream.WriteByte(2);
-                    memoryStream.WriteFloat((int) levelEvent["duration"]);
+                    memoryStream.WriteInt((int) levelEvent["duration"]);
                     break;
                 case LevelEventType.MultiPlanet:
                     memoryStream.WriteInt(levelEvent.floor);
