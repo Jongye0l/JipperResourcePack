@@ -15,7 +15,6 @@ namespace JipperResourcePack;
 
 public class Main : JAMod {
     public static Main Instance;
-    public static JAPatcher Patcher;
     public static SettingGUI SettingGUI;
     public static ResourcePackSetting Settings;
     private static bool CreditsShown;
@@ -23,7 +22,6 @@ public class Main : JAMod {
     
     public Main(UnityModManager.ModEntry modEntry) : base(modEntry, true, typeof(ResourcePackSetting), discord: "https://discord.gg/qTbnPhY7YA", gid: 1313107549) {
         Instance = this;
-        Patcher = new JAPatcher(this);
         Patcher.AddPatch(OnGameStart);
         Patcher.AddPatch(OnGameStop);
 		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
@@ -52,13 +50,11 @@ public class Main : JAMod {
         BundleLoader.LoadBundle();
         PlayCount.Load();
         _ = Jongyeol.Main.CheckEnable(Setting) ? new JOverlay() : new Overlay();
-        Patcher.Patch();
     }
     
     protected override void OnDisable() {
         PlayCount.Dispose();
         SaveSetting();
-        Patcher.Unpatch();
         Overlay.Instance.Destroy();
         BundleLoader.UnloadBundle();
     }
