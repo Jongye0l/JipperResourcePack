@@ -21,7 +21,6 @@ public class Main : JAMod {
     private string sizeString;
     
     public Main(UnityModManager.ModEntry modEntry) : base(modEntry, true, typeof(ResourcePackSetting), discord: "https://discord.gg/qTbnPhY7YA", gid: 1313107549) {
-        Instance = this;
         Patcher.AddPatch(OnGameStart);
         Patcher.AddPatch(OnGameStop);
 		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
