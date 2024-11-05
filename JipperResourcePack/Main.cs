@@ -74,7 +74,6 @@ public class Main : JAMod {
     protected override void OnGUIBehind() {
         if(!CreditsShown) {
             if(GUILayout.Button(Localization["credit.button"])) CreditsShown = true;
-            GUILayout.FlexibleSpace();
             return;
         }
         if(GUILayout.Button(Localization["credit.buttonClose"])) CreditsShown = false;
