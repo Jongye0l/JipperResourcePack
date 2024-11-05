@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 namespace JipperResourcePack.Jongyeol;
 
 public class BPM : JipperResourcePack.BPM {
-    public static JBPMSettings Settings;
+    public static new JBPMSettings Settings;
 
     public BPM() : base(nameof(BPM), typeof(JBPMSettings)) {
         Settings = (JBPMSettings) Setting;
