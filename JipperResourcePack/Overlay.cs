@@ -70,7 +70,7 @@ public class Overlay {
         InitializeAttempt();
         UpdateSize();
         Object.DontDestroyOnLoad(Canvas.gameObject);
-        if(ADOBase.controller && ADOBase.conductor && ADOBase.conductor.isGameWorld) Show();
+        if(ADOBase.controller is { paused: false } && ADOBase.conductor is { isGameWorld: true }) Show();
     }
 
     protected virtual void InitializeStatus() {
