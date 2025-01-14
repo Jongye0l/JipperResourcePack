@@ -650,6 +650,7 @@ public class KeyViewer : Feature {
                 Initialize2KeyViewer();
                 break;
         }
+        UpdateKeyLimit();
     }
 
     private void ResetFootKeyViewer() {
