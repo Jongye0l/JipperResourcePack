@@ -8,21 +8,20 @@ using JipperResourcePack.Jongyeol;
 using JipperResourcePack.Keyviewer;
 using MonsterLove.StateMachine;
 using UnityEngine;
-using UnityModManagerNet;
 
 namespace JipperResourcePack;
 
-public class Main : JAMod {
+public class Main() : JAMod(typeof(ResourcePackSetting)) {
     public static Main Instance;
     public static SettingGUI SettingGUI;
     public static ResourcePackSetting Settings;
-    private static bool CreditsShown;
+    private static bool _creditsShown;
     private string sizeString;
-    
-    public Main(UnityModManager.ModEntry modEntry) : base(modEntry, true, typeof(ResourcePackSetting), discord: "https://discord.gg/qTbnPhY7YA", gid: 1313107549) {
+
+    protected override void OnSetup() {
         Patcher.AddPatch(OnGameStart);
         Patcher.AddPatch(OnGameStop);
-		FeatureReset(Jongyeol.Main.CheckEnable(Setting));
+        FeatureReset(Jongyeol.Main.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
     }
@@ -72,11 +71,11 @@ public class Main : JAMod {
     }
 
     protected override void OnGUIBehind() {
-        if(!CreditsShown) {
-            if(GUILayout.Button(Localization["credit.button"])) CreditsShown = true;
+        if(!_creditsShown) {
+            if(GUILayout.Button(Localization["credit.button"])) _creditsShown = true;
             return;
         }
-        if(GUILayout.Button(Localization["credit.buttonClose"])) CreditsShown = false;
+        if(GUILayout.Button(Localization["credit.buttonClose"])) _creditsShown = false;
         GUILayout.FlexibleSpace();
         GUILayout.BeginHorizontal();
         if(GUILayout.Button(BundleLoader.SideImage, GUI.skin.label)) Application.OpenURL("https://github.com/Jongye0l/JipperResourcePack");
