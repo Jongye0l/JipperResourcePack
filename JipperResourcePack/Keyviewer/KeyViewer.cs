@@ -672,6 +672,7 @@ public class KeyViewer : Feature {
                 InitializeFootKeyViewer(8);
                 break;
         }
+        UpdateKeyLimit();
     }
 
     private static string Bold(string text, bool bold) {
