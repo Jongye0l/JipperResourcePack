@@ -35,6 +35,7 @@ public class KeyViewer : Feature {
     public static readonly Color RainColor = new(0.5137255f, 0.1254902f, 0.858823538f);
     public static readonly Color RainColor2 = Color.white;
     public static readonly Color RainColor3 = Color.magenta;
+    public static readonly byte[] BackSequence10 = [8, 9];
     public static readonly byte[] BackSequence12 = [9, 8, 10, 11];
     public static readonly byte[] BackSequence16 = [12, 13, 9, 8, 10, 11, 14, 15];
     public static readonly byte[] BackSequence20 = [12, 13, 9, 8, 10, 11, 14, 15, 17, 16, 18, 19];
@@ -94,6 +95,9 @@ public class KeyViewer : Feature {
                 break;
             case KeyviewerStyle.Key20:
                 Initialize2KeyViewer();
+                break;
+            case KeyviewerStyle.Key10:
+                Initialize3KeyViewer();
                 break;
         }
         switch(settings.FootKeyViewerStyle) {
@@ -351,6 +355,7 @@ public class KeyViewer : Feature {
             KeyviewerStyle.Key12 => Settings.key12,
             KeyviewerStyle.Key16 => Settings.key16,
             KeyviewerStyle.Key20 => Settings.key20,
+            KeyviewerStyle.Key10 => Settings.key10,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -370,6 +375,7 @@ public class KeyViewer : Feature {
             KeyviewerStyle.Key12 => Settings.key12Text,
             KeyviewerStyle.Key16 => Settings.key16Text,
             KeyviewerStyle.Key20 => Settings.key20Text,
+            KeyviewerStyle.Key10 => Settings.key10Text,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -379,6 +385,7 @@ public class KeyViewer : Feature {
             KeyviewerStyle.Key12 => BackSequence12,
             KeyviewerStyle.Key16 => BackSequence16,
             KeyviewerStyle.Key20 => BackSequence20,
+            KeyviewerStyle.Key10 => BackSequence10,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -617,6 +624,10 @@ public class KeyViewer : Feature {
                     keyCode2 = settings.key20;
                     keyText2 = settings.key20Text;
                     break;
+                case KeyviewerStyle.Key10:
+                    keyCode2 = settings.key10;
+                    keyText2 = settings.key10Text;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -648,6 +659,9 @@ public class KeyViewer : Feature {
                 break;
             case KeyviewerStyle.Key20:
                 Initialize2KeyViewer();
+                break;
+            case KeyviewerStyle.Key10:
+                Initialize3KeyViewer();
                 break;
         }
         UpdateKeyLimit();
@@ -718,6 +732,7 @@ public class KeyViewer : Feature {
                     keyState[i] = current;
                     UpdateKey(i, current);
                     if(!current) continue;
+                    if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
                     key.value.text = (++settings.Count[i]).ToString();
                     Total.value.text = (++settings.TotalCount).ToString();
                     PressTimes.Enqueue(elapsedMilliseconds);
@@ -772,10 +787,14 @@ public class KeyViewer : Feature {
     private void Initialize0KeyViewer() {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 279 - remove, 50, 0);
-        Keys[8] = CreateKey(8, 81 + 54, 225 - remove, 77, 2);
-        Keys[9] = CreateKey(9, 81, 225 - remove, 50, 2);
-        Keys[10] = CreateKey(10, 54 * 4, 225 - remove, 77, 2);
-        Keys[11] = CreateKey(11, 54 * 4 + 81, 225 - remove, 50, 2);
+        Keys[8] = CreateKey(8, 81 + 54, 225 - remove, 77, 1);
+        Keys[9] = CreateKey(9, 81, 225 - remove, 50, 1);
+        Keys[10] = CreateKey(10, 54 * 4, 225 - remove, 77, 1);
+        Keys[11] = CreateKey(11, 54 * 4 + 81, 225 - remove, 50, 1);
+        for(int i = 0; i < 4; i++) {
+            int j = BackSequence12[i];
+            Keys[j].rain = Keys[i + 2].rain;
+        }
         Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
     }
@@ -804,6 +823,17 @@ public class KeyViewer : Feature {
         Keys[17] = CreateKey(17, 81, 225 - remove, 50, 3);
         Keys[18] = CreateKey(18, 54 * 4, 225 - remove, 77, 3);
         Keys[19] = CreateKey(19, 54 * 4 + 81, 225 - remove, 50, 3);
+        Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
+        Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
+    }
+
+    private void Initialize3KeyViewer() {
+        int remove = Settings.DownLocation ? 200 : 0;
+        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 279 - remove, 50, 0);
+        Keys[8] = CreateKey(8, 81, 225 - remove, 129, 1);
+        Keys[8].rain = Keys[3].rain;
+        Keys[9] = CreateKey(9, 54 * 4, 225 - remove, 129, 1);
+        Keys[9].rain = Keys[4].rain;
         Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
     }
@@ -929,6 +959,7 @@ public class KeyViewer : Feature {
                     keyCodes = GetKeyCode();
                     string[] keyText = GetKeyText();
                     key.text.tmp.text = keyText[i] ?? KeyToString(keyCodes[i]);
+                    if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
                     key.value.tmp.text = settings.Count[i].ToString();
                 } else {
                     keyCodes = GetFootKeyCode();
@@ -1049,6 +1080,11 @@ public class KeyViewer : Feature {
     public class KeyViewerSettings : JASetting {
         public KeyviewerStyle KeyViewerStyle = KeyviewerStyle.Key16;
         public FootKeyviewerStyle FootKeyViewerStyle = FootKeyviewerStyle.Key4;
+        public KeyCode[] key10 = [
+            KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
+            KeyCode.Space, KeyCode.Comma
+        ];
+        public string[] key10Text = new string[10];
         public KeyCode[] key12 = [
             KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
             KeyCode.Space, KeyCode.C, KeyCode.Comma, KeyCode.Period
