@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -7,11 +10,13 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using GameObject = UnityEngine.GameObject;
+using Object = UnityEngine.Object;
 
 namespace JipperResourcePack;
 
 public class ResourceChanger : Feature {
 
+    public static bool IsAfterR129;
     public static Color PlanetColor;
     public static Color TitleColor;
     public static Color TileColor;
@@ -20,11 +25,32 @@ public class ResourceChanger : Feature {
     public static ResourceChangerSetting Settings;
 
     public ResourceChanger() : base(Main.Instance, nameof(ResourceChanger), true, typeof(ResourceChanger), typeof(ResourceChangerSetting)) {
+        IsAfterR129 = typeof(scrPlanet).Field("planetarySystem") != null;
+        Patch();
         ResourcePackName = "Jipper Resource Pack";
         PlanetColor = new Color(0.8125f, 0.70703125f, 0.96875f);
         TitleColor = new Color(0.56640625f, 0.46875f, 0.6328125f);
         TileColor = new Color(0.94921875f, 0.87109375f, 1);
         Settings = (ResourceChangerSetting) Setting;
+    }
+
+    private void Patch() {
+        Type type = typeof(scrPlanet);
+        if(IsAfterR129) type = type.Assembly.GetType("PlanetRenderer");
+        MethodInfo method = ((Delegate) OnPlanetAndLogoColorChange).Method;
+        foreach(string methodName in (string[]) ["SetRainbow", "LoadPlanetColor", "SetColor"]) {
+            if(type.Method(methodName) == null) Main.Instance.Error("Method not found: " + type.FullName + "." + methodName);
+            Patcher.AddPatch(method, new JAPatchAttribute(type, methodName, PatchType.Prefix, false) {
+                TryingCatch = false
+            });
+        }
+        method = ((Delegate) Prefix).Method;
+        foreach(string methodName in (string[]) ["SetPlanetColor", "SetCoreColor", "SetTailColor", "SetRingColor", "SetFaceColor"]) {
+            if(type.Method(methodName) == null) Main.Instance.Error("Method not found: " + type.FullName + "." + methodName);
+            Patcher.AddPatch(method, new JAPatchAttribute(type, methodName, PatchType.Prefix, false) {
+                TryingCatch = false
+            });
+        }
     }
 
     protected override void OnEnable() {
@@ -66,8 +92,14 @@ public class ResourceChanger : Feature {
         if(ADOBase.editor) OnEditorStart();
     }
 
+    private static List<scrPlanet> GetAllPlanets() {
+        object obj = ADOBase.controller;
+        if(IsAfterR129) obj = obj.GetValue("planetarySystem");
+        return obj.GetValue<List<scrPlanet>>("allPlanets");
+    }
+
     private static void LoadPlanet() {
-        foreach(scrPlanet planet in ADOBase.controller.allPlanets) OnPlanetStart(planet);
+        foreach(scrPlanet planet in GetAllPlanets()) OnPlanetStart(planet);
         if(!ADOBase.isLevelSelect) return;
         scrLogoText logoText = Object.FindObjectOfType<scrLogoText>();
         if(!logoText) return;
@@ -82,9 +114,15 @@ public class ResourceChanger : Feature {
     }
 
     private static void UnloadPlanet() {
-        foreach(scrPlanet planet in ADOBase.controller.allPlanets) planet.LoadPlanetColor();
-        if(!ADOBase.isLevelSelect) return;
-        Object.FindObjectOfType<scrLogoText>().UpdateColors();
+        if(IsAfterR129) foreach(scrPlanet planet in GetAllPlanets()) planet.Invoke("LoadPlanetColor");
+        else UnloadPlanetR129();
+        scrLogoText.instance?.UpdateColors();
+    }
+
+    private static void UnloadPlanetR129() {
+        PlanetarySystem planetarySystem = ADOBase.controller.planetarySystem;
+        planetarySystem.planetRed.planetRenderer.LoadPlanetColor(true);
+        planetarySystem.planetBlue.planetRenderer.LoadPlanetColor(false);
     }
 
     private static void UnloadTileColor() {
@@ -120,27 +158,21 @@ public class ResourceChanger : Feature {
     [JAPatch(typeof(scrPlanet), "Start", PatchType.Postfix, false)]
     public static void OnPlanetStart(scrPlanet __instance) {
         if(!Settings.ChangeBallColor) return;
-        __instance.DisableAllSpecialPlanets();
-        __instance.sprite.sprite = ADOBase.gc.tex_planetWhite;
-        __instance.SetPlanetColor(PlanetColor);
-        __instance.SetTailColor(PlanetColor);
+        object obj = __instance;
+        if(IsAfterR129) obj = obj.GetValue("planetRenderer");
+        obj.Invoke("DisableAllSpecialPlanets");
+        obj.GetValue("sprite").SetValue("sprite", ADOBase.gc.tex_planetWhite);
+        obj.Invoke("SetPlanetColor", PlanetColor);
+        obj.Invoke("SetTailColor", PlanetColor);
         scrLogoText.instance?.UpdateColors();
     }
 
-    [JAPatch(typeof(scrPlanet), "SetRainbow", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrPlanet), "LoadPlanetColor", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrPlanet), "SetColor", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scnLevelSelect), "RainbowMode", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scnLevelSelect), "EnbyMode", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrLogoText), "UpdateColors", PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrLogoText), "LateUpdate", PatchType.Prefix, false, TryingCatch = false)]
     public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor;
 
-    [JAPatch(typeof(scrPlanet), "SetPlanetColor", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrPlanet), "SetCoreColor", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrPlanet), "SetTailColor", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrPlanet), "SetRingColor", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrPlanet), "SetFaceColor", PatchType.Prefix, false, TryingCatch = false)]
     public static void Prefix(ref Color color) {
         if(Settings.ChangeBallColor) color = PlanetColor;
     }
