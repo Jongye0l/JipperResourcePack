@@ -25,7 +25,7 @@ public class InstallScreen : Screen {
     public string DownloadName;
     public int DownloadProgressStart;
     public int DownloadProgressEnd;
-    public bool complete = false;
+    public bool complete;
     public Exception exception;
 
     public InstallScreen(Screen screen) {
@@ -164,25 +164,6 @@ public class InstallScreen : Screen {
             string folderName = Path.GetFileName(folder2);
             Directory.Move(folder2, Path.Combine(path, folderName));
         }
-    }
-
-    public Task ApplyUMM(string path) {
-        return Task.Run(() => {
-            Log("Running UnityModManager AutoInstaller...");
-            //Process ummProcess = new();
-            //ProcessStartInfo ummStartInfo = ummProcess.StartInfo;
-            //ummStartInfo.FileName = path;
-            //ummStartInfo.WorkingDirectory = Path.GetDirectoryName(path);
-            //ummStartInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
-            //ummStartInfo.UseShellExecute = true;
-            //ummProcess.Start();
-            //ummProcess.WaitForExit();
-            //if(ummProcess.ExitCode == 0) return;
-            string errorMessageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack", "UnityModManagerInstaller", "UMMAutoInstallerError.log");
-            string errorMessage = File.ReadAllText(errorMessageFile);
-            File.Delete(errorMessageFile);
-            throw new Exception("UMM AutoInstaller Error: " + errorMessage);
-        });
     }
 
     private void WebClientOnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e) {
