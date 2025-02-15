@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using JipperResourcePack.Installer.Properties;
 using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;
@@ -99,11 +98,13 @@ public class FinishScreen : Screen {
     }
 
     public override void OnLeave() {
-        if(GlobalSetting.Instance.InstallPath == Utility.GetAdofaiPath()) Process.Start("steam://rungameid/977950");
-        else if(CheckBox is { Checked: true }) Process.Start(new ProcessStartInfo() {
-            FileName = Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice.exe"),
-            WorkingDirectory = GlobalSetting.Instance.InstallPath
-        });
+        if(CheckBox is { Checked: true }) {
+            if(GlobalSetting.Instance.InstallPath == Utility.GetAdofaiPath()) Process.Start("steam://rungameid/977950");
+            else Process.Start(new ProcessStartInfo {
+                FileName = Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice.exe"),
+                WorkingDirectory = GlobalSetting.Instance.InstallPath
+            });
+        }
         if(Folder != null) DeleteFolder();
     }
 }

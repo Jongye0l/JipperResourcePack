@@ -60,7 +60,7 @@
   * [BetterCalibration](https://github.com/Jongye0l/BetterCalibration)
   * [State](https://github.com/Jongye0l/State)
   * [AdvancedCombo](https://github.com/Jongye0l/AdvancedCombo)
-  * [AdofaiModInstaller](https://github.com/tjwogud/AdofaiModInstaller)
+  * [unity-mod-manager](https://github.com/newman55/unity-mod-manager)
 * 사용한 폰트
   * [Maplestory OTF Bold](https://fontmeme.com/ktype/maplestory-font)
 ---

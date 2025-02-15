@@ -3,7 +3,6 @@
 *.sln.DotSettings.user
 
 # Compile File
-*.dll
 bin/
 obj/
 

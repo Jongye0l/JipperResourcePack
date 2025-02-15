@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -9,7 +8,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using JipperResourcePack.Installer.Properties;
 using JipperResourcePack.Installer.Resource;
 using Newtonsoft.Json.Linq;
 
@@ -48,7 +46,7 @@ public class InstallScreen : Screen {
         };
         ProgressBar = new ProgressBar {
             Minimum = 0,
-            Maximum = 220 + 50 * GlobalSetting.Instance.SelectedMods.Count,
+            Maximum = 110 + 50 * GlobalSetting.Instance.SelectedMods.Count,
             Size = new Size(800, 20),
             Location = new Point(92, 120)
         };
@@ -74,8 +72,7 @@ public class InstallScreen : Screen {
 
     public async void StartWork() {
         try {
-            await UnityModManagerCheck();
-            Progress = 130;
+            UnityModManagerCheck();
             await DownloadJALib();
             await DownloadJipperResourcePack();
             foreach(ModData selectedMod in GlobalSetting.Instance.SelectedMods) {
@@ -94,65 +91,25 @@ public class InstallScreen : Screen {
         }
     }
 
-    public async Task UnityModManagerCheck() {
+    public void UnityModManagerCheck() {
         string path = GlobalSetting.Instance.InstallPath;
         Log("Founding UnityModManager...");
         if(File.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager", "UnityModManager.dll"))) {
-            Progress = 120;
             Log("UnityModManager already exists.");
+            Progress = 20;
             return;
         }
         Progress = 10;
         Log("UnityModManager not found.");
-        await DownloadUMM();
-    }
-
-    public async Task DownloadUMM() {
         Log("Installing UnityModManager...");
-        string ummPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack");
-        if(Directory.Exists(ummPath)) Directory.Delete(ummPath, true);
-        try {
-            Application.ApplicationExit += RemoveDirectory;
-            DownloadName = "UnityModManager";
-            DownloadProgressStart = 10;
-            DownloadProgressEnd = 60;
-            await Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", Path.Combine(ummPath, "UnityModManagerInstaller"));
-            string ummFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UnityModManagerNet");
-            if(!File.Exists(ummFolder)) Directory.CreateDirectory(ummFolder);
-            File.WriteAllText(Path.Combine(ummPath, "Params.xml"), $"""
-                 <?xml version="1.0" encoding="utf-8"?>
-                 <Param xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                   <LastSelectedGame>A Dance of Fire and Ice</LastSelectedGame>
-                   <GameParams>
-                     <GameParam Name="A Dance of Fire and Ice">
-                       <Path>{GlobalSetting.Instance.InstallPath}</Path>
-                       <InstallType>Assembly</InstallType>
-                     </GameParam>
-                   </GameParams>
-                 </Param>
-                 """);
-            string installerPath = Path.Combine(ummPath, "UMMAutoInstaller.exe");
-            DownloadName = "UnityModManager AutoInstaller";
-            DownloadProgressStart = 60;
-            DownloadProgressEnd = 110;
-            await InstallerForm.WebClient.DownloadFileTaskAsync("https://github.com/Jongye0l/JipperResourcePack/raw/main/UMMAutoInstaller/UMMAutoInstaller.exe", installerPath);
-            await ApplyUMM(installerPath);
-            Progress = 120;
-            Log("UnityModManager installed. Deleting temporary files...");
-        } finally {
-            Directory.Delete(ummPath, true);
-            Application.ApplicationExit -= RemoveDirectory;
-        }
-        return;
-
-        void RemoveDirectory(object sender, EventArgs e) {
-            Directory.Delete(ummPath, true);
-        }
+        new UMMInstaller(this).Start();
+        Log("UnityModManager Installed.");
+        Progress = 20;
     }
 
     public void Log(string text) => LogQueue.Enqueue(text);
 
-    public async Task LogListner() {
+    public async void LogListner() {
         while(!complete && exception == null) {
             while(LogQueue.TryDequeue(out string log)) {
                 LogLabel.Text = log;
@@ -212,15 +169,15 @@ public class InstallScreen : Screen {
     public Task ApplyUMM(string path) {
         return Task.Run(() => {
             Log("Running UnityModManager AutoInstaller...");
-            Process ummProcess = new();
-            ProcessStartInfo ummStartInfo = ummProcess.StartInfo;
-            ummStartInfo.FileName = path;
-            ummStartInfo.WorkingDirectory = Path.GetDirectoryName(path);
-            ummStartInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
-            ummStartInfo.UseShellExecute = true;
-            ummProcess.Start();
-            ummProcess.WaitForExit();
-            if(ummProcess.ExitCode == 0) return;
+            //Process ummProcess = new();
+            //ProcessStartInfo ummStartInfo = ummProcess.StartInfo;
+            //ummStartInfo.FileName = path;
+            //ummStartInfo.WorkingDirectory = Path.GetDirectoryName(path);
+            //ummStartInfo.Arguments = Process.GetCurrentProcess().Id.ToString();
+            //ummStartInfo.UseShellExecute = true;
+            //ummProcess.Start();
+            //ummProcess.WaitForExit();
+            //if(ummProcess.ExitCode == 0) return;
             string errorMessageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack", "UnityModManagerInstaller", "UMMAutoInstallerError.log");
             string errorMessage = File.ReadAllText(errorMessageFile);
             File.Delete(errorMessageFile);
@@ -241,23 +198,23 @@ public class InstallScreen : Screen {
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("JipperResourcePack");
         try {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases/latest");
-            Progress = 137;
+            Progress = 27;
             response.EnsureSuccessStatusCode();
-            Progress = 144;
+            Progress = 34;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases");
-            Progress = 140;
+            Progress = 30;
             response.EnsureSuccessStatusCode();
-            Progress = 146;
+            Progress = 36;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
         }
-        Progress = 150;
+        Progress = 40;
         DownloadName = "JALib";
-        DownloadProgressStart = 150;
-        DownloadProgressEnd = 200;
+        DownloadProgressStart = Progress;
+        DownloadProgressEnd = 90;
         Log("Downloading JALib...");
         await Download($"https://github.com/Jongye0l/JALib/releases/download/{latestVersion}/JALib.zip", Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JALib"));
         Log("Download Complete JALib");
@@ -271,23 +228,23 @@ public class InstallScreen : Screen {
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("JipperResourcePack");
         try {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases/latest");
-            Progress = 207;
+            Progress = 97;
             response.EnsureSuccessStatusCode();
-            Progress = 214;
+            Progress = 104;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases");
-            Progress = 210;
+            Progress = 100;
             response.EnsureSuccessStatusCode();
-            Progress = 216;
+            Progress = 106;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
         }
-        Progress = 220;
+        Progress = 110;
         DownloadName = "JipperResourcePack";
-        DownloadProgressStart = 220;
-        DownloadProgressEnd = 270;
+        DownloadProgressStart = Progress;
+        DownloadProgressEnd = 160;
         Log("Downloading JipperResourcePack...");
         await Download($"https://github.com/Jongye0l/JipperResourcePack/releases/download/{latestVersion}/JipperResourcePack.zip", Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JipperResourcePack"));
         Log("Download Complete JipperResourcePack");

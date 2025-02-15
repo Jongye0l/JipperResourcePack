@@ -4,8 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JipperResourcePack", "Jippe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer\Installer.csproj", "{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UMMAutoInstaller", "UMMAutoInstaller\UMMAutoInstaller.csproj", "{2DCC54F1-4E1E-40F3-B9DD-92560CB6E89D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,9 +18,5 @@ Global
 		{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2DCC54F1-4E1E-40F3-B9DD-92560CB6E89D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2DCC54F1-4E1E-40F3-B9DD-92560CB6E89D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2DCC54F1-4E1E-40F3-B9DD-92560CB6E89D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2DCC54F1-4E1E-40F3-B9DD-92560CB6E89D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
