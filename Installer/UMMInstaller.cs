@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Screen;
 
@@ -8,6 +9,7 @@ namespace JipperResourcePack.Installer;
 
 public class UMMInstaller {
     public InstallScreen installScreen;
+    public TaskCompletionSource<bool> tcs;
     public string[] libraryDestPaths;
     public string tempPath;
     public string gamePath;
@@ -22,27 +24,37 @@ public class UMMInstaller {
             Path.Combine(managerPath, "0Harmony.dll"),
             Path.Combine(managerPath, "dnlib.dll"),
             Path.Combine(managerPath, "UnityModManager.dll"),
-            Path.Combine(managerPath, "UnityModManager.xml"),
-            Path.Combine(managerPath, "Config.xml"),
+            Path.Combine(managerPath, "UnityModManager.xml")
         ];
     }
 
-    public void Start() {
+    public Task Start() {
+        tcs = new TaskCompletionSource<bool>();
         if(Directory.Exists(tempPath)) Directory.Delete(tempPath, true);
+        Directory.CreateDirectory(tempPath);
         try {
             Application.ApplicationExit += RemoveDirectory;
-            installScreen.Log("=======================================");
-            installScreen.Log("Create Directories...");
-            Directory.CreateDirectory(tempPath);
+            installScreen.Log("Downloading UnityModManager...");
+            installScreen.DownloadName = "UnityModManager";
+            installScreen.DownloadProgressStart = 10;
+            installScreen.DownloadProgressEnd = 60;
+            installScreen.Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", tempPath)
+                .GetAwaiter().UnsafeOnCompleted(OnDownloadComplete);
+        } catch (Exception e) {
+            tcs.SetException(e);
+        } finally {
+            RemoveDirectory(null, null);
+        }
+        return tcs.Task;
+    }
+
+    public void OnDownloadComplete() {
+        try {
             if(!Directory.Exists(managerPath))
                 Directory.CreateDirectory(managerPath);
             installScreen.Log("Backup files...");
             string doorstopPath = Path.Combine(GlobalSetting.Instance.InstallPath, "winhttp.dll");
             string doorstopConfigPath = Path.Combine(GlobalSetting.Instance.InstallPath, "doorstop_config.ini");
-            MakeBackup("winhttp.dll", doorstopPath);
-            MakeBackup("doorstop_config.ini", doorstopConfigPath);
-            foreach(string destPath in libraryDestPaths) MakeBackup(Path.GetFileName(destPath), destPath);
-            MakeBackup(Path.Combine("UnityModManager", "Config.xml"));
             installScreen.Log("Deleting files from game...");
             installScreen.Log($"  '{doorstopPath}'");
             File.Delete(doorstopPath);
@@ -51,25 +63,19 @@ public class UMMInstaller {
             installScreen.Log("Copying files to game...");
             string filename = UnmanagedDllIs64Bit(Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice.exe")) ? "winhttp_x64.dll" : "winhttp_x86.dll";
             installScreen.Log($"  '{filename}'");
-            using(Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.UMM." + filename)) {
-                using Stream file = File.Create(doorstopPath);
+            File.Copy(Path.Combine(tempPath, filename), doorstopPath);
+            installScreen.Log($"  '{doorstopConfigPath}'");
+            using(Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.UMM.doorstop_config.ini")) {
+                using Stream file = File.Create(doorstopConfigPath);
                 stream.CopyTo(file);
             }
-            installScreen.Log($"  '{doorstopConfigPath}'");
-            string relativeManagerAssemblyPath = Path.Combine("A Dance of Fire and Ice_Data", "Managed", "UnityModManager", "UnityModManager.dll");
-            File.WriteAllText(doorstopConfigPath, "[General]" + Environment.NewLine + "enabled = true" + Environment.NewLine + "target_assembly = " + relativeManagerAssemblyPath);
             DoactionLibraries();
+            DoactionGameConfig();
+            tcs.SetResult(true);
+        } catch (Exception e) {
+            tcs.SetException(e);
         } finally {
             RemoveDirectory(null, null);
-        }
-    }
-
-    public void MakeBackup(string fileName, string path = null) {
-        try {
-            path ??= Path.Combine(gamePath, fileName);
-            if(File.Exists(path)) File.Copy(path, Path.Combine(tempPath, fileName));
-        } catch (Exception e) {
-            installScreen.Log(e.ToString());
         }
     }
 
@@ -106,9 +112,15 @@ public class UMMInstaller {
         installScreen.Log("Copying files to game...");
         foreach(string destpath in libraryDestPaths) {
             installScreen.Log($"  {destpath}");
-            using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.UMM." + Path.GetFileName(destpath));
-            using Stream file = File.Create(destpath);
-            stream.CopyTo(file);
+            File.Copy(Path.Combine(tempPath, Path.GetFileName(destpath)), destpath, true);
         }
+    }
+
+    public void DoactionGameConfig() {
+        installScreen.Log("Creating configs...");
+        installScreen.Log("  Config.xml");
+        using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.UMM.Config.xml");
+        using Stream file = File.Create(Path.Combine(managerPath, "Config.xml"));
+        stream.CopyTo(file);
     }
 }

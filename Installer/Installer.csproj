@@ -96,13 +96,8 @@
     </ItemGroup>
     <ItemGroup>
       <Content Include="mods.json" />
+      <EmbeddedResource Include="Resource\UMM\doorstop_config.ini" />
       <EmbeddedResource Include="Resource\UMM\Config.xml" />
-      <EmbeddedResource Include="Resource\UMM\winhttp_x64.dll" />
-      <EmbeddedResource Include="Resource\UMM\winhttp_x86.dll" />
-      <EmbeddedResource Include="Resource\UMM\0Harmony.dll" />
-      <EmbeddedResource Include="Resource\UMM\dnlib.dll" />
-      <EmbeddedResource Include="Resource\UMM\UnityModManager.dll" />
-      <EmbeddedResource Include="Resource\UMM\UnityModManager.xml" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

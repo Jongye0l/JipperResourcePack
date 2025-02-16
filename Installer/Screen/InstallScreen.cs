@@ -46,7 +46,7 @@ public class InstallScreen : Screen {
         };
         ProgressBar = new ProgressBar {
             Minimum = 0,
-            Maximum = 110 + 50 * GlobalSetting.Instance.SelectedMods.Count,
+            Maximum = 160 + 50 * GlobalSetting.Instance.SelectedMods.Count,
             Size = new Size(800, 20),
             Location = new Point(92, 120)
         };
@@ -72,7 +72,7 @@ public class InstallScreen : Screen {
 
     public async void StartWork() {
         try {
-            UnityModManagerCheck();
+            await UnityModManagerCheck();
             await DownloadJALib();
             await DownloadJipperResourcePack();
             foreach(ModData selectedMod in GlobalSetting.Instance.SelectedMods) {
@@ -91,20 +91,20 @@ public class InstallScreen : Screen {
         }
     }
 
-    public void UnityModManagerCheck() {
+    public async Task UnityModManagerCheck() {
         string path = GlobalSetting.Instance.InstallPath;
         Log("Founding UnityModManager...");
         if(File.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager", "UnityModManager.dll"))) {
             Log("UnityModManager already exists.");
-            Progress = 20;
+            Progress = 70;
             return;
         }
         Progress = 10;
         Log("UnityModManager not found.");
         Log("Installing UnityModManager...");
-        new UMMInstaller(this).Start();
+        await new UMMInstaller(this).Start();
         Log("UnityModManager Installed.");
-        Progress = 20;
+        Progress = 70;
     }
 
     public void Log(string text) => LogQueue.Enqueue(text);
@@ -179,23 +179,23 @@ public class InstallScreen : Screen {
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("JipperResourcePack");
         try {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases/latest");
-            Progress = 27;
+            Progress = 77;
             response.EnsureSuccessStatusCode();
-            Progress = 34;
+            Progress = 84;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases");
-            Progress = 30;
+            Progress = 80;
             response.EnsureSuccessStatusCode();
-            Progress = 36;
+            Progress = 86;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
         }
-        Progress = 40;
+        Progress = 90;
         DownloadName = "JALib";
         DownloadProgressStart = Progress;
-        DownloadProgressEnd = 90;
+        DownloadProgressEnd = 140;
         Log("Downloading JALib...");
         await Download($"https://github.com/Jongye0l/JALib/releases/download/{latestVersion}/JALib.zip", Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JALib"));
         Log("Download Complete JALib");
@@ -209,23 +209,23 @@ public class InstallScreen : Screen {
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("JipperResourcePack");
         try {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases/latest");
-            Progress = 97;
+            Progress = 147;
             response.EnsureSuccessStatusCode();
-            Progress = 104;
+            Progress = 154;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases");
-            Progress = 100;
+            Progress = 150;
             response.EnsureSuccessStatusCode();
-            Progress = 106;
+            Progress = 156;
             string json = await response.Content.ReadAsStringAsync();
             latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
         }
-        Progress = 110;
+        Progress = 160;
         DownloadName = "JipperResourcePack";
         DownloadProgressStart = Progress;
-        DownloadProgressEnd = 160;
+        DownloadProgressEnd = 210;
         Log("Downloading JipperResourcePack...");
         await Download($"https://github.com/Jongye0l/JipperResourcePack/releases/download/{latestVersion}/JipperResourcePack.zip", Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JipperResourcePack"));
         Log("Download Complete JipperResourcePack");
