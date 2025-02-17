@@ -25,6 +25,8 @@
   * 손
     * 12키
     * 16키
+    * 20키
+    * 10키
   * 발
     * 없음
     * 2키
@@ -66,15 +68,14 @@
 ---
 ### 개발 환경 Development environment
 * Windows 11
-* Rider 2024.3.4
+* Rider 2024.3.5
 * .NET Framework 4.8.1
 * C# 13
-* A Dance of Fire and Ice 2.9.2(r129, 3042d74)
+* A Dance of Fire and Ice 2.9.3(r131, 12ef426)
 ---
 ### 테스트 환경 Test environment
 * Windows 11
-* A Dance of Fire and Ice 2.9.1(r129, 85818e4)
-* A Dance of Fire and Ice 2.9.2(r129, 3042d74)
+* A Dance of Fire and Ice 2.9.3(r131, 12ef426)
 ---
 # [Join Jipper's Discord!](https://discord.gg/qTbnPhY7YA)
 # [Join My Discord!](https://discord.jongyeol.kr)
