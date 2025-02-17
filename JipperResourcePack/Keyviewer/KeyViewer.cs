@@ -863,8 +863,8 @@ public class KeyViewer : Feature {
         transform.SetParent(obj.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = Vector2.zero;
-        transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
-        transform.localScale = Vector3.one;
+        transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
+        transform.localScale = new Vector3(0.5f, 0.5f);
         Image image = gameObject.AddComponent<Image>();
         image.color = settings.Background;
         image.sprite = BundleLoader.KeyBackground;
@@ -875,8 +875,8 @@ public class KeyViewer : Feature {
         transform.SetParent(obj.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = Vector2.zero;
-        transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
-        transform.localScale = Vector3.one;
+        transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
+        transform.localScale = new Vector3(0.5f, 0.5f);
         image = gameObject.AddComponent<Image>();
         image.color = settings.Outline;
         image.sprite = BundleLoader.KeyOutline;
