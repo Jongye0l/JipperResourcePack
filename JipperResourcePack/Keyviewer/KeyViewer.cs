@@ -830,9 +830,9 @@ public class KeyViewer : Feature {
     private void Initialize3KeyViewer() {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 279 - remove, 50, 0);
-        Keys[8] = CreateKey(8, 81, 225 - remove, 129, 1);
+        Keys[8] = CreateKey(8, 81, 225 - remove, 131, 1);
         Keys[8].rain = Keys[3].rain;
-        Keys[9] = CreateKey(9, 54 * 4, 225 - remove, 129, 1);
+        Keys[9] = CreateKey(9, 54 * 4, 225 - remove, 131, 1);
         Keys[9].rain = Keys[4].rain;
         Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
