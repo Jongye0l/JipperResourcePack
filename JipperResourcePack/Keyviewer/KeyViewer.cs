@@ -41,7 +41,6 @@ public class KeyViewer : Feature {
     public static readonly byte[] BackSequence20 = [12, 13, 9, 8, 10, 11, 14, 15, 17, 16, 18, 19];
     public GameObject KeyViewerObject;
     public GameObject KeyViewerSizeObject;
-    public Canvas Canvas;
     public Key[] Keys;
     public Thread KeyinputListener;
     public Key Kps;
@@ -72,13 +71,13 @@ public class KeyViewer : Feature {
 
     protected override void OnEnable() {
         KeyViewerObject = new GameObject("JipperResourcePack KeyViewer");
-        Canvas = KeyViewerObject.AddComponent<Canvas>();
-        Canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        CanvasScaler scaler = Canvas.gameObject.AddComponent<CanvasScaler>();
+        Canvas canvas = KeyViewerObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        CanvasScaler scaler = canvas.gameObject.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
-        Canvas.gameObject.AddComponent<GraphicRaycaster>();
+        canvas.gameObject.AddComponent<GraphicRaycaster>();
         KeyViewerSizeObject = new GameObject("SizeObject");
         RectTransform rectTransform = KeyViewerSizeObject.AddComponent<RectTransform>();
         rectTransform.SetParent(KeyViewerObject.transform);
@@ -134,7 +133,6 @@ public class KeyViewer : Feature {
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;
         KeyViewerSizeObject = null;
-        Canvas = null;
         GC.SuppressFinalize(Keys);
         Keys = null;
         KeyinputListener.Abort();
