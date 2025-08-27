@@ -523,8 +523,12 @@ public class Overlay {
     public virtual void Hide() {
         if(!GameObject.activeSelf) return;
         GameObject.SetActive(false);
-        if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
-        if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
+        try {
+            if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
+            if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
+        } catch (Exception e) {
+            Main.Instance.LogException("Failed to set play data on hide", e);
+        }
         startProgress = startTile = noCheckStartTile = -1;
     }
 
