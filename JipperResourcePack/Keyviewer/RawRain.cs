@@ -11,18 +11,18 @@ public class RawRain {
     public Vector2? anchoredPosition;
     public bool removed;
     
-    public bool UpdateLocation(long time, bool updateSize) {
-        float y = (time - startTime) / 300f * 100;
+    public bool UpdateLocation(long time, bool updateSize, float speed, float height) {
+        float y = (time - startTime) / 300f * speed;
         if(updateSize) FinalSize = new Vector2(color switch {
             1 => 50,
             3 => 30,
             _ => 40
-        }, (time - startTime) / 300f * 100);
-        if(y > 200) {
-            float sizeY = FinalSize.y - y + 200;
+        }, (time - startTime) / 300f * speed);
+        if(y > height) {
+            float sizeY = FinalSize.y - y + height;
             if(sizeY < 0) return false;
             sizeDelta = new Vector2(FinalSize.x, sizeY);
-            anchoredPosition = new Vector2(0, 200);
+            anchoredPosition = new Vector2(0, height);
         } else {
             if(updateSize) sizeDelta = FinalSize;
             anchoredPosition = new Vector2(0, y);
