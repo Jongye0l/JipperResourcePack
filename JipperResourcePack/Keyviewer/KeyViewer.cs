@@ -55,6 +55,7 @@ public class KeyViewer : Feature {
     private bool[] ColorExpanded;
     private KeyviewerStyle currentKeyViewerStyle;
     private bool[] KeyPressed;
+    private bool confirmResetCount;
 
     public int SelectedKey = -1;
     public int WinAPICool;
@@ -151,17 +152,18 @@ public class KeyViewer : Feature {
         KeyViewerSettings settings = Settings;
         settingGUI.AddSettingToggle(ref KeyShare, localization["keyViewer.keyShare"]);
         settingGUI.AddSettingToggle(ref settings.DownLocation, localization["keyViewer.downLocation"], ResetKeyViewer);
-        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], () => {
-            if(Settings.useRain || Keys == null) return;
-            foreach(Key key in Keys) {
-                if(!key) continue;
-                key.rawRainQueue.Clear();
-                while(key.rainList.Count > 0) {
-                    key.rainList[0].removed = true;
-                    key.rainList.RemoveAt(0);
-                }
+        if(GUILayout.Button(localization["keyViewer.resetCount"])) confirmResetCount = true;
+        if(confirmResetCount) {
+            GUILayout.Label("<color=red>" + localization["keyViewer.resetCountConfirmText"] + "</color>");
+            if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
+                confirmResetCount = false;
+                Total.value.tmp.text = "0";
+                for(int i = 0; i < settings.Count.Length; i++) settings.Count[i] = 0;
+                Main.Instance.SaveSetting();
             }
-        });
+            if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) confirmResetCount = false;
+        }
+        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], CheckResetRain);
         settingGUI.AddSettingSliderFloat(ref settings.rainSpeed, 100, ref rainSizeString, localization["keyViewer.rainSpeed"], 1, 800);
         settingGUI.AddSettingSliderFloat(ref settings.rainHeight, 200, ref rainHeightString, localization["keyViewer.rainHeight"], 1, 1000);
         if(ADOBase.platform == Platform.Windows && (AdofaiTweaksAPI.IsExist || KeyboardChatterBlockerAPI.IsExist))
@@ -616,6 +618,17 @@ public class KeyViewer : Feature {
         #endregion
     }
 
+    private void CheckResetRain() {
+        if(Settings.useRain) return;
+        foreach(Key key in Keys) {
+            if(!key) continue;
+            key.rawRainQueue.Clear();
+            while(key.rainList.Count > 0) {
+                key.rainList[0].removed = true;
+                key.rainList.RemoveAt(0);
+            }
+        }
+    }
 
     private void ChangeKeyViewer() {
         KeyViewerSettings settings = Settings;
@@ -710,6 +723,7 @@ public class KeyViewer : Feature {
         WinAPICool = 0;
         sizeString = null;
         KeyPressed = null;
+        confirmResetCount = false;
         if(SelectedKey == -1) return;
         Main.Instance.SaveSetting();
         SelectedKey = -1;
