@@ -23,5 +23,10 @@
     "Name": "TUFHelper",
     "URL": "https://github.com/coyami-ke/TUFHelper/releases/download/v2.4.0/TUFHelper.Windows.zip",
     "DisplayName": "TUFHelper(By Sharky, Flower, Coyami)"
+  },
+  {
+    "Name": "PACL2",
+    "URL": "https://fixcdn.hyonsu.com/attachments/1434263607125741879/1437820368076275895/PACL2.zip",
+    "DisplayName": "PACL2(By Asansis)"
   }
 ]
