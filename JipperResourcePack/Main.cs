@@ -8,6 +8,7 @@ using JipperResourcePack.Jongyeol;
 using JipperResourcePack.Keyviewer;
 using MonsterLove.StateMachine;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace JipperResourcePack;
 
@@ -44,18 +45,22 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
     
     protected override void OnEnable() {
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
         BundleLoader.LoadBundle();
         PlayCount.Load();
         _ = Jongyeol.Main.CheckEnable(Setting) ? new JOverlay() : new Overlay();
     }
-    
+
     protected override void OnDisable() {
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
         PlayCount.Dispose();
         SaveSetting();
         Overlay.Instance.Destroy();
         BundleLoader.UnloadBundle();
     }
 
+    private static void OnSceneUnloaded(Scene _) => Overlay.Instance.Hide();
+    
     protected override void OnUpdate(float deltaTime) {
         Overlay.Instance.UpdateTime();
         Overlay.Instance.UpdateComboSize();

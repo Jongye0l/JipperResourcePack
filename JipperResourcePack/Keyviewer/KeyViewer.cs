@@ -55,10 +55,13 @@ public class KeyViewer : Feature {
     private bool[] ColorExpanded;
     private KeyviewerStyle currentKeyViewerStyle;
     private bool[] KeyPressed;
+    private bool confirmResetCount;
 
     public int SelectedKey = -1;
     public int WinAPICool;
     public bool TextChanged;
+    private string rainSizeString;
+    private string rainHeightString;
     private string sizeString;
 
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSettings)) {
@@ -149,6 +152,20 @@ public class KeyViewer : Feature {
         KeyViewerSettings settings = Settings;
         settingGUI.AddSettingToggle(ref KeyShare, localization["keyViewer.keyShare"]);
         settingGUI.AddSettingToggle(ref settings.DownLocation, localization["keyViewer.downLocation"], ResetKeyViewer);
+        if(GUILayout.Button(localization["keyViewer.resetCount"])) confirmResetCount = true;
+        if(confirmResetCount) {
+            GUILayout.Label("<color=red>" + localization["keyViewer.resetCountConfirmText"] + "</color>");
+            if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
+                confirmResetCount = false;
+                Total.value.tmp.text = "0";
+                for(int i = 0; i < settings.Count.Length; i++) settings.Count[i] = 0;
+                Main.Instance.SaveSetting();
+            }
+            if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) confirmResetCount = false;
+        }
+        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], CheckResetRain);
+        settingGUI.AddSettingSliderFloat(ref settings.rainSpeed, 100, ref rainSizeString, localization["keyViewer.rainSpeed"], 1, 800);
+        settingGUI.AddSettingSliderFloat(ref settings.rainHeight, 200, ref rainHeightString, localization["keyViewer.rainHeight"], 1, 1000);
         if(ADOBase.platform == Platform.Windows && (AdofaiTweaksAPI.IsExist || KeyboardChatterBlockerAPI.IsExist))
             settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
@@ -601,6 +618,17 @@ public class KeyViewer : Feature {
         #endregion
     }
 
+    private void CheckResetRain() {
+        if(Settings.useRain) return;
+        foreach(Key key in Keys) {
+            if(!key) continue;
+            key.rawRainQueue.Clear();
+            while(key.rainList.Count > 0) {
+                key.rainList[0].removed = true;
+                key.rainList.RemoveAt(0);
+            }
+        }
+    }
 
     private void ChangeKeyViewer() {
         KeyViewerSettings settings = Settings;
@@ -695,6 +723,7 @@ public class KeyViewer : Feature {
         WinAPICool = 0;
         sizeString = null;
         KeyPressed = null;
+        confirmResetCount = false;
         if(SelectedKey == -1) return;
         Main.Instance.SaveSetting();
         SelectedKey = -1;
@@ -714,6 +743,8 @@ public class KeyViewer : Feature {
             int repeat = 0;
             while(KeyinputListener is { IsAlive: true } && Enabled) {
                 long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
+                float speed = settings.rainSpeed;
+                float height = settings.rainHeight;
                 KeyCode[] keyCodes = GetKeyCode();
                 for(int i = 0; i < keyCodes.Length; i++) {
                     bool current = CheckKey(keyCodes[i]);
@@ -721,7 +752,7 @@ public class KeyViewer : Feature {
                     if(!key) continue;
                     for(int j = 0; j < key.rainList.Count; j++) {
                         RawRain rain = key.rainList[j];
-                        if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.rainList.Count - 1)) continue;
+                        if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.rainList.Count - 1, speed, height)) continue;
                         key.rainList.Remove(rain);
                         rain.removed = true;
                         j--;
@@ -734,9 +765,11 @@ public class KeyViewer : Feature {
                     key.value.text = (++settings.Count[i]).ToString();
                     Total.value.text = (++settings.TotalCount).ToString();
                     PressTimes.Enqueue(elapsedMilliseconds);
-                    RawRain rawRain = new(key.rain.transform, elapsedMilliseconds, key.color);
-                    key.rawRainQueue.Enqueue(rawRain);
-                    key.rainList.Add(rawRain);
+                    if(settings.useRain) {
+                        RawRain rawRain = new(key.rain.transform, elapsedMilliseconds, key.color);
+                        key.rawRainQueue.Enqueue(rawRain);
+                        key.rainList.Add(rawRain);
+                    }
                     Save = true;
                 }
                 keyCodes = GetFootKeyCode();
@@ -1108,6 +1141,9 @@ public class KeyViewer : Feature {
         public bool DownLocation;
         public bool AutoSetupKeyLimit = true;
         public float Size = 1;
+        public bool useRain = true;
+        public float rainSpeed = 100;
+        public float rainHeight = 200;
         public ColorCache Background = new(KeyViewer.Background);
         public ColorCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
         public ColorCache Outline = new(KeyViewer.Outline);

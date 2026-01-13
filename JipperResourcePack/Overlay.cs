@@ -233,7 +233,7 @@ public class Overlay {
         RectTransform transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(Canvas.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
-        transform.anchoredPosition = new Vector2(330, 5);
+        transform.anchoredPosition = new Vector2(310, 35);
         transform.sizeDelta = new Vector2(300, 30);
         AttemptText = gameObject.AddComponent<TextMeshProUGUI>();
         AttemptText.font = BundleLoader.FontAsset;
@@ -344,7 +344,15 @@ public class Overlay {
     }
 
     public void UpdateAttempts() {
-        AttemptText.text = $"Attempt {PlayCount.GetData()?.GetAttempts(startProgress) ?? 0}";
+        string[] values = new string[2];
+        int count = 0;
+        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData()?.GetAttempts(startProgress) ?? 0}";
+        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData()?.GetAttempts() ?? 0}";
+        AttemptText.text = count switch {
+            0 => "",
+            1 => values[0],
+            _ => $"{values[0]}\n{values[1]}"
+        };
     }
 
     public void UpdateBest() {
@@ -523,8 +531,12 @@ public class Overlay {
     public virtual void Hide() {
         if(!GameObject.activeSelf) return;
         GameObject.SetActive(false);
-        if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
-        if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
+        try {
+            if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
+            if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
+        } catch (Exception e) {
+            Main.Instance.LogException("Failed to set play data on hide", e);
+        }
         startProgress = startTile = noCheckStartTile = -1;
     }
 

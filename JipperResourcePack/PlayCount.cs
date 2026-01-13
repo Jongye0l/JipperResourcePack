@@ -114,6 +114,8 @@ public class PlayCount {
         public float GetBest(float start) => best.GetValueOrDefault((start, Multiplier), 0);
 
         public int GetAttempts(float progress) => attempts.GetValueOrDefault((progress, Multiplier), 0);
+        
+        public int GetAttempts() => attempts.Values.Sum();
 
         public static implicit operator int(PlayData data) => data.totalAttempts;
     }
