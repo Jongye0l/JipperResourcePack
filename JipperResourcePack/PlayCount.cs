@@ -40,12 +40,11 @@ public class PlayCount {
 
     private static void LoadFile(string path) {
         FileStream fileStream = File.OpenRead(path);
-        fileStream.ReadByte();
+        int version = fileStream.ReadByte();
         int count = fileStream.ReadInt();
         for(int i = 0; i < count; i++) {
             Hash key = fileStream.ReadBytes(16);
-            PlayData value = fileStream.ReadObject<PlayData>(nullable: false);
-            datas[key] = value;
+            (datas[key] = new PlayData()).Read(fileStream, version);
         }
     }
 
@@ -53,13 +52,16 @@ public class PlayCount {
         datas = null;
     }
 
-    public static void AddAttempts(float progress) => GetData().AddAttempts(progress, Multiplier);
+    public static void AddAttempts(Hash hash, float progress) => GetData(hash).AddAttempts(progress, Multiplier);
 
 
-    public static void RemoveAttempts(float progress) => GetData().RemoveAttempts(progress, Multiplier);
+    public static void RemoveAttempts(Hash hash, float progress) => GetData(hash).RemoveAttempts(progress, Multiplier);
 
 
-    public static void SetBest(float start, float cur) => GetData().SetBest(start, cur);
+    public static void SetBest(Hash hash, float start, float cur, float multiplier) {
+        Main.Instance.Log("Set Best: " + start + " / " + cur + " | Multiplier: " + multiplier + " | Hash: " + hash, 1);
+        GetData(hash).SetBest(start, cur, multiplier);
+    }
 
 
     public static void Save() {
@@ -67,20 +69,21 @@ public class PlayCount {
             string path = FilePath;
             if(File.Exists(path)) File.Copy(path, path + ".bak", true);
             using FileStream fileStream = File.OpenWrite(path);
-            fileStream.WriteByte(0);
-            fileStream.WriteInt(datas.Count);
+            using MemoryStream memoryStream = new();
+            memoryStream.WriteByte(1);
+            memoryStream.WriteInt(datas.Count);
             foreach(KeyValuePair<Hash, PlayData> pair in datas) {
                 if(pair.Value == null) continue;
-                fileStream.Write(pair.Key.data);
-                fileStream.WriteObject(pair.Value, nullable: false);
+                memoryStream.Write(pair.Key.data);
+                pair.Value.Write(memoryStream);
             }
+            memoryStream.WriteTo(fileStream);
         } catch (Exception e) {
             Main.Instance.LogException("Error On Save File", e);
         }
     }
 
-    public static PlayData GetData() {
-        Hash hash = GetMapHash();
+    public static PlayData GetData(Hash hash) {
         if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
         return datas[hash];
     }
@@ -104,14 +107,47 @@ public class PlayCount {
             Save();
         }
 
-        public void SetBest(float start, float cur) {
-            (float, float) key = (start, Multiplier);
+        public void SetBest(float start, float cur, float multiplier) {
+            (float, float) key = (start, multiplier);
             if(best.TryAdd(key, cur)) return;
-            if(best[key] < cur) best[key] = cur;
+            if(!(best[key] < cur)) return;
+            best[key] = cur;
             Save();
         }
 
-        public float GetBest(float start) => best.GetValueOrDefault((start, Multiplier), 0);
+        public void Write(Stream stream) {
+            stream.WriteInt(totalAttempts);
+            stream.WriteInt(attempts.Count);
+            foreach(KeyValuePair<(float, float), int> pair in attempts) {
+                stream.WriteFloat(pair.Key.Item1);
+                stream.WriteFloat(pair.Key.Item2);
+                stream.WriteInt(pair.Value);
+            }
+            stream.WriteInt(best.Count);
+            foreach(KeyValuePair<(float, float), float> pair in best) {
+                stream.WriteFloat(pair.Key.Item1);
+                stream.WriteFloat(pair.Key.Item2);
+                stream.WriteFloat(pair.Value);
+            }
+        }
+
+        public void Read(Stream stream, int version) {
+            totalAttempts = stream.ReadInt();
+            int size = stream.ReadInt();
+            attempts.EnsureCapacity(size);
+            for(int i = 0; i < size; i++) {
+                if(version == 0) stream.ReadByte();
+                attempts[(stream.ReadFloat(), stream.ReadFloat())] = stream.ReadInt();
+            }
+            size = stream.ReadInt();
+            best.EnsureCapacity(size);
+            for(int i = 0; i < size; i++) {
+                if(version == 0) stream.ReadByte();
+                best[(stream.ReadFloat(), stream.ReadFloat())] = stream.ReadFloat();
+            }
+        }
+
+        public float GetBest(float start, float multiplier) => best.GetValueOrDefault((start, multiplier), 0);
 
         public int GetAttempts(float progress) => attempts.GetValueOrDefault((progress, Multiplier), 0);
         
@@ -122,7 +158,7 @@ public class PlayCount {
 
     #region BetterCalibration Hash Algorithm
 
-    private static Hash GetMapHash() {
+    public static Hash GetMapHash() {
         using MD5 md5 = MD5.Create();
         return md5.ComputeHash(ADOBase.isOfficialLevel ? Encoding.UTF8.GetBytes(ADOBase.currentLevel) : GetHash());
     }

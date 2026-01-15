@@ -48,6 +48,9 @@ public class Overlay {
     protected float curBest = -1;
     protected bool autoOnceEnabled;
     protected bool death;
+    private PlayCount.Hash lastHash;
+    private float lastSavedStartProgress = -1;
+    private float lastMultiplier = 1f;
 
     public Overlay() {
         Instance = this;
@@ -346,8 +349,8 @@ public class Overlay {
     public void UpdateAttempts() {
         string[] values = new string[2];
         int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData()?.GetAttempts(startProgress) ?? 0}";
-        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData()?.GetAttempts() ?? 0}";
+        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(lastHash)?.GetAttempts(startProgress) ?? 0}";
+        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(lastHash)?.GetAttempts() ?? 0}";
         AttemptText.text = count switch {
             0 => "",
             1 => values[0],
@@ -357,7 +360,7 @@ public class Overlay {
 
     public void UpdateBest() {
         if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
-        if(curBest == -1) curBest = PlayCount.GetData()?.GetBest(startProgress) ?? 0;
+        if(curBest == -1) curBest = PlayCount.GetData(lastHash)?.GetBest(startProgress, lastMultiplier) ?? 0;
         else if(curBest > Progress || autoOnceEnabled) return;
         UpdateBestText();
     }
@@ -480,12 +483,15 @@ public class Overlay {
     
     public virtual void Show() {
         bool active = GameObject.activeSelf;
+        if(lastSavedStartProgress != -1) {
+            if(!autoOnceEnabled) {
+                PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
+                curBest = PlayCount.GetData(lastHash).GetBest(lastSavedStartProgress, lastMultiplier);
+            }
+            lastSavedStartProgress = -1;
+        }
         if(active && ADOBase.isScnGame) return;
         autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
-        if(!autoOnceEnabled && active) {
-            PlayCount.SetBest(startProgress, Progress);
-            curBest = Progress;
-        }
         MainThread.Run(new JAction(Main.Instance, () => {
             if(ADOBase.isScnGame && scrController.checkpointsUsed == 0) {
                 checkpoints = null;
@@ -503,7 +509,10 @@ public class Overlay {
                     curBest = lastCheckpoint = -1;
                 }
             }
-            if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(startProgress);
+            lastHash = PlayCount.GetMapHash();
+            lastSavedStartProgress = startProgress;
+            lastMultiplier = (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+            if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
             GameObject.SetActive(true);
             curCheck = 0;
             scrMistakesManager manager = scrController.instance.mistakesManager;
@@ -523,8 +532,9 @@ public class Overlay {
 
     public void Death() {
         death = true;
-        if(autoOnceEnabled) return;
-        PlayCount.SetBest(startProgress, Progress);
+        if(autoOnceEnabled || lastSavedStartProgress == -1) return;
+        PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
+        lastSavedStartProgress = -1;
         curBest = Progress;
     }
     
@@ -532,8 +542,11 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         GameObject.SetActive(false);
         try {
-            if(!autoOnceEnabled && startProgress != -1) PlayCount.SetBest(startProgress, Progress);
-            if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(startProgress);
+            if(!autoOnceEnabled && lastSavedStartProgress != -1) {
+                PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
+                lastSavedStartProgress = -1;
+            }
+            if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(lastHash, startProgress);
         } catch (Exception e) {
             Main.Instance.LogException("Failed to set play data on hide", e);
         }
