@@ -33,7 +33,7 @@ public class BundleLoader {
                         }
                         if(fallbackShader != null) {
                             fontMaterial.shader = fallbackShader;
-                            Debug.Log($"Shader changed to: {fallbackShader.name}");
+                            Main.Instance.Log($"Shader changed to: {fallbackShader.name}");
                         }
                     }
 
