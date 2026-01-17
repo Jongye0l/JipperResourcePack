@@ -327,17 +327,19 @@ public class KeyViewer : Feature {
                 break;
             }
         } else {
-            for(int i = 0; i < 256; i++) {
-                if((GetAsyncKeyState(i) & 0x8000) != 0 == KeyPressed[i]) continue;
-                if(KeyPressed[i]) {
-                    KeyPressed[i] = false;
-                    WinAPICool = 0;
-                    continue;
+            if(ADOBase.platform == Platform.Windows) {
+                for(int i = 0; i < 256; i++) {
+                    if((GetAsyncKeyState(i) & 0x8000) != 0 == KeyPressed[i]) continue;
+                    if(KeyPressed[i]) {
+                        KeyPressed[i] = false;
+                        WinAPICool = 0;
+                        continue;
+                    }
+                    if(WinAPICool++ < 6) break;
+                    KeyCode keyCode = (KeyCode) i + 0x1000;
+                    SetupKey(keyCode);
+                    break;
                 }
-                if(WinAPICool++ < 6) break;
-                KeyCode keyCode = (KeyCode) i + 0x1000;
-                SetupKey(keyCode);
-                break;
             }
         }
         return;
