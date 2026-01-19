@@ -308,7 +308,7 @@ public class KeyViewer : Feature {
                     if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 20, CheckKey(footKeyCodes[i2]));
                     Kps.background.color = Total.background.color = settings.Background;
                     Kps.outline.color = Total.outline.color = settings.Outline;
-                    Kps.text.color = Kps.value.color = Total.text.color = Total.value.color = settings.Text;
+                    Kps.text.tmp.color = Kps.value.tmp.color = Total.text.tmp.color = Total.value.tmp.color = settings.Text;
                     Main.Instance.SaveSetting();
                 }
                 GUILayout.EndVertical();
@@ -624,10 +624,10 @@ public class KeyViewer : Feature {
         if(Settings.useRain) return;
         foreach(Key key in Keys) {
             if(!key) continue;
-            key.rawRainQueue.Clear();
-            while(key.rainList.Count > 0) {
-                key.rainList[0].removed = true;
-                key.rainList.RemoveAt(0);
+            key.RawRainQueue.Clear();
+            while(key.RainList.Count > 0) {
+                key.RainList[0].removed = true;
+                key.RainList.RemoveAt(0);
             }
         }
     }
@@ -752,10 +752,10 @@ public class KeyViewer : Feature {
                     bool current = CheckKey(keyCodes[i]);
                     Key key = Keys[i];
                     if(!key) continue;
-                    for(int j = 0; j < key.rainList.Count; j++) {
-                        RawRain rain = key.rainList[j];
-                        if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.rainList.Count - 1, speed, height)) continue;
-                        key.rainList.Remove(rain);
+                    for(int j = 0; j < key.RainList.Count; j++) {
+                        RawRain rain = key.RainList[j];
+                        if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.RainList.Count - 1, speed, height)) continue;
+                        key.RainList.Remove(rain);
                         rain.removed = true;
                         j--;
                     }
@@ -768,9 +768,9 @@ public class KeyViewer : Feature {
                     Total.value.text = (++settings.TotalCount).ToString();
                     PressTimes.Enqueue(elapsedMilliseconds);
                     if(settings.useRain) {
-                        RawRain rawRain = new(key.rain.transform, elapsedMilliseconds, key.color);
-                        key.rawRainQueue.Enqueue(rawRain);
-                        key.rainList.Add(rawRain);
+                        RawRain rawRain = new(elapsedMilliseconds, key.color);
+                        key.RawRainQueue.Enqueue(rawRain);
+                        key.RainList.Add(rawRain);
                     }
                     Save = true;
                 }
@@ -813,8 +813,8 @@ public class KeyViewer : Feature {
         KeyViewerSettings settings = Settings;
         key.background.color = enabled ? settings.BackgroundClicked : settings.Background;
         key.outline.color = enabled ? settings.OutlineClicked : settings.Outline;
-        key.text.color = enabled ? settings.TextClicked : settings.Text;
-        if(key.value) key.value.color = key.text.color;
+        key.text.tmp.color = enabled ? settings.TextClicked : settings.Text;
+        if(key.value) key.value.tmp.color = key.text.tmp.color;
     }
 
     private void Initialize0KeyViewer() {
@@ -826,7 +826,7 @@ public class KeyViewer : Feature {
         Keys[11] = CreateKey(11, 54 * 4 + 81, 225 - remove, 50, 1);
         for(int i = 0; i < 4; i++) {
             int j = BackSequence12[i];
-            Keys[j].rain = Keys[i + 2].rain;
+            Keys[j].rainParent = Keys[i + 2].rainParent;
         }
         Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
@@ -838,7 +838,7 @@ public class KeyViewer : Feature {
         for(int i = 0; i < 8; i++) {
             int j = BackSequence16[i];
             Keys[j] = CreateKey(j, 54 * i, 266 - remove, 50, 1);
-            Keys[j].rain = Keys[i].rain;
+            Keys[j].rainParent = Keys[i].rainParent;
         }
         Kps = CreateKey(-1, 0, 220 - remove, 212, -1, true);
         Total = CreateKey(-2, 216, 220 - remove, 212, -1, true);
@@ -850,7 +850,7 @@ public class KeyViewer : Feature {
         for(int i = 0; i < 8; i++) {
             int j = BackSequence20[i];
             Keys[j] = CreateKey(j, 54 * i, 279 - remove, 50, 1);
-            Keys[j].rain = Keys[i].rain;
+            Keys[j].rainParent = Keys[i].rainParent;
         }
         Keys[16] = CreateKey(16, 81 + 54, 225 - remove, 77, 3);
         Keys[17] = CreateKey(17, 81, 225 - remove, 50, 3);
@@ -864,9 +864,9 @@ public class KeyViewer : Feature {
         int remove = Settings.DownLocation ? 200 : 0;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 279 - remove, 50, 0);
         Keys[8] = CreateKey(8, 81, 225 - remove, 131, 1);
-        Keys[8].rain = Keys[3].rain;
+        Keys[8].rainParent = Keys[3].rainParent;
         Keys[9] = CreateKey(9, 54 * 4, 225 - remove, 131, 1);
-        Keys[9].rain = Keys[4].rain;
+        Keys[9].rainParent = Keys[4].rainParent;
         Kps = CreateKey(-1, 0, 225 - remove, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 225 - remove, 77, -1);
     }
@@ -898,11 +898,10 @@ public class KeyViewer : Feature {
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
         transform.localScale = new Vector3(0.5f, 0.5f);
-        Image image = gameObject.AddComponent<Image>();
+        Image image = key.background = gameObject.AddComponent<Image>();
         image.color = settings.Background;
         image.sprite = BundleLoader.KeyBackground;
         image.type = Image.Type.Sliced;
-        key.background = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("Outline");
         transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(obj.transform);
@@ -910,11 +909,10 @@ public class KeyViewer : Feature {
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
         transform.localScale = new Vector3(0.5f, 0.5f);
-        image = gameObject.AddComponent<Image>();
+        image = key.outline = gameObject.AddComponent<Image>();
         image.color = settings.Outline;
         image.sprite = BundleLoader.KeyOutline;
         image.type = Image.Type.Sliced;
-        key.outline = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("KeyText");
         transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(obj.transform);
@@ -959,10 +957,10 @@ public class KeyViewer : Feature {
             key.value = gameObject.AddComponent<AsyncText>();
         }
         UpdateKeyText(key, i);
-        key.color = (byte) (raining < 2 ? raining + 1 : raining);
+        key.color = raining < 2 ? raining + 1 : raining;
         if(raining != 0 && raining != 2 && raining != 3) return key;
-        key.rain = new GameObject("RainLine");
-        transform = key.rain.AddComponent<RectTransform>();
+        key.rainParent = new GameObject("RainLine");
+        transform = key.rainParent.AddComponent<RectTransform>();
         transform.SetParent(obj.transform);
         transform.sizeDelta = new Vector2(sizeX, 275);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
@@ -1070,7 +1068,7 @@ public class KeyViewer : Feature {
                 foreach(int i in value) asyncKeys.Add((ushort) i);
             } else asyncKeys.Add((ushort) ((int) code - 0x1000));
         }
-        List<KeyCode> keyList = keys.ToList();
+        List<KeyCode> keyList = new(keys);
         List<ushort> asyncKeyList = asyncKeys.ToList();
         if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
