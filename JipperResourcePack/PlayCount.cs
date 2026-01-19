@@ -59,7 +59,6 @@ public class PlayCount {
 
 
     public static void SetBest(Hash hash, float start, float cur, float multiplier) {
-        Main.Instance.Log("Set Best: " + start + " / " + cur + " | Multiplier: " + multiplier + " | Hash: " + hash, 1);
         GetData(hash).SetBest(start, cur, multiplier);
     }
 
