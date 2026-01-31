@@ -747,18 +747,25 @@ public class KeyViewer : Feature {
                 long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
                 float speed = settings.rainSpeed;
                 float height = settings.rainHeight;
+                bool useRain = settings.useRain;
                 KeyCode[] keyCodes = GetKeyCode();
+                KeyCode[] footKeyCodes = GetFootKeyCode();
+                
                 for(int i = 0; i < keyCodes.Length; i++) {
                     bool current = CheckKey(keyCodes[i]);
                     Key key = Keys[i];
                     if(!key) continue;
-                    for(int j = 0; j < key.RainList.Count; j++) {
-                        RawRain rain = key.RainList[j];
-                        if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.RainList.Count - 1, speed, height)) continue;
-                        key.RainList.Remove(rain);
-                        rain.removed = true;
-                        j--;
+                    
+                    if(useRain) {
+                        for(int j = 0; j < key.RainList.Count; j++) {
+                            RawRain rain = key.RainList[j];
+                            if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.RainList.Count - 1, speed, height)) continue;
+                            key.RainList.Remove(rain);
+                            rain.removed = true;
+                            j--;
+                        }
                     }
+                    
                     if(current == keyState[i]) continue;
                     keyState[i] = current;
                     UpdateKey(i, current);
@@ -767,16 +774,16 @@ public class KeyViewer : Feature {
                     key.value.text = (++settings.Count[i]).ToString();
                     Total.value.text = (++settings.TotalCount).ToString();
                     PressTimes.Enqueue(elapsedMilliseconds);
-                    if(settings.useRain) {
+                    if(useRain) {
                         RawRain rawRain = new(elapsedMilliseconds, key.color);
                         key.RawRainQueue.Enqueue(rawRain);
                         key.RainList.Add(rawRain);
                     }
                     Save = true;
                 }
-                keyCodes = GetFootKeyCode();
-                for(int i = 0; i < keyCodes.Length; i++) {
-                    bool current = CheckKey(keyCodes[i]);
+                
+                for(int i = 0; i < footKeyCodes.Length; i++) {
+                    bool current = CheckKey(footKeyCodes[i]);
                     int index = i + 20;
                     Key key = Keys[index];
                     if(!key || current == keyState[index]) continue;
@@ -788,18 +795,25 @@ public class KeyViewer : Feature {
                     Total.value.text = (++settings.TotalCount).ToString();
                     Save = true;
                 }
+                
                 while(PressTimes.TryPeek(out long result)) {
                     if(elapsedMilliseconds - result > 1000)
                         PressTimes.TryDequeue(out long _);
                     else break;
                 }
-                if(lastKps == PressTimes.Count) continue;
-                lastKps = PressTimes.Count;
-                Kps.value.text = lastKps.ToString();
-                if(++repeat < 100 || !Save || !Enabled) continue;
-                Main.Instance.SaveSetting();
-                Save = false;
-                repeat = 0;
+                
+                if(lastKps != PressTimes.Count) {
+                    lastKps = PressTimes.Count;
+                    Kps.value.text = lastKps.ToString();
+                }
+                
+                if(++repeat >= 100 && Save && Enabled) {
+                    Main.Instance.SaveSetting();
+                    Save = false;
+                    repeat = 0;
+                }
+                
+                Thread.Sleep(1);
             }
         } catch (ThreadAbortException) {
         } catch (Exception e) {

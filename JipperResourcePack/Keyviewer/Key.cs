@@ -44,6 +44,7 @@ public class Key : MonoBehaviour {
         if(rainPoolCount == rainPool.Length) {
             Rain[] newRainPool = new Rain[rainPool.Length * 2];
             rainPool.CopyTo(newRainPool, 0);
+            rainPool = newRainPool;
         }
         rainPool[rainPoolCount++] = rain;
     }

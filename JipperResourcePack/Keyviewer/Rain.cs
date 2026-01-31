@@ -14,6 +14,7 @@ public class Rain : MonoBehaviour {
     }
 
     public void Update() {
+        if(rawRain == null) return;
         if(rawRain.removed) {
             rawRain = null;
             key.AddPool(this);
