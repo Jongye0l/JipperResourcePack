@@ -9,8 +9,8 @@ namespace JipperResourcePack.Keyviewer;
 
 public class Key : MonoBehaviour {
     public AsyncText text;
-    public Image background;
-    public Image outline;
+    public AsyncImage background;
+    public AsyncImage outline;
     public AsyncText value;
     public GameObject rainParent;
     public int color;

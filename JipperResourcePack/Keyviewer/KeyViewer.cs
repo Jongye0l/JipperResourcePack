@@ -813,8 +813,8 @@ public class KeyViewer : Feature {
         KeyViewerSettings settings = Settings;
         key.background.color = enabled ? settings.BackgroundClicked : settings.Background;
         key.outline.color = enabled ? settings.OutlineClicked : settings.Outline;
-        key.text.tmp.color = enabled ? settings.TextClicked : settings.Text;
-        if(key.value) key.value.tmp.color = key.text.tmp.color;
+        key.text.color = enabled ? settings.TextClicked : settings.Text;
+        if(key.value) key.value.color = key.text.tmp.color;
     }
 
     private void Initialize0KeyViewer() {
@@ -898,10 +898,11 @@ public class KeyViewer : Feature {
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
         transform.localScale = new Vector3(0.5f, 0.5f);
-        Image image = key.background = gameObject.AddComponent<Image>();
+        Image image = gameObject.AddComponent<Image>();
         image.color = settings.Background;
         image.sprite = BundleLoader.KeyBackground;
         image.type = Image.Type.Sliced;
+        key.background = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("Outline");
         transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(obj.transform);
@@ -909,10 +910,11 @@ public class KeyViewer : Feature {
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
         transform.localScale = new Vector3(0.5f, 0.5f);
-        image = key.outline = gameObject.AddComponent<Image>();
+        image = gameObject.AddComponent<Image>();
         image.color = settings.Outline;
         image.sprite = BundleLoader.KeyOutline;
         image.type = Image.Type.Sliced;
+        key.outline = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("KeyText");
         transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(obj.transform);

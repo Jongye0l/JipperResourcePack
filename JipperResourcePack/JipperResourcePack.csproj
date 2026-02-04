@@ -508,6 +508,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Async\AsyncImage.cs" />
         <Compile Include="Async\AsyncText.cs" />
         <Compile Include="Attempt.cs" />
         <Compile Include="PlayCount.cs" />
