@@ -814,7 +814,7 @@ public class KeyViewer : Feature {
         key.background.color = enabled ? settings.BackgroundClicked : settings.Background;
         key.outline.color = enabled ? settings.OutlineClicked : settings.Outline;
         key.text.color = enabled ? settings.TextClicked : settings.Text;
-        if(key.value) key.value.color = key.text.tmp.color;
+        if(key.value) key.value.color = key.text.color;
     }
 
     private void Initialize0KeyViewer() {
