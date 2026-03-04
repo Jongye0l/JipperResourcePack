@@ -6,4 +6,5 @@ public enum FootKeyviewerStyle {
     Key4,
     Key6,
     Key8,
+    Key16
 }

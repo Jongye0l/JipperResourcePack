@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 using JALib.Tools;
 using Newtonsoft.Json;
@@ -25,7 +26,7 @@ public class ColorCache(Color color) {
             changed = CheckHexString();
         });
         if(changed) {
-            defaultColor = GetColor();
+            SetColor(ref defaultColor);
             rString = gString = bString = aString = null;
         }
         settingGUI.AddSettingSliderFloat(ref r, defaultColor.r, ref rString, "R", 0, 1, () => changed = true);
@@ -89,11 +90,16 @@ public class ColorCache(Color color) {
         };
     }
 
-    public Color GetColor() {
-        return new Color(r, g, b, a);
+    public void SetColor(ref Color color) {
+        color.r = r;
+        color.g = g;
+        color.b = b;
+        color.a = a;
     }
 
     public static implicit operator Color(ColorCache cache) {
-        return cache.GetColor();
+        Unsafe.SkipInit(out Color color);
+        cache.SetColor(ref color);
+        return color;
     }
 }

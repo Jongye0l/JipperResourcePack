@@ -24,6 +24,8 @@ using Object = UnityEngine.Object;
 namespace JipperResourcePack.Keyviewer;
 
 public class KeyViewer : Feature {
+    private const int HandOutIndex = 20;
+    private const int FootOutIndex = 36;
 
     public static KeyViewerSettings Settings;
     public static readonly Color Background = new(0.5607843f, 0.2352941f, 1, 0.1960784f);
@@ -86,7 +88,7 @@ public class KeyViewer : Feature {
         rectTransform.SetParent(KeyViewerObject.transform);
         rectTransform.localScale = new Vector3(Settings.Size, Settings.Size, 1);
         rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.offsetMin = rectTransform.offsetMax = Vector2.zero;
-        Keys = new Key[28];
+        Keys = new Key[FootOutIndex];
         KeyViewerSettings settings = Settings;
         switch(settings.KeyViewerStyle) {
             case KeyviewerStyle.Key12:
@@ -114,6 +116,9 @@ public class KeyViewer : Feature {
                 break;
             case FootKeyviewerStyle.Key8:
                 InitializeFootKeyViewer(8);
+                break;
+            case FootKeyviewerStyle.Key16:
+                InitializeFootKeyViewer(16);
                 break;
         }
         Object.DontDestroyOnLoad(KeyViewerObject);
@@ -209,8 +214,8 @@ public class KeyViewer : Feature {
             GUILayout.EndHorizontal();
             if(footKeyCodes != null) {
                 GUILayout.BeginHorizontal();
-                for(int i = 0; i < footKeyCodes.Length; i++) CreateButton(i++ + 20, false);
-                for(int i = 1; i < footKeyCodes.Length; i++) CreateButton(i++ + 20, false);
+                for(int i = 0; i < footKeyCodes.Length; i++) CreateButton(i++ + HandOutIndex, false);
+                for(int i = 1; i < footKeyCodes.Length; i++) CreateButton(i++ + HandOutIndex, false);
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }
@@ -305,7 +310,7 @@ public class KeyViewer : Feature {
                 GUILayout.BeginVertical();
                 if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
                     for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
-                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + 20, CheckKey(footKeyCodes[i2]));
+                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + HandOutIndex, CheckKey(footKeyCodes[i2]));
                     Kps.background.color = Total.background.color = settings.Background;
                     Kps.outline.color = Total.outline.color = settings.Outline;
                     Kps.text.tmp.color = Kps.value.tmp.color = Total.text.tmp.color = Total.value.tmp.color = settings.Text;
@@ -345,7 +350,7 @@ public class KeyViewer : Feature {
         return;
 
         void CreateButton(int i, bool textChanged) {
-            if(!GUILayout.Button(Bold(i < 20 ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - 20]),
+            if(!GUILayout.Button(Bold(i < HandOutIndex ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - HandOutIndex]),
                    i == SelectedKey && textChanged == TextChanged))) return;
             SelectedKey = i;
             TextChanged = textChanged;
@@ -356,9 +361,9 @@ public class KeyViewer : Feature {
         }
 
         void SetupKey(KeyCode keyCode) {
-            if(SelectedKey < 20) keyCodes[SelectedKey] = keyCode;
-            else footKeyCodes[SelectedKey - 20] = keyCode;
-            Keys[SelectedKey].text.tmp.text = (SelectedKey < 20 ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+            if(SelectedKey < HandOutIndex) keyCodes[SelectedKey] = keyCode;
+            else footKeyCodes[SelectedKey - HandOutIndex] = keyCode;
+            Keys[SelectedKey].text.tmp.text = (SelectedKey < HandOutIndex ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
             SelectedKey = -1;
             WinAPICool = 0;
             KeyPressed = null;
@@ -383,6 +388,7 @@ public class KeyViewer : Feature {
             FootKeyviewerStyle.Key4 => Settings.footkey4,
             FootKeyviewerStyle.Key6 => Settings.footkey6,
             FootKeyviewerStyle.Key8 => Settings.footkey8,
+            FootKeyviewerStyle.Key16 => Settings.footkey16,
             _ => []
         };
     }
@@ -672,7 +678,7 @@ public class KeyViewer : Feature {
 
     private void ResetKeyViewer() {
         SelectedKey = -1;
-        for(int i = 0; i < 20; i++) {
+        for(int i = 0; i < HandOutIndex; i++) {
             Key key = Keys[i];
             if(key) Object.Destroy(key.gameObject);
         }
@@ -696,7 +702,7 @@ public class KeyViewer : Feature {
     }
 
     private void ResetFootKeyViewer() {
-        for(int i = 20; i < 28; i++) {
+        for(int i = HandOutIndex; i < FootOutIndex; i++) {
             Key key = Keys[i];
             if(key) Object.Destroy(key.gameObject);
         }
@@ -712,6 +718,9 @@ public class KeyViewer : Feature {
                 break;
             case FootKeyviewerStyle.Key8:
                 InitializeFootKeyViewer(8);
+                break;
+            case FootKeyviewerStyle.Key16:
+                InitializeFootKeyViewer(16);
                 break;
         }
         UpdateKeyLimit();
@@ -741,7 +750,7 @@ public class KeyViewer : Feature {
     private void ListenKey() {
         try {
             KeyViewerSettings settings = Settings;
-            bool[] keyState = new bool[28];
+            bool[] keyState = new bool[FootOutIndex];
             int repeat = 0;
             while(KeyinputListener is { IsAlive: true } && Enabled) {
                 long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
@@ -777,7 +786,7 @@ public class KeyViewer : Feature {
                 keyCodes = GetFootKeyCode();
                 for(int i = 0; i < keyCodes.Length; i++) {
                     bool current = CheckKey(keyCodes[i]);
-                    int index = i + 20;
+                    int index = i + HandOutIndex;
                     Key key = Keys[index];
                     if(!key || current == keyState[index]) continue;
                     keyState[index] = current;
@@ -872,28 +881,32 @@ public class KeyViewer : Feature {
     }
 
     private void InitializeFootKeyViewer(int size) {
-        size += 20;
-        int x = 432;
-        for(int i = 20; i < 22; i++) for(int j = i; j < size; j++) {
-            Keys[j] = CreateKey(j++, x, 15, 30, -1, true, false);
-            x += 34;
+        bool twoLine = size > 10;
+        if(twoLine) size /= 2;
+        int limit = size + HandOutIndex;
+        for(int line = 0; line < (twoLine ? 2 : 1); line++) {
+            int x = 432;
+            for(int i = 20; i < 22; i++) for(int j = i; j < limit; j++) {
+                Keys[j + line * size] = CreateKey(j++ + line * size, x, 15 + line * 30, 30, -1, true, false);
+                x += 34;
+            }
         }
     }
 
     private Key CreateKey(int i, float x, float y, float sizeX, int raining, bool slim = false, bool count = true) {
-        GameObject obj = new("Key " + i);
+        GameObject gameObject = new("Key " + i);
         KeyViewerSettings settings = Settings;
-        RectTransform transform = obj.AddComponent<RectTransform>();
-        transform.SetParent(KeyViewerSizeObject.transform);
-        transform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
-        transform.anchorMin = transform.anchorMax = Vector2.zero;
-        transform.pivot = new Vector2(0, 0.5f);
-        transform.anchoredPosition = new Vector2(x, y);
-        transform.localScale = Vector3.one;
-        Key key = obj.AddComponent<Key>();
-        GameObject gameObject = new("Background");
-        transform = gameObject.AddComponent<RectTransform>();
-        transform.SetParent(obj.transform);
+        RectTransform objTransform = gameObject.AddComponent<RectTransform>();
+        objTransform.SetParent(KeyViewerSizeObject.transform);
+        objTransform.sizeDelta = new Vector2(sizeX, slim ? 30 : 50);
+        objTransform.anchorMin = objTransform.anchorMax = Vector2.zero;
+        objTransform.pivot = new Vector2(0, 0.5f);
+        objTransform.anchoredPosition = new Vector2(x, y);
+        objTransform.localScale = Vector3.one;
+        Key key = gameObject.AddComponent<Key>();
+        gameObject = new GameObject("Background");
+        RectTransform transform = gameObject.AddComponent<RectTransform>();
+        transform.SetParent(objTransform);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
@@ -905,7 +918,7 @@ public class KeyViewer : Feature {
         key.background = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("Outline");
         transform = gameObject.AddComponent<RectTransform>();
-        transform.SetParent(obj.transform);
+        transform.SetParent(objTransform);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = Vector2.zero;
         transform.sizeDelta = new Vector2(sizeX * 2, (slim ? 30 : 50) * 2);
@@ -917,7 +930,7 @@ public class KeyViewer : Feature {
         key.outline = gameObject.AddComponent<AsyncImage>();
         gameObject = new GameObject("KeyText");
         transform = gameObject.AddComponent<RectTransform>();
-        transform.SetParent(obj.transform);
+        transform.SetParent(objTransform);
         if(slim) {
             transform.sizeDelta = new Vector2(sizeX / 2, 30);
             transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0, 0.5f);
@@ -933,13 +946,13 @@ public class KeyViewer : Feature {
         text.enableAutoSizing = true;
         text.fontSizeMin = 0;
         text.fontSizeMax = 20;
-        text.alignment = slim ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
+        text.alignment = slim && count ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
         text.color = settings.Text;
         key.text = gameObject.AddComponent<AsyncText>();
         if(count) {
             gameObject = new GameObject("CountText");
             transform = gameObject.AddComponent<RectTransform>();
-            transform.SetParent(obj.transform);
+            transform.SetParent(objTransform);
             if(slim) {
                 transform.sizeDelta = new Vector2(sizeX / 2, 30);
                 transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(1, 0.5f);
@@ -963,7 +976,7 @@ public class KeyViewer : Feature {
         if(raining != 0 && raining != 2 && raining != 3) return key;
         key.rainParent = new GameObject("RainLine");
         transform = key.rainParent.AddComponent<RectTransform>();
-        transform.SetParent(obj.transform);
+        transform.SetParent(objTransform);
         transform.sizeDelta = new Vector2(sizeX, 275);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
         transform.anchoredPosition = new Vector2(0, raining switch {
@@ -988,7 +1001,7 @@ public class KeyViewer : Feature {
             default:
                 KeyCode[] keyCodes;
                 KeyViewerSettings settings = Settings;
-                if(i < 20) {
+                if(i < HandOutIndex) {
                     keyCodes = GetKeyCode();
                     string[] keyText = GetKeyText();
                     key.text.tmp.text = keyText[i] ?? KeyToString(keyCodes[i]);
@@ -996,7 +1009,7 @@ public class KeyViewer : Feature {
                     key.value.tmp.text = settings.Count[i].ToString();
                 } else {
                     keyCodes = GetFootKeyCode();
-                    key.text.tmp.text = KeyToString(keyCodes[i - 20]);
+                    key.text.tmp.text = KeyToString(keyCodes[i - HandOutIndex]);
                 }
                 break;
         }
@@ -1138,6 +1151,10 @@ public class KeyViewer : Feature {
         public KeyCode[] footkey4 = [KeyCode.F8, KeyCode.F3, KeyCode.F7, KeyCode.F2];
         public KeyCode[] footkey6 = [KeyCode.F8, KeyCode.F3, KeyCode.F7, KeyCode.F2, KeyCode.F6, KeyCode.F1];
         public KeyCode[] footkey8 = [KeyCode.F8, KeyCode.F4, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F2, KeyCode.F5, KeyCode.F1];
+        public KeyCode[] footkey16 = [
+            KeyCode.F8, KeyCode.F4, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F2, KeyCode.F5, KeyCode.F1,
+            KeyCode.Alpha0, KeyCode.Alpha6, KeyCode.Alpha9, KeyCode.Alpha5, KeyCode.Alpha8, KeyCode.Alpha4, KeyCode.Alpha7, KeyCode.Alpha3
+        ];
         public int[] Count = new int[36];
         public int TotalCount;
         public bool DownLocation;
@@ -1160,7 +1177,7 @@ public class KeyViewer : Feature {
             Settings = this;
             if(Count.Length != 24) return;
             int[] cur = Count;
-            Count = new int[36];
+            Count = new int[FootOutIndex];
             for(int i = 0; i < 16; i++) Count[i] = cur[i];
             for(int i = 16; i < 24; i++) Count[i + 4] = cur[i];
         }

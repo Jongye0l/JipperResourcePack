@@ -52,6 +52,7 @@ public class Key : MonoBehaviour {
         if(rainPoolCount <= 0) return CreateRain();
         Rain rain = rainPool[--rainPoolCount];
         rain.gameObject.SetActive(true);
+        rain.transform.sizeDelta = Vector2.zero;
         return rain;
     }
     

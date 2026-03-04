@@ -175,6 +175,9 @@
         <Reference Include="System.Numerics">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Numerics.dll</HintPath>
         </Reference>
+        <Reference Include="System.Runtime.CompilerServices.Unsafe">
+          <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\Mods\JALib\lib\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+        </Reference>
         <Reference Include="System.Runtime.Serialization">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Runtime.Serialization.dll</HintPath>
         </Reference>
