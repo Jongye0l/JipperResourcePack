@@ -14,5 +14,21 @@ public class CreateAssetBundle {
         BuildPipeline.BuildAssetBundles(assetBundleDirectory, 
             BuildAssetBundleOptions.None, 
             BuildTarget.StandaloneWindows);
+        string linuxBundleDirectory = Path.Combine(assetBundleDirectory, "Linux");
+        if (!Directory.Exists(linuxBundleDirectory))
+        {
+            Directory.CreateDirectory(linuxBundleDirectory);
+        }
+        BuildPipeline.BuildAssetBundles(linuxBundleDirectory,
+            BuildAssetBundleOptions.None,
+            BuildTarget.StandaloneLinux64);
+        string macBundleDirectory = Path.Combine(assetBundleDirectory, "Mac");
+        if (!Directory.Exists(macBundleDirectory))
+        {
+            Directory.CreateDirectory(macBundleDirectory);
+        }
+        BuildPipeline.BuildAssetBundles(macBundleDirectory,
+            BuildAssetBundleOptions.None,
+            BuildTarget.StandaloneOSX);
     }
 }
