@@ -4,7 +4,6 @@ using System.Linq;
 using ADOFAI;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace JipperResourcePack.Jongyeol;
 
@@ -75,6 +74,7 @@ public class JOverlay : Overlay {
 
     public override void UpdateProgress() {
         if(!GameObject.activeSelf) return;
+        if(purePerfect) CheckPurePerfect();
         base.UpdateProgress();
         UpdateState();
         UpdateDeath();
@@ -141,7 +141,6 @@ public class JOverlay : Overlay {
     }
 
     public override Color UpdateComboColor(int combo) {
-        if(purePerfect) CheckPurePerfect();
         if(purePerfect) return PurePerfectColor;
         float value = (float) combo / (scrController.instance.currentSeqID - startTile + hit[0] + hit[6] + 1) * 2;
         if(value > 1) value = 1;
