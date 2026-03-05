@@ -33,6 +33,7 @@
     * 4키
     * 6키
     * 8키
+    * 16키
 * 리소스 변경
   * 공 색상 변경
   * 기본타일 색상 변경
@@ -68,14 +69,14 @@
 ---
 ### 개발 환경 Development environment
 * Windows 11
-* Rider 2024.3.5
+* Rider 2025.3.3
 * .NET Framework 4.8.1
 * C# 13
-* A Dance of Fire and Ice 2.9.3(r131, 12ef426)
+* A Dance of Fire and Ice 2.9.8(r136, 41f0b77)
 ---
 ### 테스트 환경 Test environment
 * Windows 11
-* A Dance of Fire and Ice 2.9.3(r131, 12ef426)
+* A Dance of Fire and Ice 2.9.8(r136, 41f0b77)
 ---
 # [Join Jipper's Discord!](https://discord.gg/qTbnPhY7YA)
 # [Join My Discord!](https://discord.jongyeol.kr)
