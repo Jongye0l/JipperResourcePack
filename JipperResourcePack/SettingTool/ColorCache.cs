@@ -45,7 +45,6 @@ public class ColorCache(Color color) {
         hexString = hexString.Trim().TrimStart('#');
         if(hexString.Length is not (6 or 8)) return false;
         try {
-            float r, g, b, a;
             switch(hexString.Length) {
                 case 3 or 4:
                     r = Convert.ToInt32(hexString[..1], 16) / 15f;
@@ -62,10 +61,6 @@ public class ColorCache(Color color) {
                 default:
                     return false;
             }
-            this.r = r;
-            this.g = g;
-            this.b = b;
-            this.a = a;
             oldHexString = GetHexString();
             return true;
         } catch {

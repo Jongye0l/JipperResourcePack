@@ -22,9 +22,10 @@ public class Overlay {
     public TextMeshProUGUI CheckpointText;
     public TextMeshProUGUI AttemptText;
     public TextMeshProUGUI BestText;
-    public GameObject ComboObject;
+    public RectTransform ComboTransform;
     public TextMeshProUGUI ComboTitle;
     public TextMeshProUGUI ComboText;
+    public RectTransform ComboTextTransform;
     public TextMeshProUGUI BPMText;
     public TextMeshProUGUI JudgementText;
     public TextMeshProUGUI TimingScaleText;
@@ -57,11 +58,11 @@ public class Overlay {
         GameObject = new GameObject("JipperResourcePack Overlay");
         Canvas = GameObject.AddComponent<Canvas>();
         Canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        CanvasScaler scaler = Canvas.gameObject.AddComponent<CanvasScaler>();
+        CanvasScaler scaler = GameObject.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
-        Canvas.gameObject.AddComponent<GraphicRaycaster>();
+        GameObject.AddComponent<GraphicRaycaster>();
         Stopwatch = new Stopwatch();
         GameObject.SetActive(false);
         InitializeStatus();
@@ -72,7 +73,7 @@ public class Overlay {
         InitializeTimingScale();
         InitializeAttempt();
         UpdateSize();
-        Object.DontDestroyOnLoad(Canvas.gameObject);
+        Object.DontDestroyOnLoad(GameObject);
         if(ADOBase.controller is { paused: false } && ADOBase.conductor is { isGameWorld: true }) Show();
     }
 
@@ -113,8 +114,10 @@ public class Overlay {
         SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
-        checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
-        SetupLocationMainText(CheckpointText, Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
+        SetupLocationMainText(CheckpointText, 
+            Status.Settings.ShowCheckpoint &&
+            (checkpoints ??= scrLevelMaker.instance.listFloors.Where(floor => floor.GetComponent<ffxCheckpoint>())
+                 .Select(floor => floor.seqID).ToArray()).Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
         UpdateProgress();
         UpdateAccuracy();
@@ -172,9 +175,10 @@ public class Overlay {
         transform.SetParent(Canvas.transform);
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
         transform.sizeDelta = new Vector2(300, 200);
+        Combo.ComboTransform = transform;
         GameObject gameObject2 = new("ComboTitle");
         transform = gameObject2.AddComponent<RectTransform>();
-        transform.SetParent(gameObject.transform);
+        transform.SetParent(Combo.ComboTransform);
         transform.anchorMin = transform.anchorMax = new Vector2(0.5f, 0.45f);
         transform.pivot = new Vector2(0.5f, 0);
         ComboTitle = gameObject2.AddComponent<TextMeshProUGUI>();
@@ -186,12 +190,13 @@ public class Overlay {
         fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         SetupDarkShadow(ComboTitle);
-        ComboObject = gameObject2;
+        ComboTransform = transform;
         gameObject2 = new GameObject("ComboValue");
         transform = gameObject2.AddComponent<RectTransform>();
-        transform.SetParent(gameObject.transform);
+        transform.SetParent(Combo.ComboTransform);
         transform.anchorMin = transform.anchorMax = new Vector2(0.5f, 0.45f);
         transform.anchoredPosition = Vector2.zero;
+        ComboTextTransform = transform;
         ComboText = gameObject2.AddComponent<TextMeshProUGUI>();
         ComboText.font = BundleLoader.FontAsset;
         ComboText.fontSize = 108;
@@ -259,7 +264,7 @@ public class Overlay {
             txtLevelName.anchoredPosition = new Vector2(0, -20 - 7 * size);
             txtLevelName.localScale = new Vector3(0.5f * size, 0.5f * size);
         }
-        Combo.ComboObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -43 - 14 * size);
+        Combo.ComboTransform.anchoredPosition = new Vector2(0, -43 - 14 * size);
     }
 
     protected void SetupShadow(TextMeshProUGUI text) {
@@ -295,7 +300,7 @@ public class Overlay {
     public virtual void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
         float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
-        xacc.SetIfNaN(1);
+        if(float.IsNaN(xacc)) xacc = 1;
         if(Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
             float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
@@ -397,10 +402,8 @@ public class Overlay {
             }
         }
         if(Status.Settings.ShowMapTime || requireMusicToMap) {
-            float time;
-            float totalTime;
-            time = (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
-            totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
+            float time = (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
+            float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if((!Status.Settings.ShowMapTime || lastMapTime == (int) time) &&
@@ -431,7 +434,7 @@ public class Overlay {
         } else {
             Stopwatch.Stop();
             ComboText.fontSize = 78;
-            ComboObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 43.505f);
+            ComboTransform.anchoredPosition = new Vector2(0, 43.505f);
         }
     }
 
@@ -448,12 +451,15 @@ public class Overlay {
             Stopwatch.Stop();
         }
         ComboText.fontSize = 30 * OutExpoChange(t) + 78;
-        UpdateComboLocation();
+        Task.Yield().OnCompleted(UpdateComboLocation);
     }
 
-    private async void UpdateComboLocation() {
-        await Task.Yield();
-        ComboObject.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, ComboText.GetComponent<RectTransform>().sizeDelta.y / 2);
+    private void UpdateComboLocation() {
+        try {
+            ComboTransform.anchoredPosition = new Vector2(0, ComboTextTransform.sizeDelta.y / 2);
+        } catch (Exception e) {
+            Main.Instance.LogReportException("Failed to update combo location", e);
+        }
     }
     
     private static float OutExpoChange(double t) => (float) (t == 1 ? 0 : Math.Pow(2, -10 * t));

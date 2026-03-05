@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ADOFAI;
@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace JipperResourcePack.Jongyeol;
 
 public class JOverlay : Overlay {
-    public new static JOverlay Instance;
+    public static new JOverlay Instance;
     public TextMeshProUGUI FPSText;
     public TextMeshProUGUI AuthorText;
     public TextMeshProUGUI StateText;
@@ -104,41 +104,40 @@ public class JOverlay : Overlay {
     }
 
     public override void UpdateTime() {
-        if(!GameObject.activeSelf || !Status.Instance.Enabled || death) return;
-        scrConductor conductor = scrConductor.instance;
-        if(JipperResourcePack.Status.Settings.ShowMusicTime) {
-            AudioSource song = conductor.song;
-            float time = song.clip? song.time : GetMaptime();
-            float totalTime = (float) (song.clip?.length ?? ADOBase.lm.listFloors.Last().entryTime);
-            if(time < 0) time = 0;
-            else if(time > totalTime) time = totalTime;
-            if(song.clip && time > 0) songPlaying = true;
-            else if(time == 0 && songPlaying) {
-                if(Math.Abs(lastTime - (int) (time * 10f)) <= 1) time = totalTime;
-                else return;
+        if(!GameObject.activeSelf || !JipperResourcePack.Status.Instance.Enabled || death) return;
+        bool requireMusicToMap = false;
+        if(Status.Settings.ShowMusicTime) {
+            AudioSource song = scrConductor.instance.song;
+            if(!song?.clip && Status.Settings.ShowMapTimeIfNotMusic) requireMusicToMap = true;
+            else {
+                float time = song.time;
+                float totalTime = song.clip?.length ?? 0;
+                if(time > 0) songPlaying = true;
+                else if(time == 0 && songPlaying) time = totalTime;
+                TimeSpan now = TimeSpan.FromSeconds(time);
+                TimeSpan length = TimeSpan.FromSeconds(totalTime);
+                TimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+                TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
-            TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
-            if(lastTime == (int) (time * 10f)) return;
-            TimeSpan now = TimeSpan.FromSeconds(time);
-            TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            TimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
-            lastTime = (int) (time * 10f);
         }
-        if(JipperResourcePack.Status.Settings.ShowMapTime) {
-            float time = GetMaptime();
-            float totalTime = (float) ADOBase.lm.listFloors.Last().entryTime;
+        if(Status.Settings.ShowMapTime || requireMusicToMap) {
+            float time = (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
+            float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
-            MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
-            if(lastMapTime == (int) (time * 10f)) return;
+            if(!Status.Settings.ShowMapTime && !requireMusicToMap) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            MapTimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
-            lastMapTime = (int) (time * 10f);
+            string text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+            if(Status.Settings.ShowMapTime) {
+                MapTimeText.text = text;
+                MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
+            }
+            if(requireMusicToMap) {
+                TimeText.text = text;
+                TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
+            }
         }
-        return;
-
-        float GetMaptime() => (float) (conductor.songposition_minusi - conductor.addoffset);
     }
 
     public override Color UpdateComboColor(int combo) {

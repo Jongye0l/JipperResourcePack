@@ -118,16 +118,17 @@ public class Status : Feature {
     }
     
     [JAPatch(typeof(scrShowIfDebug), "Awake", PatchType.Postfix, false, TryingCatch = false)]
-    private static async void OnShowIfDebugAwake(scrShowIfDebug __instance) {
-        try {
-            await Task.Yield();
-            if(__instance) {
-                RectTransform transform = __instance.GetComponent<RectTransform>();
-                transform.anchoredPosition = new Vector2(300, transform.anchoredPosition.y);
+    private static void OnShowIfDebugAwake(scrShowIfDebug __instance) {
+        Task.Yield().OnCompleted(() => {
+            try {
+                if(__instance) {
+                    RectTransform transform = __instance.GetComponent<RectTransform>();
+                    transform.anchoredPosition = new Vector2(300, transform.anchoredPosition.y);
+                }
+            } catch (Exception e) {
+                Main.Instance.LogReportException(e);
             }
-        } catch (Exception e) {
-            Main.Instance.LogException(e);
-        }
+        });
     }
 
     [JAPatch(typeof(scrController), "Awake_Rewind", PatchType.Postfix, false)]

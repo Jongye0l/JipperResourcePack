@@ -13,6 +13,7 @@ public class Combo : Feature {
     public static int combo;
     public static ComboSettings Settings;
     public static GameObject ComboObject;
+    public static RectTransform ComboTransform;
     private string ComboColorMaxString;
     public static Combo Instance;
     public Combo() : this(nameof(Combo), typeof(ComboSettings)) {

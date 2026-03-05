@@ -191,7 +191,7 @@ public class ResourceChanger : Feature {
         Transform transform = rectTransform.parent.parent.Find("Hit Space");
         if(transform.Find("JipperResourcepack Logo")) return;
         GameObject gameObject = transform.Find("Education Edition").gameObject;
-        gameObject = GameObject.Instantiate(gameObject, gameObject.transform.parent);
+        gameObject = Object.Instantiate(gameObject, gameObject.transform.parent);
         gameObject.SetActive(true);
         gameObject.name = "JipperResourcepack Logo";
         Text text = gameObject.GetComponent<Text>();
