@@ -27,6 +27,7 @@ public class BundleLoader {
                 path = Path.Combine(Main.Instance.Path, "Mac/jipperresourcepackbundle");
                 break;
             default:
+                Main.Instance.Warning("Unsupported platform, defaulting to Windows path");
                 goto case Platform.Windows;
         }
         
