@@ -15,28 +15,42 @@ public class BundleLoader {
     public static Texture2D SideImage;
     
     public static void LoadBundle() {
-        Bundle = AssetBundle.LoadFromFile(Path.Combine(Main.Instance.Path, "jipperresourcepackbundle"));
+        string path;
+        switch(ADOBase.platform) {
+            case Platform.Windows:
+                path = Path.Combine(Main.Instance.Path, "jipperresourcepackbundle");
+                break;
+            case Platform.Linux:
+                path = Path.Combine(Main.Instance.Path, "Linux/jipperresourcepackbundle");
+                break;
+            case Platform.Mac:
+                path = Path.Combine(Main.Instance.Path, "Mac/jipperresourcepackbundle");
+                break;
+            default:
+                goto case Platform.Windows;
+        }
+        
+        Bundle = AssetBundle.LoadFromFile(path);
         foreach(Object asset in Bundle.LoadAllAssets()) {
             switch(asset.name) {
                 case "MAPLESTORY_OTF_BOLD SDF":
                     FontAsset = (TMP_FontAsset) asset;
                     FontAsset.fallbackFontAssetTable.Add(RDConstants.data.chineseFontTMPro);
                     
-                    if(ADOBase.platform != Platform.Windows && FontAsset.material != null) {
+                    if(FontAsset.material) {
                         Material fontMaterial = FontAsset.material;
                         Shader fallbackShader = Shader.Find("TextMeshPro/Mobile/Distance Field");
-                        if(fallbackShader == null) {
+                        if(!fallbackShader) {
                             fallbackShader = Shader.Find("TextMeshPro/Distance Field");
+                            if(!fallbackShader) {
+                                fallbackShader = Shader.Find("UI/Default");
+                            }
                         }
-                        if(fallbackShader == null) {
-                            fallbackShader = Shader.Find("UI/Default");
-                        }
-                        if(fallbackShader != null) {
+                        if(fallbackShader) {
                             fontMaterial.shader = fallbackShader;
                             Main.Instance.Log($"Shader changed to: {fallbackShader.name}");
                         }
                     }
-
                     break;
                 case "ProgressBar":
                     ProgressObject = (GameObject) asset;
