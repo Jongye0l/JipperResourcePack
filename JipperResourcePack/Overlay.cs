@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using JALib.Tools;
 using TMPro;
@@ -32,7 +33,7 @@ public class Overlay {
     public ProgressBar ProgressBar;
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
     public float Progress;
-    public int[] hit = scrMistakesManager.hitMarginsCount;
+    public int[] hit;
     public Shader Shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
     protected int lastTime = -1;
     protected int lastMapTime = -1;
@@ -55,6 +56,7 @@ public class Overlay {
 
     public Overlay() {
         Instance = this;
+        UpdateHit();
         GameObject = new GameObject("JipperResourcePack Overlay");
         Canvas = GameObject.AddComponent<Canvas>();
         Canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -75,6 +77,19 @@ public class Overlay {
         UpdateSize();
         Object.DontDestroyOnLoad(GameObject);
         if(ADOBase.controller is { paused: false } && ADOBase.conductor is { isGameWorld: true }) Show();
+    }
+
+    public void UpdateHit() {
+        if(VersionControl.releaseNumber < 141) UpdateHitR136();
+        else UpdateHitR141();
+    }
+
+    public void UpdateHitR136() {
+        hit = (int[]) typeof(scrMistakesManager).GetField("hitMarginsCount", BindingFlags.Static | BindingFlags.Public)!.GetValue(null);
+    }
+
+    public void UpdateHitR141() {
+        hit = scrMistakesManager.marginTrackers[0].hitMarginsCount;
     }
 
     protected virtual void InitializeStatus() {
