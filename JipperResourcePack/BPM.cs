@@ -36,7 +36,8 @@ public class BPM : Feature {
         if(Settings.BpmColor.SettingGUI(settingGUI, Main.Instance.Localization["bpm.bpmColor"])) Overlay.Instance.UpdateBPM();
     }
 
-    [JAPatch(typeof(scrController), "Hit", PatchType.Postfix, true)]
+    [JAPatch(typeof(scrController), "Hit", PatchType.Postfix, true, MaxVersion = 140)]
+    [JAPatch(nameof(scrPlayer), nameof(scrPlayer.Hit), PatchType.Postfix, true, MinVersion = 141)]
     private static void OnHit() {
         Overlay.Instance.UpdateBPM();
     }

@@ -107,7 +107,8 @@ public class Status : Feature {
         }
     }
 
-    [JAPatch(typeof(scrMistakesManager), "CalculatePercentAcc", PatchType.Postfix, false)]
+    [JAPatch(typeof(scrMistakesManager), "CalculatePercentAcc", PatchType.Postfix, false, MaxVersion = 140)]
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.CalculatePercentAcc), PatchType.Postfix, false, MinVersion = 141)]
     private static void OnAccuracyChange() {
         Overlay.Instance.UpdateAccuracy();
     }

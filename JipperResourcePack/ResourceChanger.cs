@@ -181,17 +181,19 @@ public class ResourceChanger : Feature {
         scrLogoText.instance?.UpdateColors();
     }
 
-    [JAPatch(typeof(scnLevelSelect), "RainbowMode", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scnLevelSelect), "EnbyMode", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrLogoText), "UpdateColors", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrLogoText), "LateUpdate", PatchType.Prefix, false, TryingCatch = false)]
+    [JAPatch(typeof(scnLevelSelect), "RainbowMode", PatchType.Prefix, false, TryingCatch = false, MaxVersion = 140)]
+    [JAPatch(typeof(PlanetarySystem), nameof(PlanetarySystem.RainbowMode), PatchType.Prefix, false, TryingCatch = false, MinVersion = 141)]
+    [JAPatch(typeof(scnLevelSelect), "EnbyMode", PatchType.Prefix, false, TryingCatch = false, MaxVersion = 140)]
+    [JAPatch(typeof(PlanetarySystem), nameof(PlanetarySystem.EnbyMode), PatchType.Prefix, false, TryingCatch = false, MinVersion = 141)]
+    [JAPatch(typeof(scrLogoText), nameof(scrLogoText.UpdateColors), PatchType.Prefix, false, TryingCatch = false)]
+    [JAPatch(typeof(scrLogoText), nameof(scrLogoText.LateUpdate), PatchType.Prefix, false, TryingCatch = false)]
     public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor;
 
     public static void Prefix(ref Color color) {
         if(Settings.ChangeBallColor) color = PlanetColor;
     }
 
-    [JAPatch(typeof(scrFloor), "SetTileColor", PatchType.Prefix, false, TryingCatch = false)]
+    [JAPatch(typeof(scrFloor), nameof(scrFloor.SetTileColor), PatchType.Prefix, false, TryingCatch = false)]
     public static bool OnTileColorChange(scrFloor __instance) => !Settings.ChangeTileColor || __instance.tag != "Beat";
     
     [JAPatch(typeof(scrLogoText), "Awake", PatchType.Postfix, false)]
