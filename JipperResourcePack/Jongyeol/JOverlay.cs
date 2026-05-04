@@ -230,7 +230,7 @@ public class JOverlay : Overlay {
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
         if(floor.seqID <= pseudoFloor) return;
         scrConductor conductor = scrConductor.instance;
-        float bpm = (float) (conductor.bpm * conductor.song.pitch * scrController.instance.speed);
+        float bpm = (float) (conductor.bpm * conductor.song.pitch * JipperResourcePack.Main.GetPlanetSpeed());
         bool checkPseudo = BPM.Settings.CheckPseudo;
         float cbpm = 0;
         int count = 0;

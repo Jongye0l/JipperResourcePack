@@ -483,7 +483,7 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
         scrConductor conductor = scrConductor.instance;
-        float bpm = (float) (conductor.bpm * conductor.song.pitch * scrController.instance.speed);
+        float bpm = (float) (conductor.bpm * conductor.song.pitch * Main.GetPlanetSpeed());
         float cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
         if(lastTileBPM == bpm && lastCurBPM == cbpm) return;
@@ -532,7 +532,7 @@ public class Overlay {
             }
             lastHash = PlayCount.GetMapHash();
             lastSavedStartProgress = startProgress;
-            lastMultiplier = (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+            lastMultiplier = (float) (ADOBase.conductor.song.pitch * Main.GetPlanetSpeed());
             if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
             GameObject.SetActive(true);
             curCheck = 0;

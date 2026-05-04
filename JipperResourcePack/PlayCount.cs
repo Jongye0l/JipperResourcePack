@@ -15,7 +15,7 @@ public class PlayCount {
     public static Dictionary<Hash, PlayData> datas;
     private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
 
-    public static float Multiplier => (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+    public static float Multiplier => (float) (ADOBase.conductor.song.pitch * Main.GetPlanetSpeed());
 
     public static void Load() {
         string path = FilePath;

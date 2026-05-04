@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -117,6 +118,20 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
 
     private static void URLLabel(string label, string url) {
         if(GUILayout.Button(label, GUI.skin.label)) Application.OpenURL(url);
+    }
+
+    public static double GetPlanetSpeed() {
+        return VersionControl.releaseNumber < 141 ? GetPlanetSpeedR136() : GetPlanetSpeedR141();
+    }
+    
+    private static FieldInfo _planetSpeedField = typeof(scrController).GetField("speed", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+    
+    private static double GetPlanetSpeedR136() {
+        return (double) _planetSpeedField.GetValue(ADOBase.controller);
+    }
+
+    private static double GetPlanetSpeedR141() {
+        return ADOBase.controller.playerOne.planetarySystem.speed;
     }
 
     [JAPatch(typeof(scnGame), "Play", PatchType.Postfix, false)]
