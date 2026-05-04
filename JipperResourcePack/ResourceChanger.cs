@@ -54,7 +54,7 @@ public class ResourceChanger : Feature {
     }
 
     protected override void OnEnable() {
-        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) ADOBase.LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
             if(Settings.ChangeRabbit) LoadRabbit();
             if(Settings.ChangeBallColor) LoadPlanet();
@@ -63,7 +63,7 @@ public class ResourceChanger : Feature {
 
     protected override async void OnDisable() {
         while(Patcher.patched) await Task.Yield();
-        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) ADOBase.LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
             if(Settings.ChangeRabbit) UnloadRabbit();
             if(Settings.ChangeBallColor) UnloadPlanet();
@@ -83,9 +83,23 @@ public class ResourceChanger : Feature {
             else UnloadPlanet();
         });
         settingGUI.AddSettingToggle(ref Settings.ChangeTileColor, localization["resourceChanger.changeTileColor"], () => {
-            if(ADOBase.isLevelSelect) ADOBase.LoadScene(ADOBase.sceneName);
+            if(ADOBase.isLevelSelect) LoadScene(ADOBase.sceneName);
             else if(!Settings.ChangeTileColor) UnloadTileColor();
         });
+    }
+
+    private static void LoadScene(string name) {
+        if(VersionControl.releaseNumber < 141) LoadSceneR136(name);
+        else LoadSceneR141(name);
+    }
+
+    private static FieldInfo _loadSceneField = typeof(ADOBase).GetField("LoadScene", BindingFlags.Static | BindingFlags.Public);
+    private static void LoadSceneR136(string name) {
+        _loadSceneField.SetValue(null, name);
+    }
+
+    private static void LoadSceneR141(string name) {
+        ADOBase.loader.LoadScene(name);
     }
 
     private static void LoadRabbit() {
