@@ -90,7 +90,7 @@ public class JOverlay : Overlay {
     public override void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
         float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
-        xacc.SetIfNaN(1);
+        if(float.IsNaN(xacc)) xacc = 1;
         if(JipperResourcePack.Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
             float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
