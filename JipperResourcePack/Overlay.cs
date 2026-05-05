@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -282,34 +282,30 @@ public class Overlay {
         Combo.ComboTransform.anchoredPosition = new Vector2(0, -43 - 14 * size);
     }
 
-    protected void SetupShadow(TextMeshProUGUI text) {
-        Material material = new(text.fontSharedMaterial);
-        if(Shader) material.shader = Shader;
-        material.EnableKeyword(ShaderUtilities.Keyword_Outline);
-        material.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-        material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
-        material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
-        material.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, 0.5f));
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.8f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.8f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.3f);
-        material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.2f);
-        text.fontSharedMaterial = material;
-    }
+    protected void SetupShadow(TextMeshProUGUI text) => Shadow(text, 0.5f);
 
-    protected void SetupDarkShadow(TextMeshProUGUI text) {
-        Material material = new(text.fontSharedMaterial);
-        if(Shader) material.shader = Shader;
-        material.EnableKeyword(ShaderUtilities.Keyword_Outline);
-        material.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-        material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
-        material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
-        material.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, 0.7f));
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 1f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1f);
-        material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0f);
-        material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
-        text.fontSharedMaterial = material;
+    protected void SetupDarkShadow(TextMeshProUGUI text) => Shadow(text, 0.7f);
+
+    private void Shadow(TextMeshProUGUI text, float a) {
+        Task.Yield().GetAwaiter().OnCompleted(() => {
+            try {
+                Material baseMaterial = text.fontSharedMaterial ?? text.fontMaterial;
+                Material material = new(baseMaterial);
+                if(Shader) material.shader = Shader;
+                material.EnableKeyword(ShaderUtilities.Keyword_Outline);
+                material.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+                material.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.01f);
+                material.EnableKeyword(ShaderUtilities.Keyword_Underlay);
+                material.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0, 0, 0, a));
+                material.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 1f);
+                material.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -1f);
+                material.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0f);
+                material.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
+                text.fontSharedMaterial = material;
+            } catch (Exception e) {
+                Main.Instance.LogReportException("Failed to setup shadow", e);
+            }
+        });
     }
 
     public virtual void UpdateAccuracy() {
