@@ -32,6 +32,8 @@ public class Judgement : Feature {
 
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
+    [JAPatch(typeof(scrMistakesManager), "Reset", PatchType.Postfix, false, MaxVersion = 140)]
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.Reset), PatchType.Postfix, false, MinVersion = 141)]
     private static void OnHit() => Overlay.Instance.UpdateJudgement();
 
     [JAPatch(typeof(scrMistakesManager), nameof(scrMistakesManager.SetPlayerCount), PatchType.Postfix, false, MinVersion = 141)]

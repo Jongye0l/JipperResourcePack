@@ -60,7 +60,7 @@ public class JOverlay : Overlay {
         SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && Status.Settings.ShowTiming, ref y);
         UpdateProgress();
-        UpdateAccuracy();
+        CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
         UpdateAuthor();
         UpdateState();

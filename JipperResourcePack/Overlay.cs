@@ -129,14 +129,28 @@ public class Overlay {
         SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
-        SetupLocationMainText(CheckpointText, 
+        SetupLocationMainText(CheckpointText,
             Status.Settings.ShowCheckpoint &&
             (checkpoints ??= scrLevelMaker.instance.listFloors.Where(floor => floor.GetComponent<ffxCheckpoint>())
                  .Select(floor => floor.seqID).ToArray()).Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
         UpdateProgress();
-        UpdateAccuracy();
+        CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
+    }
+
+    protected static void CalculatePercentAcc() {
+        if(VersionControl.releaseNumber < 141) CalculatePercentAccR136();
+        else CalculatePercentAccR141();
+    }
+
+    private static readonly MethodInfo PercentAccMethod = typeof(scrMistakesManager).GetMethod("CalculatePercentAcc", BindingFlags.Instance | BindingFlags.Public);
+    private static void CalculatePercentAccR136() {
+        PercentAccMethod.Invoke(scrController.instance.mistakesManager, []);
+    }
+
+    private static void CalculatePercentAccR141() {
+        scrMistakesManager.marginTrackers[0].CalculatePercentAcc();
     }
 
     protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
@@ -532,9 +546,6 @@ public class Overlay {
             if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
             GameObject.SetActive(true);
             curCheck = 0;
-            scrMistakesManager manager = scrController.instance.mistakesManager;
-            manager.percentAcc = 1;
-            manager.percentXAcc = 1;
             songPlaying = false;
             death = false;
             if(Status.Instance.Enabled) SetupLocationMain();
