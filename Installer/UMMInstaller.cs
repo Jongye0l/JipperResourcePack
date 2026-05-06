@@ -55,7 +55,7 @@ public class UMMInstaller {
             installScreen.Log($"  '{doorstopConfigPath}'");
             using(Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.UMM.doorstop_config.ini")) {
                 using Stream file = File.Create(doorstopConfigPath);
-                await stream.CopyToAsync(file);
+                await stream!.CopyToAsync(file);
             }
             DoactionLibraries();
             DoactionGameConfig();

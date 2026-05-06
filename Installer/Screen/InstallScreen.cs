@@ -148,7 +148,7 @@ public class InstallScreen : Screen {
             string entryPath = Path.Combine(path, entry.FullName);
             if(entryPath.EndsWith("/")) Directory.CreateDirectory(entryPath);
             else {
-                string directory = Path.GetDirectoryName(entryPath);
+                string directory = Path.GetDirectoryName(entryPath)!;
                 if(!Directory.Exists(directory)) Directory.CreateDirectory(directory);
                 using FileStream fileStream = new(entryPath, FileMode.Create);
                 entry.Open().CopyTo(fileStream);
@@ -183,14 +183,14 @@ public class InstallScreen : Screen {
             response.EnsureSuccessStatusCode();
             Progress = 84;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
+            latestVersion = JObject.Parse(json)["tag_name"]!.Value<string>();
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases");
             Progress = 80;
             response.EnsureSuccessStatusCode();
             Progress = 86;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
+            latestVersion = JArray.Parse(json)[0]["tag_name"]!.Value<string>();
         }
         Progress = 90;
         DownloadName = "JALib";
@@ -213,14 +213,14 @@ public class InstallScreen : Screen {
             response.EnsureSuccessStatusCode();
             Progress = 154;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JObject.Parse(json)["tag_name"].Value<string>();
+            latestVersion = JObject.Parse(json)["tag_name"]!.Value<string>();
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases");
             Progress = 150;
             response.EnsureSuccessStatusCode();
             Progress = 156;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JArray.Parse(json)[0]["tag_name"].Value<string>();
+            latestVersion = JArray.Parse(json)[0]["tag_name"]!.Value<string>();
         }
         Progress = 160;
         DownloadName = "JipperResourcePack";
