@@ -41,7 +41,7 @@ public partial class InstallerForm : Form {
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetForegroundWindow(IntPtr hwnd);
 
-    private bool CheckAlreadyRunning() {
+    private static bool CheckAlreadyRunning() {
         int id = Process.GetCurrentProcess().Id;
         foreach (Process process in Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName)) {
             if(process.Id == id) continue;

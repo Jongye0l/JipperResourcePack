@@ -3,7 +3,7 @@
 namespace JipperResourcePack.Installer.Resource;
 
 public class Resources {
-    public static Resources English = new() {
+    public static readonly Resources English = new() {
         Title = "Jipper ResourcePack Installer",
         Cancel = "Cancel",
         Previous = "< Previous",
@@ -33,7 +33,7 @@ public class Resources {
         FinishScreen_CheckLog = "View Log"
     };
 
-    public static Resources Korean = new() {
+    public static readonly Resources Korean = new() {
         Title = "지퍼리소스팩 딸깍 설치기",
         Cancel = "취소",
         Previous = "< 이전",
@@ -63,33 +63,33 @@ public class Resources {
         FinishScreen_CheckLog = "로그 보기"
     };
 
-    public static Resources Current => CultureInfo.CurrentCulture.Name == "ko-KR" ? Korean : English;
+    public static Resources Current = CultureInfo.CurrentCulture.Name == "ko-KR" ? Korean : English;
 
-    public string Title { get; private set; }
-    public string Cancel { get; private set; }
-    public string Previous { get; private set; }
-    public string Next { get; private set; }
-    public string MainScreen_Title { get; private set; }
-    public string MainScreen_Description { get; private set; }
-    public string MainScreen_NoInternet { get; private set; }
-    public string Error { get; private set; }
-    public string SelectLocation_Title { get; private set; }
-    public string SelectLocation_Description { get; private set; }
-    public string SelectLocation_Select { get; private set; }
-    public string SelectLocation_AdofaiFolderGuide { get; private set; }
-    public string SelectLocation_NoLocation { get; private set; }
-    public string SelectLocation_NoFolder { get; private set; }
-    public string SelectLocation_NoAdofai { get; private set; }
-    public string SelectMod_Title { get; private set; }
-    public string SelectMod_Description { get; private set; }
-    public string SelectLocation_Location { get; private set; }
-    public string SelectMod_Mod { get; private set; }
-    public string Install_Install { get; private set; }
-    public string Install_Finish { get; private set; }
-    public string FinishScreen_Title { get; private set; }
-    public string FinishScreen_Description { get; private set; }
-    public string FinishScreen_RunAdofai { get; private set; }
-    public string FinishScreen_Title_Error { get; private set; }
-    public string FinishScreen_Description_Error { get; private set; }
-    public string FinishScreen_CheckLog { get; private set; }
+    public string Title;
+    public string Cancel;
+    public string Previous;
+    public string Next;
+    public string MainScreen_Title;
+    public string MainScreen_Description;
+    public string MainScreen_NoInternet;
+    public string Error;
+    public string SelectLocation_Title;
+    public string SelectLocation_Description;
+    public string SelectLocation_Select;
+    public string SelectLocation_AdofaiFolderGuide;
+    public string SelectLocation_NoLocation;
+    public string SelectLocation_NoFolder;
+    public string SelectLocation_NoAdofai;
+    public string SelectMod_Title;
+    public string SelectMod_Description;
+    public string SelectLocation_Location;
+    public string SelectMod_Mod;
+    public string Install_Install;
+    public string Install_Finish;
+    public string FinishScreen_Title;
+    public string FinishScreen_Description;
+    public string FinishScreen_RunAdofai;
+    public string FinishScreen_Title_Error;
+    public string FinishScreen_Description_Error;
+    public string FinishScreen_CheckLog;
 }

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using JipperResourcePack.Installer.Properties;
 using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;

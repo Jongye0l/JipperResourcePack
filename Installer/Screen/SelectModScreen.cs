@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using JipperResourcePack.Installer.Properties;
 using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;

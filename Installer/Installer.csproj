@@ -7,7 +7,7 @@
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
         <ProjectGuid>{B1BD79F4-9B8C-4295-A2EF-5314ED412AC2}</ProjectGuid>
         <OutputType>WinExe</OutputType>
-        <RootNamespace>Installer</RootNamespace>
+        <RootNamespace>JipperResourcePack.Installer</RootNamespace>
         <AssemblyName>JipperResourcePack Installer</AssemblyName>
         <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -14,7 +15,6 @@ using Newtonsoft.Json.Linq;
 namespace JipperResourcePack.Installer.Screen;
 
 public class InstallScreen : Screen {
-
     public Label TitleLabel;
     public ProgressBar ProgressBar;
     public Panel LogPanel;
@@ -25,8 +25,8 @@ public class InstallScreen : Screen {
     public string DownloadName;
     public int DownloadProgressStart;
     public int DownloadProgressEnd;
-    public bool complete;
-    public Exception exception;
+    public bool Complete;
+    public Exception Exception;
 
     public InstallScreen(Screen screen) {
         PrevScreen = screen;
@@ -84,9 +84,9 @@ public class InstallScreen : Screen {
                 Progress = DownloadProgressEnd;
                 Log("Download Complete " + selectedMod.Name);
             }
-            complete = true;
+            Complete = true;
         } catch (Exception e) {
-            exception = e;
+            Exception = e;
             Log("Error: " + e.Message);
         }
     }
@@ -110,7 +110,7 @@ public class InstallScreen : Screen {
     public void Log(string text) => LogQueue.Enqueue(text);
 
     public async void LogListner() {
-        while(!complete && exception == null) {
+        while(!Complete && Exception == null) {
             while(LogQueue.TryDequeue(out string log)) {
                 LogLabel.Text = log;
                 LogPanel.Controls.Add(new Label { Text = log, AutoSize = true, Location = new Point(0, LogY) });

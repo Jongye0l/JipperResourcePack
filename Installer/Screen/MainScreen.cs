@@ -1,13 +1,8 @@
-﻿using System;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
+﻿using System.Drawing;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
-using System.Threading;
 using System.Windows.Forms;
-using JipperResourcePack.Installer.Properties;
 using JipperResourcePack.Installer.Resource;
 
 namespace JipperResourcePack.Installer.Screen;
@@ -36,7 +31,7 @@ public class MainScreen : Screen {
             Location = new Point(420, 150)
         };
         PictureBox = new PictureBox {
-            Image = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.JipperResourceSide.png")),
+            Image = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.JipperResourceSide.png")!),
             Size = new Size(403, 561)
         };
         MainPanel.Controls.Add(TitleLabel);

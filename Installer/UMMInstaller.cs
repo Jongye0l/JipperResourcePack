@@ -9,7 +9,6 @@ namespace JipperResourcePack.Installer;
 
 public class UMMInstaller {
     public InstallScreen installScreen;
-    public TaskCompletionSource<bool> tcs;
     public string[] libraryDestPaths;
     public string tempPath;
     public string gamePath;
@@ -28,8 +27,7 @@ public class UMMInstaller {
         ];
     }
 
-    public Task Start() {
-        tcs = new TaskCompletionSource<bool>();
+    public async Task Start() {
         if(Directory.Exists(tempPath)) Directory.Delete(tempPath, true);
         Directory.CreateDirectory(tempPath);
         try {
@@ -38,18 +36,8 @@ public class UMMInstaller {
             installScreen.DownloadName = "UnityModManager";
             installScreen.DownloadProgressStart = 10;
             installScreen.DownloadProgressEnd = 60;
-            installScreen.Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", tempPath)
-                .GetAwaiter().UnsafeOnCompleted(OnDownloadComplete);
-        } catch (Exception e) {
-            tcs.SetException(e);
-        } finally {
-            RemoveDirectory(null, null);
-        }
-        return tcs.Task;
-    }
+            await installScreen.Download("https://www.dropbox.com/s/wz8x8e4onjdfdbm/UnityModManager.zip?dl=1", tempPath);
 
-    public void OnDownloadComplete() {
-        try {
             if(!Directory.Exists(managerPath))
                 Directory.CreateDirectory(managerPath);
             installScreen.Log("Backup files...");
@@ -65,15 +53,12 @@ public class UMMInstaller {
             installScreen.Log($"  '{filename}'");
             File.Copy(Path.Combine(tempPath, filename), doorstopPath);
             installScreen.Log($"  '{doorstopConfigPath}'");
-            using(Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.UMM.doorstop_config.ini")) {
+            using(Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.UMM.doorstop_config.ini")) {
                 using Stream file = File.Create(doorstopConfigPath);
-                stream.CopyTo(file);
+                await stream.CopyToAsync(file);
             }
             DoactionLibraries();
             DoactionGameConfig();
-            tcs.SetResult(true);
-        } catch (Exception e) {
-            tcs.SetException(e);
         } finally {
             RemoveDirectory(null, null);
         }

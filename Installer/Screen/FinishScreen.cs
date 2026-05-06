@@ -26,7 +26,7 @@ public class FinishScreen : Screen {
 
     public override void OnEnter() {
         NextButton.Text = Resources.Current.Install_Finish;
-        Exception exception = ((InstallScreen) PrevScreen).exception;
+        Exception exception = ((InstallScreen) PrevScreen).Exception;
         TitleLabel = new Label {
             Text = exception == null ? Resources.Current.FinishScreen_Title : Resources.Current.FinishScreen_Title_Error,
             Font = new Font("Arial", 22, FontStyle.Bold),
@@ -78,7 +78,7 @@ public class FinishScreen : Screen {
                 StringBuilder builder = new();
                 InstallScreen installScreen = (InstallScreen) PrevScreen;
                 foreach(Control control in installScreen.LogPanel.Controls) builder.AppendLine(control.Text);
-                builder.Append(installScreen.exception);
+                builder.Append(installScreen.Exception);
                 File.WriteAllText(logPath, builder.ToString());
             } catch {
                 DeleteFolder();
