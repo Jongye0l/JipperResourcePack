@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 
 namespace JipperResourcePack.Installer.Resource;
 
@@ -9,7 +10,8 @@ public class Resources {
         Previous = "< Previous",
         Next = "Next >",
         MainScreen_Title = "The Installer starts the installation.",
-        MainScreen_Description = "Install the Jipper ResourcePack on the Adofai.\nAn Internet connection is required to do this.\nPress the 'Next' button to continue.",
+        // MainScreen_Description = "Install the Jipper ResourcePack on the Adofai.\nAn Internet connection is required to do this.\nPress the 'Next' button to continue.",
+        // TODO: Main Screen Translate
         MainScreen_NoInternet = "You are not connected to the Internet.",
         Error = "Error",
         SelectLocation_Title = "Please choose the location of Adofai.",
@@ -39,7 +41,18 @@ public class Resources {
         Previous = "< 이전",
         Next = "다음 >",
         MainScreen_Title = "지퍼 리소스팩 설치를 시작합니다.",
-        MainScreen_Description = "얼불춤에 지퍼 리소스팩을 설치합니다.\n이 작업을 하기 위해서는 인터넷 연결이 필요합니다.\n계속 하시려면 '다음' 버튼을 눌러주세요.",
+        // MainScreen_Description = "얼불춤에 지퍼 리소스팩을 설치합니다.\n이 작업을 하기 위해서는 인터넷 연결이 필요합니다.\n계속 하시려면 '다음' 버튼을 눌러주세요.",
+        MainScreen_Description1 = "불과 얼음의 춤에 지퍼 리소스팩을 설치합니다.",
+        MainScreen_Description2 = "설치를 위해 github에 접속할 수 있는 환경이 필요합니다.",
+        MainScreen_Description3 = "UnityModManager와 JALib등 필요한 시스템이 자동으로 설치될 수 있습니다.",
+        MainScreen_Description4 = "지퍼 리소스팩은 최신 older, default, beta, alpha 브랜치만 지원하며\n그 외 버전에서는 작동하지 않을 수 있습니다.",
+        MainScreen_Description5 = "설치 작업을 진행하면 불과 얼음의 춤이 강제 종료됩니다.",
+        MainScreen_Description6 = "이 프로그램은 7th Beat Games 공식 프로그램이 아닌 커뮤니티 모드입니다.",
+        MainScreen_Description7 = "계속 하시려면 '다음' 버튼을 눌러주세요.",
+        MainScreen_BugReport = "버그/문의",
+        MainScreen_Donate = "후원",
+        MainScreen_KakaoPayQrForm = "지퍼 리소스팩 후원 카카오페이 QR",
+        MainScreen_OpenBrowserFailed = "브라우저를 여는 데 실패했습니다. 클립보드로 URL이 복사되었습니다.",
         MainScreen_NoInternet = "인터넷에 연결되어 있지 않습니다.",
         Error = "오류",
         SelectLocation_Title = "얼불춤의 폴더를 선택해주세요.",
@@ -70,7 +83,19 @@ public class Resources {
     public string Previous;
     public string Next;
     public string MainScreen_Title;
+    [Obsolete("", true)]
     public string MainScreen_Description;
+    public string MainScreen_Description1;
+    public string MainScreen_Description2;
+    public string MainScreen_Description3;
+    public string MainScreen_Description4;
+    public string MainScreen_Description5;
+    public string MainScreen_Description6;
+    public string MainScreen_Description7;
+    public string MainScreen_BugReport;
+    public string MainScreen_Donate;
+    public string MainScreen_OpenBrowserFailed;
+    public string MainScreen_KakaoPayQrForm;
     public string MainScreen_NoInternet;
     public string Error;
     public string SelectLocation_Title;

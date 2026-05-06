@@ -96,6 +96,12 @@
     </ItemGroup>
     <ItemGroup>
       <Content Include="mods.json" />
+      <EmbeddedResource Include="Resource\KakaoPay_QR.png" />
+      <EmbeddedResource Include="Resource\kofi_logo.png" />
+      <EmbeddedResource Include="Resource\payment_icon_yellow_small.png" />
+      <EmbeddedResource Include="Resource\GitHub_Invertocat_Black.png" />
+      <EmbeddedResource Include="Resource\mail_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png" />
+      <EmbeddedResource Include="Resource\Discord-Symbol-Blurple.png" />
       <EmbeddedResource Include="Resource\UMM\doorstop_config.ini" />
       <EmbeddedResource Include="Resource\UMM\Config.xml" />
     </ItemGroup>
