@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -79,6 +79,10 @@ public class SelectLocationScreen : Screen {
         }
         if(!Directory.Exists(path)) {
             MessageBox.Show(Resources.Current.SelectLocation_NoFolder, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+        if(!File.Exists(Path.Combine(path, "A Dance of Fire and Ice.exe"))) {
+            MessageBox.Show(Resources.Current.SelectLocation_NoAdofai, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
         if(!Directory.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data"))) {
