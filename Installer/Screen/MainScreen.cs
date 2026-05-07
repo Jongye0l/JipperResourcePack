@@ -91,7 +91,7 @@ public class MainScreen : Screen {
                 Size = new Size(32, 31),
                 Location = new Point(480, 470)
             },
-            new LinkedImageButton("mailto:bcpjy1233@gmail.com", "JipperResourcePack.Installer.Resource.mail_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png") {
+            new LinkedImageButton("mailto:bcpjy1233@gmail.com", "JipperResourcePack.Installer.Resource.mail.png") {
                 Size = new Size(32, 32),
                 Location = new Point(520, 470)
             },

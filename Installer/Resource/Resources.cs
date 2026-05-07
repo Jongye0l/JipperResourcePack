@@ -17,13 +17,14 @@ public class Resources {
         SelectLocation_Title = "Please choose the location of Adofai.",
         SelectLocation_Description = "Install the Jipper ResourcePack in the Adofai.\nIf you install it in a different Adofai folder or if the program has not found the Adofai folder, click the 'Select Folder' button to select the Adofai folder.",
         SelectLocation_Select = "Select Folder",
-        SelectLocation_AdofaiFolderGuide = "Adofai folder guide",
+        SelectLocation_Location = "Select Adofai Folder",
+        // SelectLocation_AdofaiFolderGuide = "Adofai folder guide",
         SelectLocation_NoLocation = "The location is not set.",
         SelectLocation_NoFolder = "The folder does not exist.",
         SelectLocation_NoAdofai = "The selected folder is not an Adofai folder.",
+        // TODO: Select Screen Translate
         SelectMod_Title = "Please select additional mods to install.",
         SelectMod_Description = "Please select the mods you want to install.",
-        SelectLocation_Location = "Adofai Folder",
         SelectMod_Mod = "Select Additional Mods",
         Install_Install = "Installing...",
         Install_Finish = "Exit",
@@ -41,7 +42,6 @@ public class Resources {
         Previous = "< 이전",
         Next = "다음 >",
         MainScreen_Title = "지퍼 리소스팩 설치를 시작합니다.",
-        // MainScreen_Description = "얼불춤에 지퍼 리소스팩을 설치합니다.\n이 작업을 하기 위해서는 인터넷 연결이 필요합니다.\n계속 하시려면 '다음' 버튼을 눌러주세요.",
         MainScreen_Description1 = "불과 얼음의 춤에 지퍼 리소스팩을 설치합니다.",
         MainScreen_Description2 = "설치를 위해 github에 접속할 수 있는 환경이 필요합니다.",
         MainScreen_Description3 = "UnityModManager와 JALib등 필요한 시스템이 자동으로 설치될 수 있습니다.",
@@ -55,16 +55,30 @@ public class Resources {
         MainScreen_OpenBrowserFailed = "브라우저를 여는 데 실패했습니다. 클립보드로 URL이 복사되었습니다.",
         MainScreen_NoInternet = "인터넷에 연결되어 있지 않습니다.",
         Error = "오류",
+        Title1 = "폴더 선택",
+        Title2 = "설치 요소 선택",
+        Title3 = "설치",
+        Title4 = "완료",
         SelectLocation_Title = "얼불춤의 폴더를 선택해주세요.",
         SelectLocation_Description = "지퍼 리소스팩을 얼불춤에 설치합니다.\n다른 얼불춤 폴더에 설치하거나 얼불춤 폴더를 프로그램이 찾지 못했다면 '찾아보기' 버튼을 눌러 얼불춤 폴더를 선택해주세요.",
         SelectLocation_Select = "찾아보기",
-        SelectLocation_AdofaiFolderGuide = "얼불춤 폴더 가이드",
+        SelectLocation_Location = "얼불춤 폴더 선택",
+        // SelectLocation_AdofaiFolderGuide = "얼불춤 폴더 가이드",
         SelectLocation_NoLocation = "위치가 설정되지 않았습니다.",
         SelectLocation_NoFolder = "폴더가 존재하지 않습니다.",
         SelectLocation_NoAdofai = "선택된 폴더는 얼불춤 폴더가 아닙니다.",
+        SelectLocation_NotifyTitle = "경로 분석",
+        SelectLocation_NotifyEmpty = "폴더 위치가 설정되있지 않습니다",
+        SelectLocation_NotifyFolderNotExist = "폴더가 존재하지 않습니다",
+        SelectLocation_NotifyFolderExist = "폴더가 존재합니다",
+        SelectLocation_NotifyGameNotFound = "게임 프로그램이나 데이터를 찾을 수 없습니다",
+        SelectLocation_NotifyGameFound = "게임을 찾았습니다",
+        SelectLocation_NotifyUmmIsAssembly = "UMM이 Assembly 형식으로 설치되었습니다",
+        SelectLocation_NotifyUmmIsAssembly2 = "얼불춤을 업데이트 할 때 마다 재설치 해야 합니다.",
+        SelectLocation_NotifyDoorstopIsOld = "Doorstop이 구버전입니다.",
+        SelectLocation_NotifyDoorstopIsOld2 = "r141부터 크래시가 발생하며 사용할 수 없습니다.",
         SelectMod_Title = "추가로 설치할 모드를 선택해주세요.",
         SelectMod_Description = "설치를 원하시는 모드를 선택해주세요.",
-        SelectLocation_Location = "얼불춤 폴더",
         SelectMod_Mod = "추가 모드 선택",
         Install_Install = "설치중...",
         Install_Finish = "마침",
@@ -83,8 +97,6 @@ public class Resources {
     public string Previous;
     public string Next;
     public string MainScreen_Title;
-    [Obsolete("", true)]
-    public string MainScreen_Description;
     public string MainScreen_Description1;
     public string MainScreen_Description2;
     public string MainScreen_Description3;
@@ -98,13 +110,27 @@ public class Resources {
     public string MainScreen_KakaoPayQrForm;
     public string MainScreen_NoInternet;
     public string Error;
+    public string Title1;
+    public string Title2;
+    public string Title3;
+    public string Title4;
     public string SelectLocation_Title;
     public string SelectLocation_Description;
     public string SelectLocation_Select;
-    public string SelectLocation_AdofaiFolderGuide;
+    // public string SelectLocation_AdofaiFolderGuide;
     public string SelectLocation_NoLocation;
     public string SelectLocation_NoFolder;
     public string SelectLocation_NoAdofai;
+    public string SelectLocation_NotifyTitle;
+    public string SelectLocation_NotifyEmpty;
+    public string SelectLocation_NotifyFolderNotExist;
+    public string SelectLocation_NotifyFolderExist;
+    public string SelectLocation_NotifyGameNotFound;
+    public string SelectLocation_NotifyGameFound;
+    public string SelectLocation_NotifyUmmIsAssembly;
+    public string SelectLocation_NotifyUmmIsAssembly2;
+    public string SelectLocation_NotifyDoorstopIsOld;
+    public string SelectLocation_NotifyDoorstopIsOld2;
     public string SelectMod_Title;
     public string SelectMod_Description;
     public string SelectLocation_Location;

@@ -59,6 +59,27 @@ public partial class InstallerForm : Form {
         Prev.Text = Resources.Current.Previous;
         Next.Text = Resources.Current.Next;
         VersionLabel.Text = Application.ProductVersion;
+        TopPanel.Controls.Clear();
+        Label oldLabel = null;
+        Label[] labels = new Label[4];
+        for(int i = 0; i < 7; i++) {
+            Label label = new() {
+                Text = i switch {
+                    0 => Resources.Current.Title1,
+                    2 => Resources.Current.Title2,
+                    4 => Resources.Current.Title3,
+                    6 => Resources.Current.Title4,
+                    _ => "→"
+                },
+                AutoSize = true,
+                Font = new Font("Arial", 16),
+                Location = oldLabel == null ? new Point(32, 9) : new Point(oldLabel.Location.X + oldLabel.Size.Width, 9)
+            };
+            if((i & 1) == 0) labels[i >> 1] = label;
+            TopPanel.Controls.Add(label);
+            oldLabel = label;
+        }
+        Screen.Screen.TopPanelLabels = labels;
     }
 
     public void SetupScreenData() {

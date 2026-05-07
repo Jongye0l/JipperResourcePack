@@ -16,6 +16,7 @@ public abstract class Screen {
     public static Button PrevButton;
     public static Button NextButton;
     public static Button CancelButton;
+    public static Label[] TopPanelLabels;
 
     public abstract void OnEnter();
     public abstract void OnLeave();
@@ -24,7 +25,6 @@ public abstract class Screen {
     public void Enter() {
         CurrentScreen?.OnLeave();
         MainPanel.Controls.Clear();
-        TopPanel.Controls.Clear();
         TopPanel.Visible = UpPanelVisible;
         PrevButton.Visible = PrevScreen != null;
         PrevButton.Enabled = Prevable;
