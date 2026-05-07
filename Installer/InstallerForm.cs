@@ -12,7 +12,6 @@ using Newtonsoft.Json;
 namespace JipperResourcePack.Installer;
 
 public partial class InstallerForm : Form {
-
     public static WebClient WebClient;
 
     public InstallerForm() {
@@ -56,6 +55,7 @@ public partial class InstallerForm : Form {
         Cancel.Text = Resources.Current.Cancel;
         Prev.Text = Resources.Current.Previous;
         Next.Text = Resources.Current.Next;
+        VersionLabel.Text = Application.ProductVersion;
     }
 
     public void SetupScreenData() {
