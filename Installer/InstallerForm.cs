@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,6 +53,7 @@ public partial class InstallerForm : Form {
     }
 
     public override void ResetText() {
+        Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.JipperProfile.ico")!);
         Text = Resources.Current.Title;
         Cancel.Text = Resources.Current.Cancel;
         Prev.Text = Resources.Current.Previous;
