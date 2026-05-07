@@ -178,7 +178,7 @@ public class SelectLocationScreen : Screen {
             };
             NotifyBox.Controls.Add(versionLabel);
         } catch (Exception e) {
-            Console.WriteLine(e);
+            MessageBox.Show(e.ToString(), Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
