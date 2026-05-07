@@ -29,7 +29,7 @@ public class MainScreen : Screen {
                 Text = Resources.Current.MainScreen_Title,
                 Font = new Font("Arial", 24, FontStyle.Bold),
                 Size = new Size(392, 32),
-                Location = new Point(435, 64)
+                Location = new Point(435, 48)
             },
             
             // Descriptions
@@ -37,43 +37,43 @@ public class MainScreen : Screen {
                 Text = Resources.Current.MainScreen_Description1,
                 Font = descriptionFont,
                 Size = new Size(517, 18),
-                Location = new Point(435, 156)
+                Location = new Point(435, 140)
             },
             new Label {
                 Text = Resources.Current.MainScreen_Description2,
                 Font = descriptionFont,
                 Size = new Size(517, 18),
-                Location = new Point(435, 182)
+                Location = new Point(435, 166)
             },
             new Label {
                 Text = Resources.Current.MainScreen_Description3,
                 Font = descriptionFont,
                 Size = new Size(517, 18),
-                Location = new Point(435, 208)
+                Location = new Point(435, 192)
             },
             new Label {
                 Text = Resources.Current.MainScreen_Description4,
                 Font = descriptionFont,
                 Size = new Size(517, 36),
-                Location = new Point(435, 234)
+                Location = new Point(435, 218)
             },
             new Label {
                 Text = Resources.Current.MainScreen_Description5,
                 Font = descriptionFont,
                 Size = new Size(517, 18),
-                Location = new Point(435, 276)
+                Location = new Point(435, 260)
             },
             new Label {
                 Text = Resources.Current.MainScreen_Description6,
                 Font = descriptionFont,
                 Size = new Size(517, 18),
-                Location = new Point(435, 302)
+                Location = new Point(435, 286)
             },
             new Label {
                 Text = Resources.Current.MainScreen_Description7,
                 Font = descriptionFont,
                 Size = new Size(517, 18),
-                Location = new Point(435, 328)
+                Location = new Point(435, 312)
             },
             
             // Bug Report
