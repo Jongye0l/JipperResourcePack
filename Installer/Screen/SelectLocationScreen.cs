@@ -17,13 +17,12 @@ public class SelectLocationScreen : Screen {
     public CancellationTokenSource Cts;
     public List<Control> ContainsControls = [];
     public string ErrorString;
-    public bool IsAssemblyInstall;
-    public bool IsOldDoorStop;
+    public RequirementStatus RequirementStatus = new();
     //public Button AdofaiFolderGuide;
 
     public SelectLocationScreen(Screen screen) {
         PrevScreen = screen;
-        NextScreen = new SelectModScreen(this);
+        NextScreen = new SelectScreen(this, RequirementStatus);
     }
 
     public override void OnEnter() {
@@ -91,6 +90,7 @@ public class SelectLocationScreen : Screen {
     }
 
     public override void OnLeave() {
+        Cts?.Cancel();
         TopPanelLabels[0].Font = new Font("Arial", 16);
     }
 
@@ -141,8 +141,9 @@ public class SelectLocationScreen : Screen {
             ParseAdofaiVersion(CreateNotify(0, resources.SelectLocation_NotifyGameFound, ref count));
             
             if(!File.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager", "UnityModManager.dll"))) return;
-            if(!File.Exists(Path.Combine(path, "winhttp.dll"))) { 
-                IsAssemblyInstall = true;
+            RequirementStatus.IsExistUnityModManager = true;
+            if(!File.Exists(Path.Combine(path, "winhttp.dll"))) {
+                RequirementStatus.IsAssemblyInstalled = true;
                 CreateNotify(2, resources.SelectLocation_NotifyUmmIsAssembly, resources.SelectLocation_NotifyUmmIsAssembly2, ref count);
                 return;
             }
@@ -150,7 +151,7 @@ public class SelectLocationScreen : Screen {
             FileVersionInfo doorstopVersion = FileVersionInfo.GetVersionInfo(Path.Combine(path, "winhttp.dll"));
             Version version = Version.Parse(doorstopVersion.FileVersion);
             if(version < new Version(4, 4, 0, 0)) {
-                IsOldDoorStop = true;
+                RequirementStatus.IsOldDoorStop = true;
                 CreateNotify(2, resources.SelectLocation_NotifyDoorstopIsOld, resources.SelectLocation_NotifyDoorstopIsOld2, ref count);
             }
         } finally {

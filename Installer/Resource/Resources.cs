@@ -13,6 +13,7 @@ public class Resources {
         // MainScreen_Description = "Install the Jipper ResourcePack on the Adofai.\nAn Internet connection is required to do this.\nPress the 'Next' button to continue.",
         // TODO: Main Screen Translate
         MainScreen_NoInternet = "You are not connected to the Internet.",
+        Warn = "Warning",
         Error = "Error",
         SelectLocation_Title = "Please choose the location of Adofai.",
         SelectLocation_Description = "Install the Jipper ResourcePack in the Adofai.\nIf you install it in a different Adofai folder or if the program has not found the Adofai folder, click the 'Select Folder' button to select the Adofai folder.",
@@ -23,9 +24,9 @@ public class Resources {
         SelectLocation_NoFolder = "The folder does not exist.",
         SelectLocation_NoAdofai = "The selected folder is not an Adofai folder.",
         // TODO: Select Screen Translate
-        SelectMod_Title = "Please select additional mods to install.",
-        SelectMod_Description = "Please select the mods you want to install.",
-        SelectMod_Mod = "Select Additional Mods",
+        Select_Title = "Please select additional mods to install.",
+        // Select_Description = "Please select the mods you want to install.",
+        // Select_Mod = "Select Additional Mods",
         Install_Install = "Installing...",
         Install_Finish = "Exit",
         FinishScreen_Title = "Jipper ResourcePack Installation Completed",
@@ -54,6 +55,7 @@ public class Resources {
         MainScreen_KakaoPayQrForm = "지퍼 리소스팩 후원 카카오페이 QR",
         MainScreen_OpenBrowserFailed = "브라우저를 여는 데 실패했습니다. 클립보드로 URL이 복사되었습니다.",
         MainScreen_NoInternet = "인터넷에 연결되어 있지 않습니다.",
+        Warn = "경고",
         Error = "오류",
         Title1 = "폴더 선택",
         Title2 = "설치 요소 선택",
@@ -77,9 +79,20 @@ public class Resources {
         SelectLocation_NotifyUmmIsAssembly2 = "얼불춤을 업데이트 할 때 마다 재설치 해야 합니다.",
         SelectLocation_NotifyDoorstopIsOld = "Doorstop이 구버전입니다.",
         SelectLocation_NotifyDoorstopIsOld2 = "r141부터 크래시가 발생하며 사용할 수 없습니다.",
-        SelectMod_Title = "추가로 설치할 모드를 선택해주세요.",
-        SelectMod_Description = "설치를 원하시는 모드를 선택해주세요.",
-        SelectMod_Mod = "추가 모드 선택",
+        Select_Title = "설치 요소를 선택해주세요.",
+        Select_Work = "작업",
+        Select_Work_Install = "설치",
+        Select_Work_Uninstall = "제거",
+        Select_Requirement = "필수 요소 설치",
+        Select_Requirement_UnityModManager = "지퍼 리소스팩을 사용하기 위해서는 유니티 모드 매니저가 필요합니다.\n유니티 모드 매니저가 설치되어 있지 않아 제외할 수 없습니다.",
+        Select_Requirement_JALib = "지퍼 리소스팩을 사용하기 위해서는 JALib이 필요합니다.\nJALib이 설치되어 있지 않아 제외할 수 없습니다.",
+        Select_Requirement_Doorstop_Umm = "유니티 모드 매니저를 사용하기 위해서는 Doorstop이 필요합니다.\n유니티 모드 매니저가 선택되어 제외할 수 없습니다.",
+        Select_Requirement_Doorstop_Asm = "현재 유니티 모드 매니저가 Assembly 방식으로 설치되어 있습니다.\nAssembly 방식은 게임을 업데이트 할 때 마다 새로 설치해야 합니다. 계속 하시겠습니까?",
+        Select_Requirement_Doorstop_Old = "현재 사용중인 Doorstop이 구버전 입니다.\nr141부터는 5.4.0이상에 Doorstop이 아닐 경우 크래시가 발생합니다. 계속 하시겠습니까?",
+        Select_Requirement_JipperResourcePack = "지퍼 리소스팩이 설치되어 있지 않아 제외할 수 없습니다.",
+        Select_AdditionMods = "추가 모드 설치",
+        Select_RemoveMods = "기존 모드 제거",
+        Select_RemoveMods_Confirm = "선택한 모드를 정말 제거하시겠습니까?\n제거된 모드는 복구할 수 없으며 다시 설치해도 데이터가 유지되지 않을 수 있습니다.",
         Install_Install = "설치중...",
         Install_Finish = "마침",
         FinishScreen_Title = "지퍼 리소스팩 설치 완료",
@@ -109,6 +122,7 @@ public class Resources {
     public string MainScreen_OpenBrowserFailed;
     public string MainScreen_KakaoPayQrForm;
     public string MainScreen_NoInternet;
+    public string Warn;
     public string Error;
     public string Title1;
     public string Title2;
@@ -117,6 +131,7 @@ public class Resources {
     public string SelectLocation_Title;
     public string SelectLocation_Description;
     public string SelectLocation_Select;
+    public string SelectLocation_Location;
     // public string SelectLocation_AdofaiFolderGuide;
     public string SelectLocation_NoLocation;
     public string SelectLocation_NoFolder;
@@ -131,10 +146,22 @@ public class Resources {
     public string SelectLocation_NotifyUmmIsAssembly2;
     public string SelectLocation_NotifyDoorstopIsOld;
     public string SelectLocation_NotifyDoorstopIsOld2;
-    public string SelectMod_Title;
-    public string SelectMod_Description;
-    public string SelectLocation_Location;
-    public string SelectMod_Mod;
+    public string Select_Title;
+    public string Select_Work;
+    public string Select_Work_Install;
+    public string Select_Work_Uninstall;
+    public string Select_Requirement;
+    public string Select_Requirement_UnityModManager;
+    public string Select_Requirement_JALib;
+    public string Select_Requirement_Doorstop_Umm;
+    public string Select_Requirement_Doorstop_Asm;
+    public string Select_Requirement_Doorstop_Old;
+    public string Select_Requirement_JipperResourcePack;
+    public string Select_AdditionMods;
+    public string Select_RemoveMods;
+    public string Select_RemoveMods_Confirm;
+    [Obsolete("", true)]
+    public string Select_Mod;
     public string Install_Install;
     public string Install_Finish;
     public string FinishScreen_Title;
