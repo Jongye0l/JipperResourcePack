@@ -239,16 +239,18 @@ public class SelectScreen : Screen {
                 AutoScroll = true
             };
 
-            while(modItemQueue.TryDequeue(out string item)) {
-                if(item == null) break;
-                CheckBox checkBox = new() {
-                    Text = item,
-                    Font = new Font("Arial", 11),
-                    Size = new Size(295, 25),
-                    Location = new Point(ExistMods.Count % 3 * 295, ExistMods.Count / 3 * 25)
-                };
-                ExistMods.Add(checkBox);
-                modListPanel.Controls.Add(checkBox);
+            while(true) {
+                if(modItemQueue.TryDequeue(out string item)) {
+                    if(item == null) break;
+                    CheckBox checkBox = new() {
+                        Text = item,
+                        Font = new Font("Arial", 11),
+                        Size = new Size(295, 25),
+                        Location = new Point(ExistMods.Count % 3 * 295, ExistMods.Count / 3 * 25)
+                    };
+                    ExistMods.Add(checkBox);
+                    modListPanel.Controls.Add(checkBox);
+                } else await Task.Yield();
             }
 
             await task;
