@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Resource;
 
@@ -17,6 +16,7 @@ public class MainScreen : Screen {
 
     public override void OnEnter() {
         Font descriptionFont = new("Arial", 12);
+        MainPanel.SuspendLayout();
         MainPanel.Controls.AddRange([
             // JipperResourceSide
             new PictureBox {
@@ -112,6 +112,7 @@ public class MainScreen : Screen {
                 Location = new Point(677, 470)
             }
         ]);
+        MainPanel.ResumeLayout();
     }
 
     public override void OnLeave() {
