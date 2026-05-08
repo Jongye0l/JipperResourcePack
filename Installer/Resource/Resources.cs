@@ -27,9 +27,9 @@ public class Resources {
         Select_Title = "Please select additional mods to install.",
         // Select_Description = "Please select the mods you want to install.",
         // Select_Mod = "Select Additional Mods",
-        Install_Finish = "Exit",
-        FinishScreen_Title = "Jipper ResourcePack Installation Completed",
-        FinishScreen_Description = "Jipper ResourcePack installation completed.\nPress the 'Exit' button to finish the installation program.",
+        FinishScreen_Finish = "Exit",
+        FinishScreen_Title_Install = "Jipper ResourcePack Installation Completed",
+        FinishScreen_Description_Install = "Jipper ResourcePack installation completed.\nPress the 'Exit' button to finish the program.",
         FinishScreen_RunAdofai = "Run Adofai",
         FinishScreen_Title_Error = "Failed to install Jipper ResourcePack",
         FinishScreen_Description_Error = "An error occurred during the installation of the Jipper ResourcePack.\nPlease press the 'View Log' button to check for detailed errors.",
@@ -99,9 +99,11 @@ public class Resources {
         Select_UninstallOption_OnlyManagerDescription = "모드 데이터는 남겨둔 채로 모드 매니저만 제거합니다. 모드 매니저를 다시 설치하면 그대로 모드를 사용할 수 있습니다.",
         Select_UninstallOption_OnlyMod = "특정 모드만 제거",
         Select_UninstallOption_OnlyModDescription = "모든 모드를 지우지 않고 특정 모드만 제거합니다. 나머지 모드는 계속해서 사용할 수 있습니다.",
-        Install_Finish = "마침",
-        FinishScreen_Title = "지퍼 리소스팩 설치 완료",
-        FinishScreen_Description = "지퍼 리소스팩 설치가 완료되었습니다.\n설치 프로그램을 마치려면 '마침' 버튼을 눌러주세요.",
+        FinishScreen_Finish = "마침",
+        FinishScreen_Title_Install = "지퍼 리소스팩 설치 완료",
+        FinishScreen_Title_Uninstall = "지퍼 리소스팩 제거 완료",
+        FinishScreen_Description_Install = "지퍼 리소스팩 설치가 완료되었습니다.\n프로그램을 마치려면 '마침' 버튼을 눌러주세요.",
+        FinishScreen_Description_Uninstall = "지퍼 리소스팩 제거가 완료되었습니다.\n프로그램을 마치려면 '마침' 버튼을 눌러주세요.",
         FinishScreen_RunAdofai = "얼불춤 실행",
         FinishScreen_Title_Error = "지퍼 리소스팩을 설치하지 못했습니다.",
         FinishScreen_Description_Error = "지퍼 리소스팩 설치중 오류가 발생했습니다.\n자세한 오류를 확인하기 위해서는 '로그 보기' 버튼을 눌러주세요.",
@@ -172,9 +174,11 @@ public class Resources {
     public string Select_UninstallOption_OnlyManagerDescription;
     public string Select_UninstallOption_OnlyMod;
     public string Select_UninstallOption_OnlyModDescription;
-    public string Install_Finish;
-    public string FinishScreen_Title;
-    public string FinishScreen_Description;
+    public string FinishScreen_Finish;
+    public string FinishScreen_Title_Install;
+    public string FinishScreen_Title_Uninstall;
+    public string FinishScreen_Description_Install;
+    public string FinishScreen_Description_Uninstall;
     public string FinishScreen_RunAdofai;
     public string FinishScreen_Title_Error;
     public string FinishScreen_Description_Error;

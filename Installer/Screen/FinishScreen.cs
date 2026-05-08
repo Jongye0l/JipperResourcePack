@@ -21,7 +21,7 @@ public class FinishScreen : Screen {
     }
 
     public override void OnEnter() {
-        NextButton.Text = Resources.Current.Install_Finish;
+        NextButton.Text = Resources.Current.FinishScreen_Finish;
         Exception exception = ((InstallScreen) PrevScreen)?.Exception;
         MainPanel.SuspendLayout();
         MainPanel.Controls.AddRange([
@@ -33,7 +33,8 @@ public class FinishScreen : Screen {
             
             // Title
             new Label {
-                Text = exception == null ? Resources.Current.FinishScreen_Title : Resources.Current.FinishScreen_Title_Error,
+                Text = exception != null ? Resources.Current.FinishScreen_Title_Error :
+                       GlobalSetting.Instance.IsUninstall ? Resources.Current.FinishScreen_Title_Uninstall : Resources.Current.FinishScreen_Title_Install,
                 Font = Constants.Arial24B,
                 AutoSize = true,
                 Location = new Point(430, 48)
@@ -41,7 +42,8 @@ public class FinishScreen : Screen {
             
             // Description
             new Label {
-                Text = exception == null ? Resources.Current.FinishScreen_Description : Resources.Current.FinishScreen_Description_Error,
+                Text = exception != null ? Resources.Current.FinishScreen_Description_Error :
+                           GlobalSetting.Instance.IsUninstall ? Resources.Current.FinishScreen_Description_Uninstall : Resources.Current.FinishScreen_Description_Install,
                 Font = Constants.Arial12,
                 AutoSize = true,
                 Location = new Point(435, 128)

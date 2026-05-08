@@ -90,7 +90,7 @@ public class InstallScreen : Screen {
             "JALib Installed: " + GlobalSetting.Instance.InstallJalib,
             "JipperResourcePack Installed: " + GlobalSetting.Instance.InstallJipperResourcePack,
             "IsInstall: " + !GlobalSetting.Instance.IsUninstall,
-            "Starting Work... Progress Maximum: " + maxValue
+            "Starting Work..."
         ]);
         TempPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack");
         
