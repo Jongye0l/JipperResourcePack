@@ -162,6 +162,8 @@ public class SelectScreen : Screen {
 
     private async void EnterAsyncWork() {
         try {
+            ExistMods.Clear();
+            ExistModsPath.Clear();
             bool existMods = Directory.Exists(Path.Combine(GlobalSetting.Instance.InstallPath, "Mods"));
             ConcurrentQueue<string> modItemQueue;
             Task task;
@@ -171,8 +173,6 @@ public class SelectScreen : Screen {
                 task = Task.Run(() => {
                     try {
                         CancellationToken token = ExistModsCancellationTokenSource.Token;
-                        ExistModsPath.Clear();
-
                         foreach(string file in Directory.GetDirectories(Path.Combine(GlobalSetting.Instance.InstallPath, "Mods"))) {
                             string infoLocation = Path.Combine(file, "Info.json");
                             if(!File.Exists(infoLocation)) infoLocation = Path.Combine(file, "info.json");
