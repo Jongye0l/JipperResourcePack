@@ -163,7 +163,9 @@ public class KeyViewer : Feature {
             if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
                 confirmResetCount = false;
                 Total.value.tmp.text = "0";
+                foreach(Key key in Keys) key?.value.text = "0";
                 for(int i = 0; i < settings.Count.Length; i++) settings.Count[i] = 0;
+                settings.TotalCount = 0;
                 Main.Instance.SaveSetting();
             }
             if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) confirmResetCount = false;
