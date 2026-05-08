@@ -43,12 +43,20 @@ public class InstallScreen : Screen {
         TopPanelLabels[2].Font = Constants.Arial16B;
         
         int maxValue = 0;
-        if(GlobalSetting.Instance.InstallUnityModManager) maxValue += 60;
-        if(GlobalSetting.Instance.InstallDoorstop) maxValue += 80;
-        if(GlobalSetting.Instance.InstallJalib) maxValue += 70;
-        if(GlobalSetting.Instance.InstallJipperResourcePack) maxValue += 70;
-        maxValue += 50 * GlobalSetting.Instance.SelectedMods.Count;
-        maxValue += 10 * GlobalSetting.Instance.RemoveRequestMods.Count;
+        if(GlobalSetting.Instance.IsUninstall) {
+            maxValue = GlobalSetting.Instance.UninstallOption switch {
+                0 => 4,
+                1 => 3,
+                _ => GlobalSetting.Instance.RemoveRequestMods.Count
+            };
+        } else {
+            if(GlobalSetting.Instance.InstallUnityModManager) maxValue += 60;
+            if(GlobalSetting.Instance.InstallDoorstop) maxValue += 80;
+            if(GlobalSetting.Instance.InstallJalib) maxValue += 70;
+            if(GlobalSetting.Instance.InstallJipperResourcePack) maxValue += 70;
+            maxValue += 50 * GlobalSetting.Instance.SelectedMods.Count;
+            maxValue += 10 * GlobalSetting.Instance.RemoveRequestMods.Count;
+        }
         
         ProgressBar = new ProgressBar {
             Minimum = 0,
@@ -81,7 +89,8 @@ public class InstallScreen : Screen {
             "Doorstop Installed: " + GlobalSetting.Instance.InstallDoorstop,
             "JALib Installed: " + GlobalSetting.Instance.InstallJalib,
             "JipperResourcePack Installed: " + GlobalSetting.Instance.InstallJipperResourcePack,
-            "Starting Installation... Progress Maximum: " + maxValue
+            "IsInstall: " + !GlobalSetting.Instance.IsUninstall,
+            "Starting Work... Progress Maximum: " + maxValue
         ]);
         TempPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack");
         
@@ -91,25 +100,59 @@ public class InstallScreen : Screen {
 
     public async void StartWork() {
         try {
-            if(GlobalSetting.Instance.InstallUnityModManager) await InstallUnityModManager();
-            if(GlobalSetting.Instance.InstallDoorstop) await InstallDoorstop();
+            if(GlobalSetting.Instance.IsUninstall) {
+                string targetPath;
+                switch(GlobalSetting.Instance.UninstallOption) {
+                    case 0:
+                        targetPath = Path.Combine(GlobalSetting.Instance.InstallPath, "Mods");
+                        Log($"Deleting {targetPath}...");
+                        Directory.Delete(targetPath, true);
+                        Progress = 1;
+                        goto case 1;
+                    case 1:
+                        targetPath = Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager");
+                        Log($"Deleting {targetPath}...");
+                        Directory.Delete(targetPath, true);
+                        Progress++;
+                        targetPath = Path.Combine(GlobalSetting.Instance.InstallPath, "winhttp.dll");
+                        Log($"Deleting {targetPath}...");
+                        File.Delete(targetPath);
+                        Progress++;
+                        targetPath = Path.Combine(GlobalSetting.Instance.InstallPath, "doorstop_config.ini");
+                        Log($"Deleting {targetPath}...");
+                        File.Delete(targetPath);
+                        Progress++;
+                        break;
+                    default:
+                        foreach(string path in GlobalSetting.Instance.RemoveRequestMods) {
+                            Directory.Delete(path, true);
+                            Log($"Deleting {path}...");
+                            Progress++;
+                        }
+                        break;
+                }
+            } else {
+                if(GlobalSetting.Instance.InstallUnityModManager) await InstallUnityModManager();
+                if(GlobalSetting.Instance.InstallDoorstop) await InstallDoorstop();
             
-            // Remove Before Install
-            foreach(string path in GlobalSetting.Instance.RemoveRequestMods) {
-                Directory.Delete(path, true);
-                Progress += 10;
-            }
+                // Remove Before Install
+                foreach(string path in GlobalSetting.Instance.RemoveRequestMods) {
+                    Log($"Deleting {path}...");
+                    Directory.Delete(path, true);
+                    Progress += 10;
+                }
             
-            if(GlobalSetting.Instance.InstallJalib) await DownloadJALib();
-            if(GlobalSetting.Instance.InstallJipperResourcePack) await DownloadJipperResourcePack();
-            foreach(ModData selectedMod in GlobalSetting.Instance.SelectedMods) {
-                Log("Downloading " + selectedMod.Name + "...");
-                DownloadName = selectedMod.Name;
-                DownloadProgressStart = Progress;
-                DownloadProgressEnd = Progress + 50;
-                await Download(selectedMod.URL, Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", selectedMod.Name), true);
-                Progress = DownloadProgressEnd;
-                Log("Download Complete " + selectedMod.Name);
+                if(GlobalSetting.Instance.InstallJalib) await DownloadJALib();
+                if(GlobalSetting.Instance.InstallJipperResourcePack) await DownloadJipperResourcePack();
+                foreach(ModData selectedMod in GlobalSetting.Instance.SelectedMods) {
+                    Log("Downloading " + selectedMod.Name + "...");
+                    DownloadName = selectedMod.Name;
+                    DownloadProgressStart = Progress;
+                    DownloadProgressEnd = Progress + 50;
+                    await Download(selectedMod.URL, Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", selectedMod.Name), true);
+                    Progress = DownloadProgressEnd;
+                    Log("Download Complete " + selectedMod.Name);
+                }
             }
             Complete = true;
         } catch (Exception e) {
