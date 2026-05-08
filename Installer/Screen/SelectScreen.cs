@@ -235,7 +235,7 @@ public class SelectScreen : Screen {
             
             Panel modListPanel = new() {
                 Location = new Point(10, 25),
-                Size = groupBox.Size - new Size(11, 35),
+                Size = groupBox.Size - new Size(11, 30),
                 AutoScroll = true
             };
 
@@ -261,7 +261,7 @@ public class SelectScreen : Screen {
                     Height = calY
                 };
                 modListPanel.Size = modListPanel.Size with {
-                    Height = calY - 35
+                    Height = calY - 30
                 };
             }
             
