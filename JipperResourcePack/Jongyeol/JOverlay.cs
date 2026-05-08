@@ -22,7 +22,7 @@ public class JOverlay : Overlay {
     private int lastDeath = -1;
     private int pseudoFloor = -1;
     private float lastCurKPS = -1;
-    private LevelData levelData => scnGame.instance?.levelData;
+    private LevelData levelData => scnGame.instance ? scnGame.instance.levelData : null;
     private float fpsTime;
     private bool perToCom;
 
