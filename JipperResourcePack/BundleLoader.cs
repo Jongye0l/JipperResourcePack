@@ -37,21 +37,6 @@ public class BundleLoader {
                 case "MAPLESTORY_OTF_BOLD SDF":
                     FontAsset = (TMP_FontAsset) asset;
                     FontAsset.fallbackFontAssetTable.Add(RDConstants.data.chineseFontTMPro);
-                    
-                    if(FontAsset.material) {
-                        Material fontMaterial = FontAsset.material;
-                        Shader fallbackShader = Shader.Find("TextMeshPro/Mobile/Distance Field");
-                        if(!fallbackShader) {
-                            fallbackShader = Shader.Find("TextMeshPro/Distance Field");
-                            if(!fallbackShader) {
-                                fallbackShader = Shader.Find("UI/Default");
-                            }
-                        }
-                        if(fallbackShader) {
-                            fontMaterial.shader = fallbackShader;
-                            Main.Instance.Log($"Shader changed to: {fallbackShader.name}");
-                        }
-                    }
                     break;
                 case "ProgressBar":
                     ProgressObject = (GameObject) asset;
