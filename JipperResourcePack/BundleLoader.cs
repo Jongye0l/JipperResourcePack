@@ -30,6 +30,9 @@ public class BundleLoader {
                 Main.Instance.Warning("Unsupported platform, defaulting to Windows path");
                 goto case Platform.Windows;
         }
+
+        Main.Instance.Log("Unity Version: " + Application.unityVersion);
+        if(Application.unityVersion.StartsWith("2022")) path += "2022";
         
         Bundle = AssetBundle.LoadFromFile(path);
         foreach(Object asset in Bundle.LoadAllAssets()) {
