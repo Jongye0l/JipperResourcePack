@@ -1,5 +1,4 @@
-using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
@@ -29,7 +28,7 @@ public class MainScreen : Screen {
                 Text = Resources.Current.MainScreen_Title,
                 Font = Constants.Arial24B,
                 Size = new Size(392, 32),
-                Location = new Point(435, 48)
+                Location = new Point(430, 48)
             },
             
             // Descriptions
@@ -81,19 +80,19 @@ public class MainScreen : Screen {
                 Text = Resources.Current.MainScreen_BugReport,
                 Font = descriptionFont,
                 Size = new Size(64, 18),
-                Location = new Point(435, 444)
+                Location = new Point(440, 444)
             },
             new LinkedImageButton("https://discord.gg/qTbnPhY7YA", "JipperResourcePack.Installer.Resource.Discord-Symbol-Blurple.png") {
                 Size = new Size(32, 24),
-                Location = new Point(440, 474)
+                Location = new Point(445, 474)
             },
             new LinkedImageButton("https://github.com/Jongye0l/JipperResourcePack/issues", "JipperResourcePack.Installer.Resource.GitHub_Invertocat_Black.png") {
                 Size = new Size(32, 31),
-                Location = new Point(480, 470)
+                Location = new Point(485, 470)
             },
             new LinkedImageButton("mailto:bcpjy1233@gmail.com", "JipperResourcePack.Installer.Resource.mail.png") {
                 Size = new Size(32, 32),
-                Location = new Point(520, 470)
+                Location = new Point(525, 470)
             },
             
             // Donate
@@ -101,15 +100,15 @@ public class MainScreen : Screen {
                 Text = Resources.Current.MainScreen_Donate,
                 Font = descriptionFont,
                 Size = new Size(34, 16),
-                Location = new Point(600, 444)
+                Location = new Point(605, 444)
             },
             new LinkedImageButton(null, "JipperResourcePack.Installer.Resource.payment_icon_yellow_small.png") {
                 Size = new Size(64, 27),
-                Location = new Point(605, 470)
+                Location = new Point(610, 470)
             },
             new LinkedImageButton("https://ko-fi.com/jongyeol", "JipperResourcePack.Installer.Resource.kofi_logo.png") {
                 Size = new Size(87, 24),
-                Location = new Point(677, 470)
+                Location = new Point(682, 470)
             }
         ]);
         MainPanel.ResumeLayout();
@@ -127,54 +126,5 @@ public class MainScreen : Screen {
     public static bool IsNetworkAvailable() {
         return NetworkInterface.GetAllNetworkInterfaces().Any(ni => ni.OperationalStatus == OperationalStatus.Up && ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
                                                                     ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel);
-    }
-
-    private class LinkedImageButton : PictureBox {
-        public string Url;
-        public LinkedImageButton(string url, string imageUrl) {
-            Url = url;
-            Image = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(imageUrl)!);
-            Cursor = Cursors.Hand;
-            Click += OnClick;
-        }
-        private void OnClick(object sender, EventArgs e) {
-            if(Url == null) {
-                using KakaoPayQrForm form = new();
-                form.ShowDialog();
-            } else {
-                try {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo {
-                        FileName = Url,
-                        UseShellExecute = true
-                    }); 
-                } catch (Exception) {
-                    MessageBox.Show(Resources.Current.MainScreen_OpenBrowserFailed, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    // copy clipboard url
-                    Clipboard.SetText(Url);
-                }
-            }
-        }
-    }
-
-    
-    private class KakaoPayQrForm : Form {
-        private const int ImageWidth = 540;
-        private const int ImageHeight = 693;
-        
-        public KakaoPayQrForm() {
-            int widthOffset = Width - ClientSize.Width;
-            int heightOffset = Height - ClientSize.Height;
-            PictureBox qrPictureBox = new() {
-                Location = new Point(0, 0),
-                Size = new Size(ImageWidth, ImageHeight),
-                Image = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.KakaoPay_QR.png")!),
-            };
-            Size = new Size(ImageWidth + widthOffset, ImageHeight + heightOffset);
-            Controls.Add(qrPictureBox);
-            FormBorderStyle = FormBorderStyle.FixedToolWindow;
-            MaximizeBox = false;
-            Name = nameof(KakaoPayQrForm);
-            Text = Resources.Current.MainScreen_KakaoPayQrForm;
-        }
     }
 }
