@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -181,7 +180,7 @@ public class SelectLocationScreen : Screen {
             Label versionLabel = new() {
                 Text = $"(r{adofaiVersion})",
                 Font = Constants.Arial10,
-                ForeColor = Color.FromArgb(109, 109, 109),
+                ForeColor = Constants.SubColor,
                 AutoSize = true,
                 Location = new Point(label.Location.X + label.Size.Width - 4, label.Location.Y + 2)
             };
@@ -219,7 +218,7 @@ public class SelectLocationScreen : Screen {
                 Label label2 = new() {
                     Text = subTitle,
                     Font = Constants.Arial10,
-                    ForeColor = Color.FromArgb(109, 109, 109),
+                    ForeColor = Constants.SubColor,
                     AutoSize = true,
                     Location = new Point(label.Location.X + label.Size.Width - 4, label.Location.Y + 2)
                 };

@@ -31,8 +31,7 @@ public partial class InstallerForm : Form {
         }
         ResetText();
         SetupScreenData();
-        //new MainScreen().Enter();
-        new FinishScreen(null).Enter();
+        new MainScreen().Enter();
         HttpClient = new HttpClient();
         GlobalSetting.Instance.AdditionMods = GetMods();
     }

@@ -27,7 +27,6 @@ public class Resources {
         Select_Title = "Please select additional mods to install.",
         // Select_Description = "Please select the mods you want to install.",
         // Select_Mod = "Select Additional Mods",
-        Install_Install = "Installing...",
         Install_Finish = "Exit",
         FinishScreen_Title = "Jipper ResourcePack Installation Completed",
         FinishScreen_Description = "Jipper ResourcePack installation completed.\nPress the 'Exit' button to finish the installation program.",
@@ -93,7 +92,13 @@ public class Resources {
         Select_AdditionMods = "추가 모드 설치",
         Select_RemoveMods = "기존 모드 제거",
         Select_RemoveMods_Confirm = "선택한 모드를 정말 제거하시겠습니까?\n제거된 모드는 복구할 수 없으며 다시 설치해도 데이터가 유지되지 않을 수 있습니다.",
-        Install_Install = "설치중...",
+        Select_UninstallOption = "제거 옵션",
+        Select_UninstallOption_All = "전체 제거",
+        Select_UninstallOption_AllDescription = "모드 매니저와 모든 모드를 완전히 제거합니다. 모드를 다시 사용하기 위해서는 모든 모드를 다시 설치해야 합니다.",
+        Select_UninstallOption_OnlyManager = "모드 매니저만 제거",
+        Select_UninstallOption_OnlyManagerDescription = "모드 데이터는 남겨둔 채로 모드 매니저만 제거합니다. 모드 매니저를 다시 설치하면 그대로 모드를 사용할 수 있습니다.",
+        Select_UninstallOption_OnlyMod = "특정 모드만 제거",
+        Select_UninstallOption_OnlyModDescription = "모든 모드를 지우지 않고 특정 모드만 제거합니다. 나머지 모드는 계속해서 사용할 수 있습니다.",
         Install_Finish = "마침",
         FinishScreen_Title = "지퍼 리소스팩 설치 완료",
         FinishScreen_Description = "지퍼 리소스팩 설치가 완료되었습니다.\n설치 프로그램을 마치려면 '마침' 버튼을 눌러주세요.",
@@ -160,9 +165,13 @@ public class Resources {
     public string Select_AdditionMods;
     public string Select_RemoveMods;
     public string Select_RemoveMods_Confirm;
-    [Obsolete("", true)]
-    public string Select_Mod;
-    public string Install_Install;
+    public string Select_UninstallOption;
+    public string Select_UninstallOption_All;
+    public string Select_UninstallOption_AllDescription;
+    public string Select_UninstallOption_OnlyManager;
+    public string Select_UninstallOption_OnlyManagerDescription;
+    public string Select_UninstallOption_OnlyMod;
+    public string Select_UninstallOption_OnlyModDescription;
     public string Install_Finish;
     public string FinishScreen_Title;
     public string FinishScreen_Description;

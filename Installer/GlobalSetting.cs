@@ -8,6 +8,8 @@ public class GlobalSetting {
     public string InstallPath;
     public Task<ModData[]> AdditionMods;
     public int AdofaiRevision = -1;
+
+    public bool SelectSaved;
     public bool IsUninstall;
     
     // Install
@@ -16,5 +18,10 @@ public class GlobalSetting {
     public bool InstallJalib;
     public bool InstallJipperResourcePack;
     public List<ModData> SelectedMods;
+    
+    // Uninstall
+    public int UninstallOption;
+    
+    // All
     public List<string> RemoveRequestMods;
 }

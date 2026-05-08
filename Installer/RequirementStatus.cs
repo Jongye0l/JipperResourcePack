@@ -6,4 +6,5 @@ public class RequirementStatus {
     public bool IsExistJipperResourcePack;
     public bool IsAssemblyInstalled;
     public bool IsOldDoorStop;
+    public bool ExistMods;
 }
