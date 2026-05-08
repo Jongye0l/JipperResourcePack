@@ -40,7 +40,7 @@ public class FinishScreen : Screen {
             Location = new Point(420, 120)
         };
         PictureBox = new PictureBox {
-            Image = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("Installer.Resource.JipperResourceSide.png")),
+            Image = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.JipperResourceSide.png")),
             Size = new Size(403, 561)
         };
         MainPanel.Controls.Add(TitleLabel);
