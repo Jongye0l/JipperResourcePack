@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -947,7 +947,7 @@ public class KeyViewer : Feature {
         text.font = BundleLoader.FontAsset;
         text.enableAutoSizing = true;
         text.fontSizeMin = 0;
-        text.fontSizeMax = 20;
+        text.fontSizeMax = count ? 20 : 13;
         text.alignment = slim && count ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
         text.color = settings.Text;
         key.text = gameObject.AddComponent<AsyncText>();
