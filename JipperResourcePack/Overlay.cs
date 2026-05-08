@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using JALib.Tools;
 using TMPro;
@@ -80,16 +79,7 @@ public class Overlay {
     }
 
     public void UpdateHit() {
-        if(VersionControl.releaseNumber < 141) UpdateHitR136();
-        else UpdateHitR141();
-    }
-
-    public void UpdateHitR136() {
-        hit = (int[]) typeof(scrMistakesManager).GetField("hitMarginsCount", BindingFlags.Static | BindingFlags.Public)!.GetValue(null);
-    }
-
-    public void UpdateHitR141() {
-        hit = scrMistakesManager.marginTrackers[0].hitMarginsCount;
+        hit = VersionSafe.GetHitMarginsCount();
     }
 
     protected virtual void InitializeStatus() {
@@ -135,22 +125,8 @@ public class Overlay {
                  .Select(floor => floor.seqID).ToArray()).Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
         UpdateProgress();
-        CalculatePercentAcc(); // UpdateAccuracy();
+        VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
-    }
-
-    protected static void CalculatePercentAcc() {
-        if(VersionControl.releaseNumber < 141) CalculatePercentAccR136();
-        else CalculatePercentAccR141();
-    }
-
-    private static readonly MethodInfo PercentAccMethod = typeof(scrMistakesManager).GetMethod("CalculatePercentAcc", BindingFlags.Instance | BindingFlags.Public);
-    private static void CalculatePercentAccR136() {
-        PercentAccMethod.Invoke(scrController.instance.mistakesManager, []);
-    }
-
-    private static void CalculatePercentAccR141() {
-        scrMistakesManager.marginTrackers[0].CalculatePercentAcc();
     }
 
     protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
@@ -324,10 +300,10 @@ public class Overlay {
 
     public virtual void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
-        float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
+        float xacc = VersionSafe.GetPercentXAcc();
         if(float.IsNaN(xacc)) xacc = 1;
         if(Status.Settings.ShowAccuracy) {
-            float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
+            float acc = VersionSafe.GetPercentAcc();
             float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
             AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
@@ -493,7 +469,7 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
         scrConductor conductor = scrConductor.instance;
-        float bpm = (float) (conductor.bpm * conductor.song.pitch * Main.GetPlanetSpeed());
+        float bpm = (float) (conductor.bpm * conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
         float cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
         if(lastTileBPM == bpm && lastCurBPM == cbpm) return;
@@ -542,7 +518,7 @@ public class Overlay {
             }
             lastHash = PlayCount.GetMapHash();
             lastSavedStartProgress = startProgress;
-            lastMultiplier = (float) (ADOBase.conductor.song.pitch * Main.GetPlanetSpeed());
+            lastMultiplier = (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
             if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
             GameObject.SetActive(true);
             curCheck = 0;

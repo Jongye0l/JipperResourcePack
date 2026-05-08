@@ -538,6 +538,7 @@
         <Compile Include="ResourceChanger.cs" />
         <Compile Include="TimeTextType.cs" />
         <Compile Include="TimingScale.cs" />
+        <Compile Include="VersionSafe.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Keyviewer\KeyCodes.json" />

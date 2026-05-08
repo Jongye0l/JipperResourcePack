@@ -60,7 +60,7 @@ public class JOverlay : Overlay {
         SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && Status.Settings.ShowTiming, ref y);
         UpdateProgress();
-        CalculatePercentAcc(); // UpdateAccuracy();
+        VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
         UpdateAuthor();
         UpdateState();
@@ -89,10 +89,10 @@ public class JOverlay : Overlay {
 
     public override void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
-        float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
+        float xacc = VersionSafe.GetPercentXAcc();
         if(float.IsNaN(xacc)) xacc = 1;
         if(JipperResourcePack.Status.Settings.ShowAccuracy) {
-            float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
+            float acc = VersionSafe.GetPercentAcc();
             float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
             AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
@@ -230,7 +230,7 @@ public class JOverlay : Overlay {
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
         if(floor.seqID <= pseudoFloor) return;
         scrConductor conductor = scrConductor.instance;
-        float bpm = (float) (conductor.bpm * conductor.song.pitch * JipperResourcePack.Main.GetPlanetSpeed());
+        float bpm = (float) (conductor.bpm * conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
         bool checkPseudo = BPM.Settings.CheckPseudo;
         float cbpm = 0;
         int count = 0;

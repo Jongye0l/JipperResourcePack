@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
+using HarmonyLib;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -25,7 +27,7 @@ public class ResourceChanger : Feature {
     public static ResourceChangerSetting Settings;
 
     public ResourceChanger() : base(Main.Instance, nameof(ResourceChanger), true, typeof(ResourceChanger), typeof(ResourceChangerSetting)) {
-        IsAfterR129 = typeof(scrPlanet).Field("planetarySystem") != null;
+        IsAfterR129 = SimpleReflect.Field(typeof(scrPlanet), "planetarySystem") != null;
         Patch();
         ResourcePackName = "Jipper Resource Pack";
         PlanetColor = new Color(0.8125f, 0.70703125f, 0.96875f);
@@ -54,7 +56,7 @@ public class ResourceChanger : Feature {
     }
 
     protected override void OnEnable() {
-        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) VersionSafe.LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
             if(Settings.ChangeRabbit) LoadRabbit();
             if(Settings.ChangeBallColor) LoadPlanet();
@@ -63,7 +65,7 @@ public class ResourceChanger : Feature {
 
     protected override async void OnDisable() {
         while(Patcher.patched) await Task.Yield();
-        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) VersionSafe.LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
             if(Settings.ChangeRabbit) UnloadRabbit();
             if(Settings.ChangeBallColor) UnloadPlanet();
@@ -83,23 +85,9 @@ public class ResourceChanger : Feature {
             else UnloadPlanet();
         });
         settingGUI.AddSettingToggle(ref Settings.ChangeTileColor, localization["resourceChanger.changeTileColor"], () => {
-            if(ADOBase.isLevelSelect) LoadScene(ADOBase.sceneName);
+            if(ADOBase.isLevelSelect) VersionSafe.LoadScene(ADOBase.sceneName);
             else if(!Settings.ChangeTileColor) UnloadTileColor();
         });
-    }
-
-    private static void LoadScene(string name) {
-        if(VersionControl.releaseNumber < 141) LoadSceneR136(name);
-        else LoadSceneR141(name);
-    }
-
-    private static FieldInfo _loadSceneField = typeof(ADOBase).GetField("LoadScene", BindingFlags.Static | BindingFlags.Public);
-    private static void LoadSceneR136(string name) {
-        _loadSceneField.SetValue(null, name);
-    }
-
-    private static void LoadSceneR141(string name) {
-        ADOBase.loader.LoadScene(name);
     }
 
     private static void LoadRabbit() {
@@ -201,8 +189,8 @@ public class ResourceChanger : Feature {
         RectTransform rectTransform = __instance.gameObject.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = rectTransform.anchoredPosition with { y = 0.75f };
         if(Settings.ChangeBallColor) {
-            __instance.ColorLogo(PlanetColor, true);
-            __instance.ColorLogo(PlanetColor, false);
+            __instance.ColorLogoSafe(PlanetColor, true);
+            __instance.ColorLogoSafe(PlanetColor, false);
         }
         Transform transform = rectTransform.parent.parent.Find("Hit Space");
         if(transform.Find("JipperResourcepack Logo")) return;
