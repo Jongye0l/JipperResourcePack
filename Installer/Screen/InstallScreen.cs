@@ -40,7 +40,7 @@ public class InstallScreen : Screen {
     }
 
     public override void OnEnter() {
-        TopPanelLabels[2].Font = new Font("Arial", 16, FontStyle.Bold);
+        TopPanelLabels[2].Font = Constants.Arial16B;
         
         int maxValue = 0;
         if(GlobalSetting.Instance.InstallUnityModManager) maxValue += 60;
@@ -57,7 +57,7 @@ public class InstallScreen : Screen {
             Location = new Point(92, 120)
         };
         LogLabel = new Label {
-            Font = new Font("Arial", 12),
+            Font = Constants.Arial12,
             AutoSize = true,
             Location = new Point(92, 95)
         };
@@ -288,7 +288,7 @@ public class InstallScreen : Screen {
     }
 
     public override void OnLeave() {
-        TopPanelLabels[2].Font = new Font("Arial", 16);
+        TopPanelLabels[2].Font = Constants.Arial16;
     }
 
     public async Task Download(string url, string path, bool checkInfo) {

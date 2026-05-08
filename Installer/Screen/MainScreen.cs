@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -15,7 +15,7 @@ public class MainScreen : Screen {
     }
 
     public override void OnEnter() {
-        Font descriptionFont = new("Arial", 12);
+        Font descriptionFont = Constants.Arial12;
         MainPanel.SuspendLayout();
         MainPanel.Controls.AddRange([
             // JipperResourceSide
@@ -27,7 +27,7 @@ public class MainScreen : Screen {
             // Title
             new Label {
                 Text = Resources.Current.MainScreen_Title,
-                Font = new Font("Arial", 24, FontStyle.Bold),
+                Font = Constants.Arial24B,
                 Size = new Size(392, 32),
                 Location = new Point(435, 48)
             },

@@ -26,13 +26,13 @@ public class SelectLocationScreen : Screen {
 
     public override void OnEnter() {
         GlobalSetting.Instance.InstallPath ??= Utility.GetAdofaiPath();
-        TopPanelLabels[0].Font = new Font("Arial", 16, FontStyle.Bold);
+        TopPanelLabels[0].Font = Constants.Arial16B;
         MainPanel.SuspendLayout();
 
         // Title
         Control control = new Label {
             Text = Resources.Current.SelectLocation_Title,
-            Font = new Font("Arial", 16),
+            Font = Constants.Arial16,
             AutoSize = true,
             Location = new Point(30, 62)
         };
@@ -41,7 +41,7 @@ public class SelectLocationScreen : Screen {
         // Description
         control = new Label {
             Text = Resources.Current.SelectLocation_Description,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(32, 99)
         };
@@ -50,7 +50,7 @@ public class SelectLocationScreen : Screen {
         // Location
         control = new Label {
             Text = Resources.Current.SelectLocation_Location,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(35, 230)
         };
@@ -59,7 +59,7 @@ public class SelectLocationScreen : Screen {
         control = LocationTextBox = new TextBox {
             Text = GlobalSetting.Instance.InstallPath,
             Location = new Point(38, 254),
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             Size = new Size(770, 50)
         };
         LocationTextBox.TextChanged += (_, _) => UpdateInformation(false);
@@ -68,7 +68,7 @@ public class SelectLocationScreen : Screen {
         control = new Button {
             Text = Resources.Current.SelectLocation_Select,
             Location = new Point(818, 254),
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             Size = new Size(130, 30)
         };
         control.Click += LocationSelectButton_Click;
@@ -79,7 +79,7 @@ public class SelectLocationScreen : Screen {
         // AdofaiFolderGuide = new Button {
         //     Text = Resources.Current.SelectLocation_AdofaiFolderGuide,
         //     Location = new Point(30, 150),
-        //     Font = new Font("Arial", 13),
+        //     Font = Constants.Arial13,
         //     Size = new Size(150, 30)
         // };
         // AdofaiFolderGuide.Click += AdofaiFolderGuide_Click;
@@ -89,7 +89,7 @@ public class SelectLocationScreen : Screen {
     }
 
     public override void OnLeave() {
-        TopPanelLabels[0].Font = new Font("Arial", 16);
+        TopPanelLabels[0].Font = Constants.Arial16;
     }
 
     public override bool OnNext() {
@@ -112,7 +112,7 @@ public class SelectLocationScreen : Screen {
             Resources resources = Resources.Current;
             NotifyBox.Controls.Add(new Label {
                 Text = resources.SelectLocation_NotifyTitle,
-                Font = new Font("Arial", 16, FontStyle.Bold),
+                Font = Constants.Arial16B,
                 AutoSize = true,
                 Location = new Point(12, 16)
             });
@@ -180,7 +180,7 @@ public class SelectLocationScreen : Screen {
 
             Label versionLabel = new() {
                 Text = $"(r{adofaiVersion})",
-                Font = new Font("Arial", 10),
+                Font = Constants.Arial10,
                 ForeColor = Color.FromArgb(109, 109, 109),
                 AutoSize = true,
                 Location = new Point(label.Location.X + label.Size.Width - 4, label.Location.Y + 2)
@@ -218,7 +218,7 @@ public class SelectLocationScreen : Screen {
             try {
                 Label label2 = new() {
                     Text = subTitle,
-                    Font = new Font("Arial", 10),
+                    Font = Constants.Arial10,
                     ForeColor = Color.FromArgb(109, 109, 109),
                     AutoSize = true,
                     Location = new Point(label.Location.X + label.Size.Width - 4, label.Location.Y + 2)
@@ -244,7 +244,7 @@ public class SelectLocationScreen : Screen {
         NotifyBox.Controls.Add(icon);
         Label label = new() {
             Text = title,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             Size = new Size(845, 20),
             Location = new Point(46, 51 + count * 32)
         };

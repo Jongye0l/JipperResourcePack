@@ -70,7 +70,7 @@ public partial class InstallerForm : Form {
                     _ => "→"
                 },
                 AutoSize = true,
-                Font = new Font("Arial", 16),
+                Font = Constants.Arial16,
                 Location = oldLabel == null ? new Point(32, 9) : new Point(oldLabel.Location.X + oldLabel.Size.Width, 9)
             };
             if((i & 1) == 0) labels[i >> 1] = label;

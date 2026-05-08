@@ -37,14 +37,14 @@ public class SelectScreen : Screen {
     public override void OnEnter() {
         RequirementStatus.IsExistJALib = File.Exists(Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JALib", "JALib.dll"));
         RequirementStatus.IsExistJipperResourcePack = File.Exists(Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JipperResourcePack", "JipperResourcePack.dll"));
-        TopPanelLabels[1].Font = new Font("Arial", 16, FontStyle.Bold);
+        TopPanelLabels[1].Font = Constants.Arial16B;
         MainPanel.SuspendLayout();
         Resources resources = Resources.Current;
 
         // Title
         Control control = new Label {
             Text = resources.Select_Title,
-            Font = new Font("Arial", 16),
+            Font = Constants.Arial16,
             AutoSize = true,
             Location = new Point(30, 62)
         };
@@ -53,7 +53,7 @@ public class SelectScreen : Screen {
         // Work
         control = new Label {
             Text = resources.Select_Work,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(34, 103)
         };
@@ -66,7 +66,7 @@ public class SelectScreen : Screen {
 
         control = WorkInstallRadio = new RadioButton {
             Text = resources.Select_Work_Install,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(0, 0),
             Checked = true
@@ -75,7 +75,7 @@ public class SelectScreen : Screen {
 
         control = WorkUninstallRadio = new RadioButton {
             Text = resources.Select_Work_Uninstall,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(80, 0)
         };
@@ -92,7 +92,7 @@ public class SelectScreen : Screen {
         // Requirement
         control = new Label {
             Text = resources.Select_Requirement,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(34, 169)
         };
@@ -107,7 +107,7 @@ public class SelectScreen : Screen {
 
         control = RequirementUnityModManager = new CheckBox {
             Text = "UnityModManager",
-            Font = new Font("Arial", 11),
+            Font = Constants.Arial11,
             AutoSize = true,
             Location = new Point(0, 0),
             Checked = !RequirementStatus.IsExistUnityModManager,
@@ -117,7 +117,7 @@ public class SelectScreen : Screen {
 
         control = RequirementDoorstop = new CheckBox {
             Text = "Doorstop",
-            Font = new Font("Arial", 11),
+            Font = Constants.Arial11,
             AutoSize = true,
             Location = new Point(177, 0),
             Checked = RequirementUnityModManager.Checked || RequirementStatus.IsAssemblyInstalled || RequirementStatus.IsOldDoorStop,
@@ -128,7 +128,7 @@ public class SelectScreen : Screen {
 
         control = RequirementJalib = new CheckBox {
             Text = "JALib",
-            Font = new Font("Arial", 11),
+            Font = Constants.Arial11,
             AutoSize = true,
             Location = new Point(293, 0),
             Checked = !RequirementStatus.IsExistJALib,
@@ -138,7 +138,7 @@ public class SelectScreen : Screen {
 
         control = RequirementJipperResourcePack = new CheckBox {
             Text = "JipperResourcePack",
-            Font = new Font("Arial", 11),
+            Font = Constants.Arial11,
             AutoSize = true,
             Location = new Point(384, 0),
             Checked = true,
@@ -151,7 +151,7 @@ public class SelectScreen : Screen {
         // Addition Mods
         control = new Label {
             Text = resources.Select_AdditionMods,
-            Font = new Font("Arial", 13),
+            Font = Constants.Arial13,
             AutoSize = true,
             Location = new Point(34, 240)
         };
@@ -208,7 +208,7 @@ public class SelectScreen : Screen {
                     for(int i = 0; i < mods.Length; i++) {
                         AdditionMods[i] = new CheckBox {
                             Text = mods[i].DisplayName,
-                            Font = new Font("Arial", 11),
+                            Font = Constants.Arial11,
                             Size = new Size(303, 25),
                             Location = new Point(i % 3 * 303, i / 3 * 25),
                             Checked = selectedMods?.Contains(mods[i]) == true
@@ -228,7 +228,7 @@ public class SelectScreen : Screen {
             
             GroupBox groupBox = new() {
                 Text = Resources.Current.Select_RemoveMods,
-                Font = new Font("Arial", 13),
+                Font = Constants.Arial13,
                 Location = new Point(32, 287 + 25 * line)
             };
             groupBox.Size = new Size(920, 539 - groupBox.Location.Y);
@@ -244,7 +244,7 @@ public class SelectScreen : Screen {
                     if(item == null) break;
                     CheckBox checkBox = new() {
                         Text = item,
-                        Font = new Font("Arial", 11),
+                        Font = Constants.Arial11,
                         Size = new Size(295, 25),
                         Location = new Point(ExistMods.Count % 3 * 295, ExistMods.Count / 3 * 25)
                     };
@@ -324,6 +324,6 @@ public class SelectScreen : Screen {
                 removeRequestMods.Add(ExistModsPath[i]);
         GlobalSetting.Instance.RemoveRequestMods = removeRequestMods;
         
-        TopPanelLabels[1].Font = new Font("Arial", 16);
+        TopPanelLabels[1].Font = Constants.Arial16;
     }
 }
