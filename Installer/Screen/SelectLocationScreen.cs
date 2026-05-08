@@ -46,7 +46,7 @@ public class SelectLocationScreen : Screen {
             Location = new Point(32, 99)
         };
         MainPanel.Controls.Add(control);
-        
+
         // Location
         control = new Label {
             Text = Resources.Current.SelectLocation_Location,
@@ -55,16 +55,16 @@ public class SelectLocationScreen : Screen {
             Location = new Point(35, 230)
         };
         MainPanel.Controls.Add(control);
-        
+
         control = LocationTextBox = new TextBox {
             Text = GlobalSetting.Instance.InstallPath,
             Location = new Point(38, 254),
             Font = new Font("Arial", 13),
             Size = new Size(770, 50)
         };
-        LocationTextBox.TextChanged += (_, _) => UpdateInformation();
+        LocationTextBox.TextChanged += (_, _) => UpdateInformation(false);
         MainPanel.Controls.Add(control);
-        
+
         control = new Button {
             Text = Resources.Current.SelectLocation_Select,
             Location = new Point(818, 254),
@@ -73,7 +73,7 @@ public class SelectLocationScreen : Screen {
         };
         control.Click += LocationSelectButton_Click;
         MainPanel.Controls.Add(control);
-        
+
         control = NotifyBox = new GroupBox();
         MainPanel.Controls.Add(control);
         // AdofaiFolderGuide = new Button {
@@ -85,7 +85,7 @@ public class SelectLocationScreen : Screen {
         // AdofaiFolderGuide.Click += AdofaiFolderGuide_Click;
         // MainPanel.Controls.Add(AdofaiFolderGuide);
         MainPanel.ResumeLayout();
-        UpdateInformation();
+        UpdateInformation(true);
     }
 
     public override void OnLeave() {
@@ -98,7 +98,7 @@ public class SelectLocationScreen : Screen {
         return false;
     }
 
-    public void UpdateInformation() {
+    public void UpdateInformation(bool init) {
         int count = 0;
         try {
             NotifyBox.SuspendLayout();
@@ -108,7 +108,7 @@ public class SelectLocationScreen : Screen {
             }
             Cts = new CancellationTokenSource();
             ErrorString = null;
-            
+
             Resources resources = Resources.Current;
             NotifyBox.Controls.Add(new Label {
                 Text = resources.SelectLocation_NotifyTitle,
@@ -136,8 +136,8 @@ public class SelectLocationScreen : Screen {
                 CreateNotify(1, resources.SelectLocation_NotifyGameNotFound, ref count);
                 return;
             }
-            ParseAdofaiVersion(CreateNotify(0, resources.SelectLocation_NotifyGameFound, ref count));
-            
+            ParseAdofaiVersion(CreateNotify(0, resources.SelectLocation_NotifyGameFound, ref count), init);
+
             if(!File.Exists(Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "UnityModManager", "UnityModManager.dll"))) return;
             RequirementStatus.IsExistUnityModManager = true;
             if(!File.Exists(Path.Combine(path, "winhttp.dll"))) {
@@ -145,7 +145,7 @@ public class SelectLocationScreen : Screen {
                 CreateNotify(2, resources.SelectLocation_NotifyUmmIsAssembly, resources.SelectLocation_NotifyUmmIsAssembly2, ref count);
                 return;
             }
-            
+
             FileVersionInfo doorstopVersion = FileVersionInfo.GetVersionInfo(Path.Combine(path, "winhttp.dll"));
             Version version = Version.Parse(doorstopVersion.FileVersion);
             if(version < new Version(4, 4, 0, 0)) {
@@ -160,16 +160,24 @@ public class SelectLocationScreen : Screen {
         }
     }
 
-    private async void ParseAdofaiVersion(Label label) {
+    private async void ParseAdofaiVersion(Label label, bool init) {
         try {
             CancellationToken token = Cts.Token;
-            GlobalSetting.Instance.AdofaiRevision = -1;
             label.AutoSize = true;
-            string path = GlobalSetting.Instance.InstallPath;
-            string dllPath = Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "Assembly-CSharp.dll");
-            int adofaiVersion = await Task.Run(() => GetAdofaiRevision(dllPath), token); // TODO: Memory Leak. add AppDomain System.
-            if(token.IsCancellationRequested) return;
-            GlobalSetting.Instance.AdofaiRevision = adofaiVersion;
+            int adofaiVersion;
+
+            if(!init || GlobalSetting.Instance.AdofaiRevision == -1) {
+                GlobalSetting.Instance.AdofaiRevision = -1;
+                string path = GlobalSetting.Instance.InstallPath;
+                string dllPath = Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "Assembly-CSharp.dll");
+                adofaiVersion = await Task.Run(() => GetAdofaiRevision(dllPath), token); // TODO: Memory Leak. add AppDomain System.
+                if(token.IsCancellationRequested) return;
+                GlobalSetting.Instance.AdofaiRevision = adofaiVersion;
+            } else {
+                adofaiVersion = GlobalSetting.Instance.AdofaiRevision;
+                await Task.Yield(); // Waiting Resume to update label location
+            }
+
             Label versionLabel = new() {
                 Text = $"(r{adofaiVersion})",
                 Font = new Font("Arial", 10),
