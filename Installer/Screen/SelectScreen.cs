@@ -141,7 +141,7 @@ public class SelectScreen : Screen {
             Font = new Font("Arial", 11),
             AutoSize = true,
             Location = new Point(384, 0),
-            Checked = !RequirementStatus.IsExistJipperResourcePack,
+            Checked = true,
             Enabled = RequirementStatus.IsExistJipperResourcePack
         };
         panel.Controls.Add(control);
