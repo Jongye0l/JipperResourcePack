@@ -34,7 +34,7 @@ public class Attempt : Feature {
 
     public class AttemptSetting : JASetting {
         public bool ShowAttempt = true;
-        public bool ShowFullAttempt;
+        public bool ShowFullAttempt = true;
         
         public AttemptSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
         }
