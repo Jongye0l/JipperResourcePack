@@ -7,6 +7,7 @@ public class GlobalSetting {
     public static GlobalSetting Instance = new();
     public string InstallPath;
     public Task<ModData[]> AdditionMods;
+    public int AdofaiRevision = -1;
     public bool IsUninstall;
     
     // Install

@@ -15,7 +15,6 @@ public class SelectLocationScreen : Screen {
     public TextBox LocationTextBox;
     public GroupBox NotifyBox;
     public CancellationTokenSource Cts;
-    public List<Control> ContainsControls = [];
     public string ErrorString;
     public RequirementStatus RequirementStatus = new();
     //public Button AdofaiFolderGuide;
@@ -90,7 +89,6 @@ public class SelectLocationScreen : Screen {
     }
 
     public override void OnLeave() {
-        Cts?.Cancel();
         TopPanelLabels[0].Font = new Font("Arial", 16);
     }
 
@@ -165,11 +163,13 @@ public class SelectLocationScreen : Screen {
     private async void ParseAdofaiVersion(Label label) {
         try {
             CancellationToken token = Cts.Token;
+            GlobalSetting.Instance.AdofaiRevision = -1;
             label.AutoSize = true;
             string path = GlobalSetting.Instance.InstallPath;
             string dllPath = Path.Combine(path, "A Dance of Fire and Ice_Data", "Managed", "Assembly-CSharp.dll");
             int adofaiVersion = await Task.Run(() => GetAdofaiRevision(dllPath), token); // TODO: Memory Leak. add AppDomain System.
             if(token.IsCancellationRequested) return;
+            GlobalSetting.Instance.AdofaiRevision = adofaiVersion;
             Label versionLabel = new() {
                 Text = $"(r{adofaiVersion})",
                 Font = new Font("Arial", 10),

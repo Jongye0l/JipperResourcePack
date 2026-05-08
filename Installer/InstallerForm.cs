@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using JipperResourcePack.Installer.Resource;
@@ -14,7 +13,7 @@ using Newtonsoft.Json;
 namespace JipperResourcePack.Installer;
 
 public partial class InstallerForm : Form {
-    public static WebClient WebClient;
+    public static HttpClient HttpClient;
 
     public InstallerForm() {
         InitializeComponent();
@@ -33,8 +32,7 @@ public partial class InstallerForm : Form {
         ResetText();
         SetupScreenData();
         new MainScreen().Enter();
-        WebClient = new WebClient();
-        WebClient.Encoding = Encoding.UTF8;
+        HttpClient = new HttpClient();
         GlobalSetting.Instance.AdditionMods = GetMods();
     }
 
@@ -93,7 +91,7 @@ public partial class InstallerForm : Form {
     }
 
     public async Task<ModData[]> GetMods() {
-        string responseData = await WebClient.DownloadStringTaskAsync("https://github.com/Jongye0l/JipperResourcePack/raw/main/Installer/mods.json");
+        string responseData = await HttpClient.GetStringAsync("https://github.com/Jongye0l/JipperResourcePack/raw/main/Installer/mods.json");
         return JsonConvert.DeserializeObject<ModData[]>(responseData);
     }
 }
