@@ -73,7 +73,6 @@
         <Compile Include="Screen\MainScreen.cs" />
         <Compile Include="Screen\SelectLocationScreen.cs" />
         <Compile Include="Screen\SelectScreen.cs" />
-        <Compile Include="UMMInstaller.cs" />
         <Compile Include="Utility.cs" />
         <EmbeddedResource Include="InstallerForm.resx">
           <DependentUpon>InstallerForm.cs</DependentUpon>
