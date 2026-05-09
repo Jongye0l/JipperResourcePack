@@ -12,6 +12,7 @@ public class BundleLoader {
     public static Sprite Auto;
     public static Sprite KeyBackground;
     public static Sprite KeyOutline;
+    public static Sprite GhostRain;
     public static Texture2D SideImage;
     
     public static void LoadBundle() {
@@ -67,6 +68,9 @@ public class BundleLoader {
                     break;
                 case "SideImage":
                     if(asset is Texture2D t) SideImage = t;
+                    break;
+                case "GhostRain":
+                    if(asset is Sprite s3) GhostRain = s3;
                     break;
             }
         }

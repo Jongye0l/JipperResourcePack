@@ -26,6 +26,7 @@ namespace JipperResourcePack.Keyviewer;
 public class KeyViewer : Feature {
     private const int HandOutIndex = 20;
     private const int FootOutIndex = 36;
+    private const int GhostOutIndex = 56;
 
     public static KeyViewerSettings Settings;
     public static readonly Color Background = new(0.5607843f, 0.2352941f, 1, 0.1960784f);
@@ -53,6 +54,7 @@ public class KeyViewer : Feature {
     private bool Save;
     private bool KeyShare;
     private bool KeyChangeExpanded;
+    private bool GhostRainChangeExpanded;
     private bool TextChangeExpanded;
     private bool[] ColorExpanded;
     private KeyviewerStyle currentKeyViewerStyle;
@@ -63,6 +65,7 @@ public class KeyViewer : Feature {
     public int SelectedKey = -1;
     public int WinAPICool;
     public int CurrentKeyMaxY = 120;
+    public int ChangeState;
     public bool TextChanged;
     private string _rainSizeString;
     private string _rainHeightString;
@@ -129,7 +132,6 @@ public class KeyViewer : Feature {
         JALocalization localization = Main.Instance.Localization;
         KeyViewerSettings settings = Settings;
         settingGUI.AddSettingToggle(ref KeyShare, localization["keyViewer.keyShare"]);
-        // settingGUI.AddSettingToggle(ref settings.DownLocation, localization["keyViewer.downLocation"], ResetKeyViewer);
         GUILayout.BeginHorizontal();
         settingGUI.AddSettingSliderFloat(ref settings.YLocation, 200, ref _yLocationString, localization["keyViewer.yLocation"], 0, CurrentKeyMaxY, ResetKeyViewer);
         if(settings.YLocation != 200 && GUILayout.Button(localization["keyViewer.resetYLocation"])) {
@@ -139,7 +141,11 @@ public class KeyViewer : Feature {
             ResetKeyViewer();
         }
         GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal();
         settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], CheckResetRain);
+        if(settings.useRain) settingGUI.AddSettingToggle(ref settings.useGhostRain, localization["keyViewer.useGhostRain"], CheckResetRain);
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
         settingGUI.AddSettingSliderFloat(ref settings.rainSpeed, 100, ref _rainSizeString, localization["keyViewer.rainSpeed"], 1, 800);
         settingGUI.AddSettingSliderFloat(ref settings.rainHeight, 200, ref _rainHeightString, localization["keyViewer.rainHeight"], 1, 1000);
         if(ADOBase.platform == Platform.Windows && (AdofaiTweaksAPI.IsExist || KeyboardChatterBlockerAPI.IsExist))
@@ -151,6 +157,7 @@ public class KeyViewer : Feature {
         });
         KeyCode[] keyCodes = GetKeyCode();
         KeyCode[] footKeyCodes = GetFootKeyCode();
+        KeyCode[] ghostKeyCodes = GetGhostKeyCode();
         string[] keyTexts = GetKeyText();
         GUILayout.Space(12f);
         GUIStyle toggleStyle = new() {
@@ -190,11 +197,44 @@ public class KeyViewer : Feature {
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
             }
-            if(SelectedKey != -1 && !TextChanged) GUILayout.Label($"<b>{localization["keyViewer.inputKey"]}</b>");
+            if(SelectedKey != -1 && ChangeState == 0) GUILayout.Label($"<b>{localization["keyViewer.inputKey"]}</b>");
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             GUILayout.Space(12f);
         }
+
+        if(settings.useGhostRain) {
+            GUILayout.BeginHorizontal();
+            GhostRainChangeExpanded = GUILayout.Toggle(GhostRainChangeExpanded, GhostRainChangeExpanded ? "◢" : "▶", toggleStyle);
+            if(GUILayout.Button(localization["keyViewer.ghostRainKeyChange"], GUI.skin.label)) GhostRainChangeExpanded = !GhostRainChangeExpanded;
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            if(GhostRainChangeExpanded) {
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(18f);
+                GUILayout.BeginVertical();
+                GUILayout.BeginHorizontal();
+                for(int i = 0; i < 8; i++) CreateGhostButton(i);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                byte[] backSequence = GetBackSequence();
+                for(int i = 0; i < backSequence.Length && i < 8; i++) CreateGhostButton(backSequence[i]);
+                if(backSequence.Length > 8) {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    for(int i = 8; i < backSequence.Length; i++) CreateGhostButton(backSequence[i]);
+                }
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+                if(SelectedKey != -1 && ChangeState == 2) GUILayout.Label($"<b>{localization["keyViewer.inputKey"]}</b>");
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+                GUILayout.Space(12f);
+            }
+        }
+        
         GUILayout.BeginHorizontal();
         TextChangeExpanded = GUILayout.Toggle(TextChangeExpanded, TextChangeExpanded ? "◢" : "▶", toggleStyle);
         if(GUILayout.Button(localization["keyViewer.textChange"], GUI.skin.label)) TextChangeExpanded = !TextChangeExpanded;
@@ -219,7 +259,7 @@ public class KeyViewer : Feature {
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-            if(SelectedKey != -1 && TextChanged) {
+            if(SelectedKey != -1 && ChangeState == 1) {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(localization["keyViewer.inputText"]);
                 string textArea = GUILayout.TextArea(keyTexts[SelectedKey] ?? KeyToString(keyCodes[SelectedKey]));
@@ -266,7 +306,8 @@ public class KeyViewer : Feature {
                 "TextClicked",
                 "RainColor",
                 "RainColor2",
-                "RainColor3"
+                "RainColor3",
+                ""
             ];
             for(int i = 0; i < 9; i++) {
                 if(i == 8 && Settings.KeyViewerStyle != KeyviewerStyle.Key20) continue;
@@ -308,7 +349,7 @@ public class KeyViewer : Feature {
             }
             if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) _confirmResetCount = false;
         }
-        if(SelectedKey == -1 || TextChanged || !Application.isFocused) return;
+        if(SelectedKey == -1 || ChangeState == 1 || !Application.isFocused) return;
         if(Input.anyKeyDown) {
             foreach(KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
                 if(!Input.GetKeyDown(keyCode)) continue;
@@ -337,21 +378,38 @@ public class KeyViewer : Feature {
             if(!GUILayout.Button(Bold(i < HandOutIndex ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - HandOutIndex]),
                    i == SelectedKey && textChanged == TextChanged))) return;
             SelectedKey = i;
-            TextChanged = textChanged;
+            ChangeState = textChanged ? 1 : 0;
             if(textChanged) return;
             WinAPICool = 0;
             KeyPressed = new bool[256];
             for(int i2 = 0; i2 < 256; i2++) KeyPressed[i2] = (GetAsyncKeyState(i2) & 0x8000) != 0;
         }
 
+        void CreateGhostButton(int i) {
+            if(!GUILayout.Button(Bold(ToString(ghostKeyCodes[i]), i == SelectedKey))) return;
+            if(ghostKeyCodes[i] != KeyCode.None) {
+                ghostKeyCodes[i] = KeyCode.None;
+                Main.Instance.SaveSetting();
+                return;
+            }
+            SelectedKey = i;
+            ChangeState = 2;
+            WinAPICool = 0;
+            KeyPressed = new bool[256];
+            for(int i2 = 0; i2 < 256; i2++) KeyPressed[i2] = (GetAsyncKeyState(i2) & 0x8000) != 0;
+        }
+
         void SetupKey(KeyCode keyCode) {
-            if(SelectedKey < HandOutIndex) keyCodes[SelectedKey] = keyCode;
-            else footKeyCodes[SelectedKey - HandOutIndex] = keyCode;
-            Keys[SelectedKey].text.tmp.text = (SelectedKey < HandOutIndex ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+            if(ChangeState == 0) {
+                if(SelectedKey < HandOutIndex) keyCodes[SelectedKey] = keyCode;
+                else footKeyCodes[SelectedKey - HandOutIndex] = keyCode;
+                Keys[SelectedKey].text.tmp.text = (SelectedKey < HandOutIndex ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+                UpdateKeyLimit();
+            } else ghostKeyCodes[SelectedKey] = keyCode;
+            
             SelectedKey = -1;
             WinAPICool = 0;
             KeyPressed = null;
-            UpdateKeyLimit();
             Main.Instance.SaveSetting();
         }
     }
@@ -362,6 +420,16 @@ public class KeyViewer : Feature {
             KeyviewerStyle.Key16 => Settings.key16,
             KeyviewerStyle.Key20 => Settings.key20,
             KeyviewerStyle.Key10 => Settings.key10,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    private static KeyCode[] GetGhostKeyCode() {
+        return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key12 => Settings.GhostKey12,
+            KeyviewerStyle.Key16 => Settings.GhostKey16,
+            KeyviewerStyle.Key20 => Settings.GhostKey20,
+            KeyviewerStyle.Key10 => Settings.GhostKey10,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -616,8 +684,12 @@ public class KeyViewer : Feature {
             if(!key) continue;
             key.RawRainQueue.Clear();
             while(key.RainList.Count > 0) {
-                key.RainList[0].removed = true;
+                key.RainList[0].Removed = true;
                 key.RainList.RemoveAt(0);
+            }
+            while(key.GhostRainList.Count > 0) {
+                key.GhostRainList[0].Removed = true;
+                key.GhostRainList.RemoveAt(0);
             }
         }
     }
@@ -739,65 +811,97 @@ public class KeyViewer : Feature {
     private void ListenKey() {
         try {
             KeyViewerSettings settings = Settings;
-            bool[] keyState = new bool[FootOutIndex];
+            bool[] keyState = new bool[GhostOutIndex];
             int repeat = 0;
             while(KeyinputListener is { IsAlive: true } && Enabled) {
-                long elapsedMilliseconds = Stopwatch.ElapsedMilliseconds;
-                float speed = settings.rainSpeed;
-                float height = settings.rainHeight;
-                KeyCode[] keyCodes = GetKeyCode();
-                for(int i = 0; i < keyCodes.Length; i++) {
-                    bool current = CheckKey(keyCodes[i]);
-                    Key key = Keys[i];
-                    if(!key) continue;
-                    for(int j = 0; j < key.RainList.Count; j++) {
-                        RawRain rain = key.RainList[j];
-                        if(rain.UpdateLocation(elapsedMilliseconds, current && keyState[i] && j == key.RainList.Count - 1, speed, height)) continue;
-                        key.RainList.Remove(rain);
-                        rain.removed = true;
-                        j--;
+                try {
+                    long currentMillis = Stopwatch.ElapsedMilliseconds;
+                    float speed = settings.rainSpeed;
+                    float height = settings.rainHeight;
+                    KeyCode[] keyCodes = GetKeyCode();
+                    for(int i = 0; i < keyCodes.Length; i++) {
+                        bool current = CheckKey(keyCodes[i]);
+                        Key key = Keys[i];
+                        if(!key) continue;
+                        for(int j = 0; j < key.RainList.Count; j++) {
+                            RawRain rain = key.RainList[j];
+                            if(rain.UpdateLocation(currentMillis, current, speed, height)) continue;
+                            key.RainList.Remove(rain);
+                            rain.Removed = true;
+                            rain.FinishSize = false;
+                            j--;
+                        }
+                        if(current == keyState[i]) continue;
+                        keyState[i] = current;
+                        UpdateKey(i, current);
+                        if(!current) continue;
+                        if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
+                        key.value.text = (++settings.Count[i]).ToString();
+                        Total.value.text = (++settings.TotalCount).ToString();
+                        PressTimes.Enqueue(currentMillis);
+                        if(settings.useRain) {
+                            RawRain rawRain = new(currentMillis, key.color, false);
+                            key.RawRainQueue.Enqueue(rawRain);
+                            key.RainList.Add(rawRain);
+                        }
+                        Save = true;
                     }
-                    if(current == keyState[i]) continue;
-                    keyState[i] = current;
-                    UpdateKey(i, current);
-                    if(!current) continue;
-                    if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-                    key.value.text = (++settings.Count[i]).ToString();
-                    Total.value.text = (++settings.TotalCount).ToString();
-                    PressTimes.Enqueue(elapsedMilliseconds);
-                    if(settings.useRain) {
-                        RawRain rawRain = new(elapsedMilliseconds, key.color);
-                        key.RawRainQueue.Enqueue(rawRain);
-                        key.RainList.Add(rawRain);
+                    keyCodes = GetFootKeyCode();
+                    for(int i = 0; i < keyCodes.Length; i++) {
+                        bool current = CheckKey(keyCodes[i]);
+                        int index = i + HandOutIndex;
+                        Key key = Keys[index];
+                        if(!key || current == keyState[index]) continue;
+                        keyState[index] = current;
+                        UpdateKey(index, current);
+                        if(!current) continue;
+                        PressTimes.Enqueue(currentMillis);
+                        settings.Count[index]++;
+                        Total.value.text = (++settings.TotalCount).ToString();
+                        Save = true;
                     }
-                    Save = true;
+                    if(settings.useRain && settings.useGhostRain) {
+                        keyCodes = GetGhostKeyCode();
+                        for(int i = 0; i < keyCodes.Length; i++) {
+                            bool current = CheckKey(keyCodes[i]);
+                            Key key = Keys[i];
+                            if(!key) continue;
+                            for(int j = 0; j < key.GhostRainList.Count; j++) {
+                                RawRain rain = key.GhostRainList[j];
+                                if(rain.UpdateLocation(currentMillis, current, speed, height)) continue;
+                                key.GhostRainList.Remove(rain);
+                                rain.Removed = true;
+                                rain.FinishSize = false;
+                                j--;
+                            }
+                            int index = i + HandOutIndex;
+                            if(current == keyState[index]) continue;
+                            keyState[index] = current;
+                            if(!current) continue;
+                            if(settings.useRain) {
+                                RawRain rawRain = new(currentMillis, key.color, true);
+                                key.RawRainQueue.Enqueue(rawRain);
+                                key.GhostRainList.Add(rawRain);
+                            }
+                            Save = true;
+                        }
+                    }
+                    while(PressTimes.TryPeek(out long result)) {
+                        if(currentMillis - result > 1000)
+                            PressTimes.TryDequeue(out long _);
+                        else break;
+                    }
+                    if(lastKps == PressTimes.Count) continue;
+                    lastKps = PressTimes.Count;
+                    Kps.value.text = lastKps.ToString();
+                    if(++repeat < 100 || !Save || !Enabled) continue;
+                    Main.Instance.SaveSetting();
+                    Save = false;
+                    repeat = 0;
+                } catch (Exception e) {
+                    if(KeyinputListener is not { IsAlive: true }) return;
+                    Main.Instance.LogException(e);
                 }
-                keyCodes = GetFootKeyCode();
-                for(int i = 0; i < keyCodes.Length; i++) {
-                    bool current = CheckKey(keyCodes[i]);
-                    int index = i + HandOutIndex;
-                    Key key = Keys[index];
-                    if(!key || current == keyState[index]) continue;
-                    keyState[index] = current;
-                    UpdateKey(index, current);
-                    if(!current) continue;
-                    PressTimes.Enqueue(elapsedMilliseconds);
-                    settings.Count[index]++;
-                    Total.value.text = (++settings.TotalCount).ToString();
-                    Save = true;
-                }
-                while(PressTimes.TryPeek(out long result)) {
-                    if(elapsedMilliseconds - result > 1000)
-                        PressTimes.TryDequeue(out long _);
-                    else break;
-                }
-                if(lastKps == PressTimes.Count) continue;
-                lastKps = PressTimes.Count;
-                Kps.value.text = lastKps.ToString();
-                if(++repeat < 100 || !Save || !Enabled) continue;
-                Main.Instance.SaveSetting();
-                Save = false;
-                repeat = 0;
             }
         } catch (ThreadAbortException) {
         } catch (Exception e) {
@@ -824,7 +928,7 @@ public class KeyViewer : Feature {
         Keys[11] = CreateKey(11, 54 * 4 + 81, 25 + y, 50, 1);
         for(int i = 0; i < 4; i++) {
             int j = BackSequence12[i];
-            Keys[j].rainParent = Keys[i + 2].rainParent;
+            Keys[j].RainPool = Keys[i + 2].RainPool;
         }
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
@@ -836,7 +940,7 @@ public class KeyViewer : Feature {
         for(int i = 0; i < 8; i++) {
             int j = BackSequence16[i];
             Keys[j] = CreateKey(j, 54 * i, 66 + y, 50, 1);
-            Keys[j].rainParent = Keys[i].rainParent;
+            Keys[j].RainPool = Keys[i].RainPool;
         }
         Kps = CreateKey(-1, 0, 20 + y, 212, -1, true);
         Total = CreateKey(-2, 216, 20 + y, 212, -1, true);
@@ -848,7 +952,7 @@ public class KeyViewer : Feature {
         for(int i = 0; i < 8; i++) {
             int j = BackSequence20[i];
             Keys[j] = CreateKey(j, 54 * i, 79 + y, 50, 1);
-            Keys[j].rainParent = Keys[i].rainParent;
+            Keys[j].RainPool = Keys[i].RainPool;
         }
         Keys[16] = CreateKey(16, 81 + 54, 25 + y, 77, 3);
         Keys[17] = CreateKey(17, 81, 25 + y, 50, 3);
@@ -862,9 +966,9 @@ public class KeyViewer : Feature {
         float y = Settings.YLocation;
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 79 + y, 50, 0);
         Keys[8] = CreateKey(8, 81, 25 + y, 131, 1);
-        Keys[8].rainParent = Keys[3].rainParent;
+        Keys[8].RainPool = Keys[3].RainPool;
         Keys[9] = CreateKey(9, 54 * 4, 25 + y, 131, 1);
-        Keys[9].rainParent = Keys[4].rainParent;
+        Keys[9].RainPool = Keys[4].RainPool;
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
     }
@@ -962,9 +1066,10 @@ public class KeyViewer : Feature {
         }
         UpdateKeyText(key, i);
         key.color = raining < 2 ? raining + 1 : raining;
+        key.siblingIndex = (key.color - 1) * 2;
         if(raining != 0 && raining != 2 && raining != 3) return key;
-        key.rainParent = new GameObject("RainLine");
-        transform = key.rainParent.AddComponent<RectTransform>();
+        RainPool rainPool = key.RainPool = new GameObject("RainLine").AddComponent<RainPool>();
+        transform = rainPool.gameObject.AddComponent<RectTransform>();
         transform.SetParent(objTransform);
         transform.sizeDelta = new Vector2(sizeX, 275);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;
@@ -1115,27 +1220,36 @@ public class KeyViewer : Feature {
     public class KeyViewerSettings : JASetting {
         public KeyviewerStyle KeyViewerStyle = KeyviewerStyle.Key16;
         public FootKeyviewerStyle FootKeyViewerStyle = FootKeyviewerStyle.Key4;
+
         public KeyCode[] key10 = [
             KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
             KeyCode.Space, KeyCode.Comma
         ];
         public string[] key10Text = new string[10];
+        public KeyCode[] GhostKey10 = new KeyCode[10];
+
         public KeyCode[] key12 = [
             KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
             KeyCode.Space, KeyCode.C, KeyCode.Comma, KeyCode.Period
         ];
         public string[] key12Text = new string[12];
+        public KeyCode[] GhostKey12 = new KeyCode[12];
+
         public KeyCode[] key16 = [
             KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
             KeyCode.Space, KeyCode.C, KeyCode.Comma, KeyCode.Period, KeyCode.CapsLock, KeyCode.LeftShift, KeyCode.Return, KeyCode.H
         ];
         public string[] key16Text = new string[16];
+        public KeyCode[] GhostKey16 = new KeyCode[16];
+
         public KeyCode[] key20 = [
             KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
             KeyCode.Space, KeyCode.C, KeyCode.Comma, KeyCode.Period, KeyCode.CapsLock, KeyCode.LeftShift, KeyCode.Return, KeyCode.H,
             KeyCode.CapsLock, KeyCode.D, KeyCode.RightShift, KeyCode.Semicolon
         ];
         public string[] key20Text = new string[20];
+        public KeyCode[] GhostKey20 = new KeyCode[20];
+
         public KeyCode[] footkey2 = [KeyCode.F8, KeyCode.F3];
         public KeyCode[] footkey4 = [KeyCode.F8, KeyCode.F3, KeyCode.F7, KeyCode.F2];
         public KeyCode[] footkey6 = [KeyCode.F8, KeyCode.F3, KeyCode.F7, KeyCode.F2, KeyCode.F6, KeyCode.F1];
@@ -1144,14 +1258,17 @@ public class KeyViewer : Feature {
             KeyCode.F8, KeyCode.F4, KeyCode.F7, KeyCode.F3, KeyCode.F6, KeyCode.F2, KeyCode.F5, KeyCode.F1,
             KeyCode.Alpha0, KeyCode.Alpha6, KeyCode.Alpha9, KeyCode.Alpha5, KeyCode.Alpha8, KeyCode.Alpha4, KeyCode.Alpha7, KeyCode.Alpha3
         ];
+
         public int[] Count = new int[36];
         public int TotalCount;
         public float YLocation = 200;
         public bool AutoSetupKeyLimit = true;
         public float Size = 1;
         public bool useRain = true;
+        public bool useGhostRain;
         public float rainSpeed = 100;
         public float rainHeight = 200;
+
         public ColorCache Background = new(KeyViewer.Background);
         public ColorCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
         public ColorCache Outline = new(KeyViewer.Outline);

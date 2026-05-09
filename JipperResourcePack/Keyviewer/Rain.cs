@@ -1,31 +1,39 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace JipperResourcePack.Keyviewer;
 
 public class Rain : MonoBehaviour {
-    public Key key;
-    public Image image;
+    public RainPool pool;
+    public Graphic image;
     public new RectTransform transform;
-    public RawRain rawRain;
-    
-    private void Awake() {
-        image = gameObject.AddComponent<Image>();
+    public RawRain RawRain;
+    public bool isGhost;
+
+    public void Setup(bool isGhost) {
+        if(isGhost) {
+            Image img = gameObject.AddComponent<Image>();
+            img.sprite = BundleLoader.GhostRain;
+            img.type = Image.Type.Tiled;
+            image = img;
+        } else image = gameObject.AddComponent<RawImage>();
+        this.isGhost = isGhost;
     }
 
     public void Update() {
-        if(rawRain.removed) {
-            rawRain = null;
-            key.AddPool(this);
+        if(RawRain.Removed) {
+            RawRain = null;
+            pool.AddPool(this, isGhost);
             return;
         }
-        if(rawRain.sizeDelta.HasValue) {
-            transform.sizeDelta = rawRain.sizeDelta.Value;
-            rawRain.sizeDelta = null;
+        if(RawRain.SizeDelta.HasValue) {
+            transform.sizeDelta = RawRain.SizeDelta.Value;
+            RawRain.SizeDelta = null;
         }
-        if(rawRain.anchoredPosition.HasValue) {
-            transform.anchoredPosition = rawRain.anchoredPosition.Value;
-            rawRain.anchoredPosition = null;
+        if(RawRain.AnchoredPosition.HasValue) {
+            transform.anchoredPosition = RawRain.AnchoredPosition.Value;
+            RawRain.AnchoredPosition = null;
         }
     }
 }

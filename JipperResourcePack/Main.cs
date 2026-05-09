@@ -86,7 +86,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         if(GUILayout.Button(BundleLoader.SideImage, GUI.skin.label)) Application.OpenURL("https://github.com/Jongye0l/JipperResourcePack");
         GUILayout.BeginVertical();
         GUILayout.Space(5f);
-        URLLabel($"Jipper Resource Pack", "https://github.com/Jongye0l/JipperResourcePack");
+        URLLabel("Jipper Resource Pack", "https://github.com/Jongye0l/JipperResourcePack");
         URLLabel(Localization["credit.developer"] + ": Jongyeol", "https://www.youtube.com/@Jongyeol");
         URLLabel(Localization["credit.design"] + ": Jipper", "https://www.youtube.com/@jipper1214");
         URLLabel(Localization["credit.translator"] + ": changhyeon", "https://www.youtube.com/@changhyeon7492");
@@ -106,7 +106,6 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
             URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         }
-        URLLabel("AdofaiModInstaller(By. tjwogud)", "https://github.com/tjwogud/AdofaiModInstaller");
         GUILayout.Space(25f);
         GUILayout.Label(Localization["credit.font"]);
         URLLabel("Maplestory OTF Bold", "https://fontmeme.com/ktype/maplestory-font/");
