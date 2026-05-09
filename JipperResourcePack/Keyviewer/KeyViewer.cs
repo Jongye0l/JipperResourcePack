@@ -66,7 +66,6 @@ public class KeyViewer : Feature {
     public int WinAPICool;
     public int CurrentKeyMaxY = 120;
     public int ChangeState;
-    public bool TextChanged;
     private string _rainSizeString;
     private string _rainHeightString;
     private string _sizeString;
@@ -306,8 +305,7 @@ public class KeyViewer : Feature {
                 "TextClicked",
                 "RainColor",
                 "RainColor2",
-                "RainColor3",
-                ""
+                "RainColor3"
             ];
             for(int i = 0; i < 9; i++) {
                 if(i == 8 && Settings.KeyViewerStyle != KeyviewerStyle.Key20) continue;
@@ -376,7 +374,7 @@ public class KeyViewer : Feature {
 
         void CreateButton(int i, bool textChanged) {
             if(!GUILayout.Button(Bold(i < HandOutIndex ? textChanged ? keyTexts[i] ?? KeyToString(keyCodes[i]) : ToString(keyCodes[i]) : ToString(footKeyCodes[i - HandOutIndex]),
-                   i == SelectedKey && textChanged == TextChanged))) return;
+                   i == SelectedKey && ChangeState == (textChanged ? 1 : 0)))) return;
             SelectedKey = i;
             ChangeState = textChanged ? 1 : 0;
             if(textChanged) return;
@@ -386,7 +384,7 @@ public class KeyViewer : Feature {
         }
 
         void CreateGhostButton(int i) {
-            if(!GUILayout.Button(Bold(ToString(ghostKeyCodes[i]), i == SelectedKey))) return;
+            if(!GUILayout.Button(Bold(ToString(ghostKeyCodes[i]), i == SelectedKey && ChangeState == 2))) return;
             if(ghostKeyCodes[i] != KeyCode.None) {
                 ghostKeyCodes[i] = KeyCode.None;
                 Main.Instance.SaveSetting();
