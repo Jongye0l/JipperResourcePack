@@ -42,6 +42,7 @@ public class KeyViewer : Feature {
     public static readonly byte[] BackSequence12 = [9, 8, 10, 11];
     public static readonly byte[] BackSequence16 = [12, 13, 9, 8, 10, 11, 14, 15];
     public static readonly byte[] BackSequence20 = [12, 13, 9, 8, 10, 11, 14, 15, 17, 16, 18, 19];
+    public static RainManager RainManager;
     public GameObject KeyViewerObject;
     public GameObject KeyViewerSizeObject;
     public Key[] Keys;
@@ -50,7 +51,7 @@ public class KeyViewer : Feature {
     public int lastKps;
     public Key Total;
     public ConcurrentQueue<long> PressTimes;
-    public Stopwatch Stopwatch;
+    public static Stopwatch Stopwatch;
     private bool Save;
     private bool KeyShare;
     private bool KeyChangeExpanded;
@@ -81,6 +82,7 @@ public class KeyViewer : Feature {
 
     protected override void OnEnable() {
         KeyViewerObject = new GameObject("JipperResourcePack KeyViewer");
+        RainManager = KeyViewerObject.AddComponent<RainManager>();
         Canvas canvas = KeyViewerObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         CanvasScaler scaler = canvas.gameObject.AddComponent<CanvasScaler>();
@@ -681,13 +683,12 @@ public class KeyViewer : Feature {
         foreach(Key key in Keys) {
             if(!key) continue;
             key.RawRainQueue.Clear();
-            while(key.RainList.Count > 0) {
-                key.RainList[0].Removed = true;
-                key.RainList.RemoveAt(0);
-            }
-            while(key.GhostRainList.Count > 0) {
-                key.GhostRainList[0].Removed = true;
-                key.GhostRainList.RemoveAt(0);
+            while(RainManager.RainList.Count > 0) {
+                int index = RainManager.RainList.Count - 1;
+                Rain rain = RainManager.RainList[index];
+                RainManager.RainList.RemoveAt(index);
+                rain.RawRain = null;
+                rain.Pool.AddPool(rain, rain.IsGhost);
             }
         }
     }
@@ -814,33 +815,24 @@ public class KeyViewer : Feature {
             while(KeyinputListener is { IsAlive: true } && Enabled) {
                 try {
                     long currentMillis = Stopwatch.ElapsedMilliseconds;
-                    float speed = settings.rainSpeed;
-                    float height = settings.rainHeight;
                     KeyCode[] keyCodes = GetKeyCode();
                     for(int i = 0; i < keyCodes.Length; i++) {
                         bool current = CheckKey(keyCodes[i]);
                         Key key = Keys[i];
-                        if(!key) continue;
-                        for(int j = 0; j < key.RainList.Count; j++) {
-                            RawRain rain = key.RainList[j];
-                            if(rain.UpdateLocation(currentMillis, current, speed, height)) continue;
-                            key.RainList.Remove(rain);
-                            rain.Removed = true;
-                            rain.FinishSize = false;
-                            j--;
-                        }
-                        if(current == keyState[i]) continue;
+                        if(!key || current == keyState[i]) continue;
                         keyState[i] = current;
                         UpdateKey(i, current);
-                        if(!current) continue;
+                        if(!current) {
+                            key.LastRain?.Finish(currentMillis);
+                            continue;
+                        }
                         if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
                         key.value.text = (++settings.Count[i]).ToString();
                         Total.value.text = (++settings.TotalCount).ToString();
                         PressTimes.Enqueue(currentMillis);
                         if(settings.useRain) {
-                            RawRain rawRain = new(currentMillis, key.color, false);
+                            RawRain rawRain = key.LastRain = new RawRain(currentMillis, key.color, false);
                             key.RawRainQueue.Enqueue(rawRain);
-                            key.RainList.Add(rawRain);
                         }
                         Save = true;
                     }
@@ -864,24 +856,15 @@ public class KeyViewer : Feature {
                             bool current = CheckKey(keyCodes[i]);
                             Key key = Keys[i];
                             if(!key) continue;
-                            for(int j = 0; j < key.GhostRainList.Count; j++) {
-                                RawRain rain = key.GhostRainList[j];
-                                if(rain.UpdateLocation(currentMillis, current, speed, height)) continue;
-                                key.GhostRainList.Remove(rain);
-                                rain.Removed = true;
-                                rain.FinishSize = false;
-                                j--;
-                            }
                             int index = i + HandOutIndex;
                             if(current == keyState[index]) continue;
                             keyState[index] = current;
-                            if(!current) continue;
-                            if(settings.useRain) {
-                                RawRain rawRain = new(currentMillis, key.color, true);
+                            if(!current) {
+                                key.LastGhostRain?.Finish(currentMillis);
+                            } else {
+                                RawRain rawRain = key.LastGhostRain = new RawRain(currentMillis, key.color, true);
                                 key.RawRainQueue.Enqueue(rawRain);
-                                key.GhostRainList.Add(rawRain);
                             }
-                            Save = true;
                         }
                     }
                     while(PressTimes.TryPeek(out long result)) {
@@ -1066,8 +1049,9 @@ public class KeyViewer : Feature {
         key.color = raining < 2 ? raining + 1 : raining;
         key.siblingIndex = (key.color - 1) * 2;
         if(raining != 0 && raining != 2 && raining != 3) return key;
-        RainPool rainPool = key.RainPool = new GameObject("RainLine").AddComponent<RainPool>();
-        transform = rainPool.gameObject.AddComponent<RectTransform>();
+        gameObject = new GameObject("RainLine");
+        transform = gameObject.AddComponent<RectTransform>();
+        key.RainPool = new RainPool(transform);
         transform.SetParent(objTransform);
         transform.sizeDelta = new Vector2(sizeX, 275);
         transform.anchorMin = transform.anchorMax = transform.pivot = Vector2.zero;

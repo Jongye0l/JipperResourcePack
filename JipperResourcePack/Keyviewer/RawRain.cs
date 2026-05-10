@@ -1,33 +1,13 @@
-﻿using UnityEngine;
-
-namespace JipperResourcePack.Keyviewer;
+﻿namespace JipperResourcePack.Keyviewer;
 
 public class RawRain {
     public readonly long StartTime;
-    public float XSize;
-    public Vector2 FinalSize;
-    public Vector2? SizeDelta;
-    public Vector2? AnchoredPosition;
-    public bool Removed;
-    public bool IsGhost;
+    public readonly float XSize;
+    public readonly bool IsGhost;
+    public float FinalSizeY;
     public bool FinishSize;
-    
-    public bool UpdateLocation(long time, bool updateSize, float speed, float height) {
-        float y = (time - StartTime) / 300f * speed;
-        updateSize &= !FinishSize;
-        if(updateSize) FinalSize = new Vector2(XSize, (time - StartTime) / 300f * speed);
-        else FinishSize = true;
-        if(y > height) {
-            float sizeY = FinalSize.y - y + height;
-            if(sizeY < 0) return false;
-            SizeDelta = new Vector2(FinalSize.x, sizeY);
-            AnchoredPosition = new Vector2(0, height);
-        } else {
-            if(updateSize) SizeDelta = FinalSize;
-            AnchoredPosition = new Vector2(0, y);
-        }
-        return true;
-    }
+    public bool FinishSizeSetup;
+    public bool SizeOver;
     
     public RawRain(long startTime, int color, bool isGhost) {
         StartTime = startTime;
@@ -37,5 +17,10 @@ public class RawRain {
             _ => 40
         };
         IsGhost = isGhost;
+    }
+
+    public void Finish(long time) {
+        FinalSizeY = (time - StartTime) / 300f * KeyViewer.Settings.rainSpeed;
+        FinishSize = true;
     }
 }

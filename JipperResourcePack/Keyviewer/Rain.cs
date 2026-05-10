@@ -1,39 +1,30 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace JipperResourcePack.Keyviewer;
 
-public class Rain : MonoBehaviour {
-    public RainPool pool;
-    public Graphic image;
-    public new RectTransform transform;
+public class Rain {
+    public readonly RainPool Pool;
+    public readonly Graphic Image;
+    public readonly GameObject GameObject;
+    public readonly RectTransform Transform;
+    public readonly bool IsGhost;
     public RawRain RawRain;
-    public bool isGhost;
 
-    public void Setup(bool isGhost) {
+    public Rain(RainPool pool, bool isGhost) {
+        Pool = pool;
+        GameObject rainPrefab = GameObject = new GameObject("Rain");
+        RectTransform rainTransform = Transform = rainPrefab.AddComponent<RectTransform>();
+        rainTransform.SetParent(pool.Transform);
+        rainTransform.anchorMin = rainTransform.anchorMax = rainTransform.pivot = new Vector2(0.5f, 1);
+        rainTransform.anchoredPosition = rainTransform.sizeDelta = Vector2.zero;
+        rainTransform.localScale = Vector3.one;
         if(isGhost) {
-            Image img = gameObject.AddComponent<Image>();
+            Image img = rainPrefab.AddComponent<Image>();
             img.sprite = BundleLoader.GhostRain;
-            img.type = Image.Type.Tiled;
-            image = img;
-        } else image = gameObject.AddComponent<RawImage>();
-        this.isGhost = isGhost;
-    }
-
-    public void Update() {
-        if(RawRain.Removed) {
-            RawRain = null;
-            pool.AddPool(this, isGhost);
-            return;
-        }
-        if(RawRain.SizeDelta.HasValue) {
-            transform.sizeDelta = RawRain.SizeDelta.Value;
-            RawRain.SizeDelta = null;
-        }
-        if(RawRain.AnchoredPosition.HasValue) {
-            transform.anchoredPosition = RawRain.AnchoredPosition.Value;
-            RawRain.AnchoredPosition = null;
-        }
+            img.type = UnityEngine.UI.Image.Type.Tiled;
+            Image = img;
+        } else Image = rainPrefab.AddComponent<RawImage>();
+        IsGhost = isGhost;
     }
 }
