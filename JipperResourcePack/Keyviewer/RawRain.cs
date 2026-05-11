@@ -8,10 +8,12 @@ public class RawRain {
     public bool FinishSize;
     public bool FinishSizeSetup;
     public bool SizeOver;
+    public Key Key;
     
-    public RawRain(long startTime, int color, bool isGhost) {
+    public RawRain(Key key, long startTime, bool isGhost) {
+        Key = key;
         StartTime = startTime;
-        XSize = color switch {
+        XSize = key.Color switch {
             1 => 50,
             3 => 30,
             _ => 40

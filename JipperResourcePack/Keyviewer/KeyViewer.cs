@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -680,18 +680,15 @@ public class KeyViewer : Feature {
         #endregion
     }
 
-    private void CheckResetRain() {
+    private static void CheckResetRain() {
         if(Settings.useRain) return;
-        foreach(Key key in Keys) {
-            if(!key) continue;
-            key.RawRainQueue.Clear();
-            while(RainManager.RainList.Count > 0) {
-                int index = RainManager.RainList.Count - 1;
-                Rain rain = RainManager.RainList[index];
-                RainManager.RainList.RemoveAt(index);
-                rain.RawRain = null;
-                rain.Pool.AddPool(rain, rain.IsGhost);
-            }
+        RainManager.RawRainQueue.Clear();
+        while(RainManager.RainList.Count > 0) {
+            int index = RainManager.RainList.Count - 1;
+            Rain rain = RainManager.RainList[index];
+            RainManager.RainList.RemoveAt(index);
+            rain.RawRain = null;
+            rain.Pool.AddPool(rain, rain.IsGhost);
         }
     }
 
@@ -737,10 +734,11 @@ public class KeyViewer : Feature {
         SelectedKey = -1;
         for(int i = 0; i < HandOutIndex; i++) {
             Key key = Keys[i];
-            if(key) Object.Destroy(key.gameObject);
+            if(key?.GameObject) Object.Destroy(key.GameObject);
+            Keys[i] = null;
         }
-        Object.Destroy(Total.gameObject);
-        Object.Destroy(Kps.gameObject);
+        Object.Destroy(Total.GameObject);
+        Object.Destroy(Kps.GameObject);
         InitializeKeyViewer();
         UpdateKeyLimit();
     }
@@ -770,7 +768,8 @@ public class KeyViewer : Feature {
     private void ResetFootKeyViewer() {
         for(int i = HandOutIndex; i < FootOutIndex; i++) {
             Key key = Keys[i];
-            if(key) Object.Destroy(key.gameObject);
+            if(key?.GameObject) Object.Destroy(key.GameObject);
+            Keys[i] = null;
         }
         InitializeFootKeyViewer();
         UpdateKeyLimit();
@@ -821,7 +820,7 @@ public class KeyViewer : Feature {
                     for(int i = 0; i < keyCodes.Length; i++) {
                         bool current = CheckKey(keyCodes[i]);
                         Key key = Keys[i];
-                        if(!key || current == keyState[i]) continue;
+                        if(key == null || current == keyState[i]) continue;
                         keyState[i] = current;
                         UpdateKey(i, current);
                         if(!current) {
@@ -833,8 +832,8 @@ public class KeyViewer : Feature {
                         Total.Value.Text = (++settings.TotalCount).ToString();
                         PressTimes.Enqueue(currentMillis);
                         if(settings.useRain) {
-                            RawRain rawRain = key.LastRain = new RawRain(currentMillis, key.color, false);
-                            key.RawRainQueue.Enqueue(rawRain);
+                            RawRain rawRain = key.LastRain = new RawRain(key, currentMillis, false);
+                            RainManager.RawRainQueue.Enqueue(rawRain);
                         }
                         Save = true;
                     }
@@ -843,7 +842,7 @@ public class KeyViewer : Feature {
                         bool current = CheckKey(keyCodes[i]);
                         int index = i + HandOutIndex;
                         Key key = Keys[index];
-                        if(!key || current == keyState[index]) continue;
+                        if(key == null || current == keyState[index]) continue;
                         keyState[index] = current;
                         UpdateKey(index, current);
                         if(!current) continue;
@@ -857,15 +856,15 @@ public class KeyViewer : Feature {
                         for(int i = 0; i < keyCodes.Length; i++) {
                             bool current = CheckKey(keyCodes[i]);
                             Key key = Keys[i];
-                            if(!key) continue;
+                            if(key == null) continue;
                             int index = i + HandOutIndex;
                             if(current == keyState[index]) continue;
                             keyState[index] = current;
                             if(!current) {
                                 key.LastGhostRain?.Finish(currentMillis);
                             } else {
-                                RawRain rawRain = key.LastGhostRain = new RawRain(currentMillis, key.color, true);
-                                key.RawRainQueue.Enqueue(rawRain);
+                                RawRain rawRain = key.LastGhostRain = new RawRain(key, currentMillis, true);
+                                RainManager.RawRainQueue.Enqueue(rawRain);
                             }
                         }
                     }
@@ -979,7 +978,7 @@ public class KeyViewer : Feature {
         objTransform.pivot = new Vector2(0, 0.5f);
         objTransform.anchoredPosition = new Vector2(x, y);
         objTransform.localScale = Vector3.one;
-        Key key = gameObject.AddComponent<Key>();
+        Key key = new(gameObject);
         gameObject = new GameObject("Background");
         RectTransform transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(objTransform);
@@ -1048,8 +1047,8 @@ public class KeyViewer : Feature {
             key.Value = new AsyncText(text);
         }
         UpdateKeyText(key, i);
-        key.color = raining < 2 ? raining + 1 : raining;
-        key.siblingIndex = (key.color - 1) * 2;
+        key.Color = raining < 2 ? raining + 1 : raining;
+        key.SiblingIndex = (key.Color - 1) * 2;
         if(raining != 0 && raining != 2 && raining != 3) return key;
         gameObject = new GameObject("RainLine");
         transform = gameObject.AddComponent<RectTransform>();

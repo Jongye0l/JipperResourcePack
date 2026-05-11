@@ -1,12 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace JipperResourcePack.Keyviewer;
 
 public class RainManager : MonoBehaviour {
     public readonly List<Rain> RainList = [];
+    public readonly ConcurrentQueue<RawRain> RawRainQueue = new();
 
     private void Update() {
+        while(RawRainQueue.TryDequeue(out RawRain rawRain)) {
+            Rain rainComponent = rawRain.Key.RainPool.GetOrNewRain(rawRain.IsGhost);
+            rainComponent.Image.color = rawRain.Key.Color switch {
+                1 => KeyViewer.Settings.RainColor,
+                3 => KeyViewer.Settings.RainColor3,
+                _ => KeyViewer.Settings.RainColor2
+            };
+            rainComponent.RawRain = rawRain;
+            rainComponent.Transform.SetSiblingIndex(rawRain.IsGhost ? rawRain.Key.SiblingIndex + 1 : rawRain.Key.SiblingIndex);
+            RainList.Add(rainComponent);
+        }
         if(RainList.Count == 0) return;
         long time = KeyViewer.Stopwatch.ElapsedMilliseconds;
         float speed = KeyViewer.Settings.rainSpeed;
