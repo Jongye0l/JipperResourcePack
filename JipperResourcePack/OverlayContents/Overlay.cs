@@ -394,9 +394,8 @@ public class Overlay {
                 if(lastTime == (int) time) return;
                 if(time > 0) songPlaying = true;
                 else if(time == 0 && songPlaying) time = totalTime;
-                TimeSpan now = TimeSpan.FromSeconds(time);
-                TimeSpan length = TimeSpan.FromSeconds(totalTime);
-                TimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {now:m\:ss}~{length:m\:ss}";
+                bool hourNeed = totalTime >= 3600;
+                TimeText.text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
                 lastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
@@ -408,9 +407,8 @@ public class Overlay {
             else if(time > totalTime) time = totalTime;
             if((!Status.Settings.ShowMapTime || lastMapTime == (int) time) &&
                (!requireMusicToMap || lastTime == (int) time)) return;
-            TimeSpan now = TimeSpan.FromSeconds(time);
-            TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            string text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss}~{length:m\:ss}";
+            bool hourNeed = totalTime >= 3600;
+            string text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 lastMapTime = (int) time;
@@ -422,6 +420,11 @@ public class Overlay {
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
+    }
+    
+    private static string GetTimeString(float time, bool hour) {
+        int timeInt = (int) time;
+        return hour ? $"{timeInt / 3600}:{timeInt % 3600 / 60:00}:{timeInt % 60:00}" : $"{timeInt / 60}:{timeInt % 60:00}";
     }
     
     public void UpdateCombo(int combo, bool bump) {

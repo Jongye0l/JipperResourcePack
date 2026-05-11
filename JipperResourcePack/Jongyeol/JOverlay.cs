@@ -92,20 +92,20 @@ public class JOverlay : Overlay {
         if(!GameObject.activeSelf) return;
         float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
         xacc.SetIfNaN(1);
-        if(OverlayContents.Status.Settings.ShowAccuracy) {
+        if(Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
             float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
             AccuracyText.color = JStatus.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
-        if(OverlayContents.Status.Settings.ShowXAccuracy) {
+        if(Status.Settings.ShowXAccuracy) {
             XAccuracyText.text = $"<color=white>X-Accuracy |</color> {Math.Round(xacc * 100, 4)}%";
             XAccuracyText.color = GetColor(xacc);
         }
     }
 
     public override void UpdateTime() {
-        if(!GameObject.activeSelf || !OverlayContents.Status.Instance.Enabled || death) return;
+        if(!GameObject.activeSelf || !Status.Instance.Enabled || death) return;
         bool requireMusicToMap = false;
         if(JStatus.Settings.ShowMusicTime) {
             AudioSource song = scrConductor.instance.song;
@@ -115,9 +115,8 @@ public class JOverlay : Overlay {
                 float totalTime = song.clip?.length ?? 0;
                 if(time > 0) songPlaying = true;
                 else if(time == 0 && songPlaying) time = totalTime;
-                TimeSpan now = TimeSpan.FromSeconds(time);
-                TimeSpan length = TimeSpan.FromSeconds(totalTime);
-                TimeText.text = $@"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+                bool hourNeed = totalTime >= 3600;
+                TimeText.text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
@@ -127,9 +126,8 @@ public class JOverlay : Overlay {
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if(!JStatus.Settings.ShowMapTime && !requireMusicToMap) return;
-            TimeSpan now = TimeSpan.FromSeconds(time);
-            TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            string text = $@"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+            bool hourNeed = totalTime >= 3600;
+            string text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
             if(JStatus.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 MapTimeText.color = JStatus.Settings.MapTimeColor.GetColor(time / totalTime);
@@ -139,6 +137,11 @@ public class JOverlay : Overlay {
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
+    }
+    
+    private static string GetTimeString(float time, bool hour) {
+        int timeInt = (int) time;
+        return hour ? $"{timeInt / 3600}:{timeInt % 3600 / 60:00}:{time % 60:00.0}" : $"{timeInt / 60}:{time % 60:00.0}";
     }
 
     public override Color UpdateComboColor(int combo) {
