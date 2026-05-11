@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -83,6 +83,7 @@ public class KeyViewer : Feature {
     protected override void OnEnable() {
         KeyViewerObject = new GameObject("JipperResourcePack KeyViewer");
         RainManager = KeyViewerObject.AddComponent<RainManager>();
+        if(!Settings.useRain) RainManager.enabled = false;
         Canvas canvas = KeyViewerObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         CanvasScaler scaler = canvas.gameObject.AddComponent<CanvasScaler>();
@@ -145,7 +146,10 @@ public class KeyViewer : Feature {
         }
         GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
-        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], CheckResetRain);
+        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], () => {
+            CheckResetRain();
+            RainManager.enabled = Settings.useRain;
+        });
         if(settings.useRain) settingGUI.AddSettingToggle(ref settings.useGhostRain, localization["keyViewer.useGhostRain"], CheckResetRain);
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
@@ -206,7 +210,7 @@ public class KeyViewer : Feature {
             GUILayout.Space(12f);
         }
 
-        if(settings.useGhostRain) {
+        if(settings.useRain && settings.useGhostRain) {
             GUILayout.BeginHorizontal();
             GhostRainChangeExpanded = GUILayout.Toggle(GhostRainChangeExpanded, GhostRainChangeExpanded ? "◢" : "▶", toggleStyle);
             if(GUILayout.Button(localization["keyViewer.ghostRainKeyChange"], GUI.skin.label)) GhostRainChangeExpanded = !GhostRainChangeExpanded;
