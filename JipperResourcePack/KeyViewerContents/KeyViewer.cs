@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -51,7 +50,7 @@ public class KeyViewer : Feature {
     public Key Kps;
     public int lastKps;
     public Key Total;
-    public ConcurrentQueue<long> PressTimes;
+    public Queue<long> PressTimes;
     public static Stopwatch Stopwatch;
     private bool Save;
     private bool KeyShare;
@@ -101,7 +100,7 @@ public class KeyViewer : Feature {
         InitializeKeyViewer();
         InitializeFootKeyViewer();
         Object.DontDestroyOnLoad(KeyViewerObject);
-        PressTimes = new ConcurrentQueue<long>();
+        PressTimes = new Queue<long>();
         Stopwatch = Stopwatch.StartNew();
         KeyinputListener = new Thread(ListenKey) {
             Name = "JipperResourcePack KeyViewer Listener Thread",

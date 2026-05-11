@@ -133,7 +133,9 @@
         <Reference Include="SkyHook.Unity">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\SkyHook.Unity.dll</HintPath>
         </Reference>
-        <Reference Include="System" />
+        <Reference Include="System">
+            <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.dll</HintPath>
+        </Reference>
         <Reference Include="System.ComponentModel.Composition">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.ComponentModel.Composition.dll</HintPath>
         </Reference>
@@ -143,8 +145,12 @@
         <Reference Include="System.Configuration">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Configuration.dll</HintPath>
         </Reference>
-        <Reference Include="System.Core" />
-        <Reference Include="System.Data" />
+        <Reference Include="System.Core">
+            <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Data">
+            <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Data.dll</HintPath>
+        </Reference>
         <Reference Include="System.Data.DataSetExtensions">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\System.Data.DataSetExtensions.dll</HintPath>
         </Reference>
