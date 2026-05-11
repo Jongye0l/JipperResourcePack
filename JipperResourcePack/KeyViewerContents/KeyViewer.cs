@@ -108,14 +108,12 @@ public class KeyViewer : Feature {
             Priority = ThreadPriority.AboveNormal
         };
         KeyinputListener.Start();
-        Application.wantsToQuit += Application_wantsToQuit;
+        Application.quitting += ApplicationOnquitting;
         UpdateKeyLimit();
     }
-
-    private bool Application_wantsToQuit() {
+    private void ApplicationOnquitting() {
         KeyinputListener.Abort();
         KeyinputListener.Interrupt();
-        return true;
     }
 
     protected override void OnDisable() {
@@ -130,7 +128,7 @@ public class KeyViewer : Feature {
         KeyinputListener = null;
         GC.SuppressFinalize(PressTimes);
         PressTimes = null;
-        Application.wantsToQuit -= Application_wantsToQuit;
+        Application.quitting -= ApplicationOnquitting;
     }
 
     protected override void OnGUI() {
