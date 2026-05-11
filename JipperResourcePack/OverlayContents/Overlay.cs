@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Overlay {
     public static Overlay Instance;

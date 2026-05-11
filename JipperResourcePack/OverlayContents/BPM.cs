@@ -7,7 +7,7 @@ using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class BPM : Feature {
     public static GameObject BPMObject;
@@ -15,10 +15,10 @@ public class BPM : Feature {
     private string BpmColorMaxString;
     public static BPM Instance;
 
-    public BPM() : this(nameof(BPM), typeof(BPMSettings)) {
+    public BPM() : this(typeof(BPMSettings)) {
     }
 
-    public BPM(string name, Type settingType) : base(Main.Instance, name, true, typeof(BPM), settingType) {
+    public BPM(Type settingType) : base(Main.Instance, nameof(BPM), true, typeof(BPM), settingType) {
         Instance = this;
     }
 

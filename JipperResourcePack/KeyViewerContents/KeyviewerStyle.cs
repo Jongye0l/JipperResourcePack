@@ -1,4 +1,4 @@
-﻿namespace JipperResourcePack.Keyviewer;
+﻿namespace JipperResourcePack.KeyViewerContents;
 
 public enum KeyviewerStyle {
     Key12,

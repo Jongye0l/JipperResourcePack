@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace JipperResourcePack.Keyviewer;
+namespace JipperResourcePack.KeyViewerContents;
 
 public class Rain {
     public readonly RainPool Pool;

@@ -6,19 +6,19 @@ using UnityEngine.UI;
 
 namespace JipperResourcePack.Jongyeol;
 
-public class Status : JipperResourcePack.Status {
-    public new static JProgressSetting Settings;
+public class JStatus : OverlayContents.Status {
+    public static new JProgressSetting Settings;
     private static bool _auto = false;
 
-    public Status() : base(nameof(Status), typeof(JProgressSetting)) {
+    public JStatus() : base(nameof(JStatus), typeof(JProgressSetting)) {
         Settings = (JProgressSetting) Setting;
-        Patcher.AddPatch(typeof(Status));
+        Patcher.AddPatch(typeof(JStatus));
     }
 
     protected override void OnGUI() {
         base.OnGUI();
-        SettingGUI settingGUI = JipperResourcePack.Main.SettingGUI;
-        JALocalization localization = JipperResourcePack.Main.Instance.Localization;
+        SettingGUI settingGUI = Main.SettingGUI;
+        JALocalization localization = Main.Instance.Localization;
         settingGUI.AddSettingToggle(ref Settings.ShowFPS, localization["progress.showFPS"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowAuthor, localization["progress.showAuthor"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowState, localization["progress.showState"], JOverlay.Instance.SetupLocationMain);

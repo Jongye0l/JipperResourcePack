@@ -8,7 +8,7 @@ using ADOFAI;
 using HarmonyLib;
 using JALib.Tools.ByteTool;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class PlayCount {
 

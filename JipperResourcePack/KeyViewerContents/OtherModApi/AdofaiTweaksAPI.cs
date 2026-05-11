@@ -8,7 +8,7 @@ using AdofaiTweaks.Tweaks.KeyLimiter;
 using JALib.Tools;
 using UnityEngine;
 
-namespace JipperResourcePack.Keyviewer.OtherModApi;
+namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
 public class AdofaiTweaksAPI {
     public static bool IsExist;

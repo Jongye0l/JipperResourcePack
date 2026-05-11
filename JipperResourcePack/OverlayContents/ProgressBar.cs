@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class ProgressBar : MonoBehaviour {
     public RectTransform LineTransform;

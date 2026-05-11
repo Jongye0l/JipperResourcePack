@@ -1,9 +1,8 @@
-﻿using System;
-using JALib.Core;
+﻿using JALib.Core;
 using JALib.Core.Patch;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class TimingScale : Feature {
     public static GameObject TimingScaleObject;

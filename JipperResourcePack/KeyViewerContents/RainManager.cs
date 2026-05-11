@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace JipperResourcePack.Keyviewer;
+namespace JipperResourcePack.KeyViewerContents;
 
 public class RainManager : MonoBehaviour {
     public readonly List<Rain> RainList = [];

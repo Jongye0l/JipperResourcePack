@@ -7,7 +7,7 @@ using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Combo : Feature {
     public static int combo;

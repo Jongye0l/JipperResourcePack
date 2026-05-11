@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Status : Feature {
     public static ProgressSetting Settings;

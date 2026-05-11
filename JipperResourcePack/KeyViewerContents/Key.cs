@@ -1,7 +1,7 @@
 ﻿using JipperResourcePack.Async;
 using UnityEngine;
 
-namespace JipperResourcePack.Keyviewer;
+namespace JipperResourcePack.KeyViewerContents;
 
 public class Key {
     public GameObject GameObject;

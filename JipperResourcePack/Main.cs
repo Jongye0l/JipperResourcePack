@@ -5,7 +5,8 @@ using JALib.Core.Patch;
 using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Jongyeol;
-using JipperResourcePack.Keyviewer;
+using JipperResourcePack.KeyViewerContents;
+using JipperResourcePack.OverlayContents;
 using MonsterLove.StateMachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,12 +18,12 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     public static SettingGUI SettingGUI;
     public static ResourcePackSetting Settings;
     private static bool _creditsShown;
-    private string sizeString;
+    private string _sizeString;
 
     protected override void OnSetup() {
         Patcher.AddPatch(OnGameStart);
         Patcher.AddPatch(OnGameStop);
-        FeatureReset(Jongyeol.Main.CheckEnable(Setting));
+        FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
     }
@@ -37,7 +38,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         this.GetValue<JASetting>("ModSetting").PutFieldData();
         Features.Clear();
         this.GetValue<JASetting>("ModSetting").RemoveFieldData();
-        if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
+        if(jongyeolMode) AddFeature(JMain.GetFeatures());
         else AddFeature();
         if(!enabled) return;
         _ = jongyeolMode ? new JOverlay() : new Overlay();
@@ -48,7 +49,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         BundleLoader.LoadBundle();
         PlayCount.Load();
-        _ = Jongyeol.Main.CheckEnable(Setting) ? new JOverlay() : new Overlay();
+        _ = JMain.CheckEnable(Setting) ? new JOverlay() : new Overlay();
     }
 
     protected override void OnDisable() {
@@ -64,15 +65,15 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     protected override void OnUpdate(float deltaTime) {
         Overlay.Instance.UpdateTime();
         Overlay.Instance.UpdateComboSize();
-        Jongyeol.Main.Update(deltaTime);
+        JMain.Update(deltaTime);
     }
 
     protected override void OnGUI() {
-        SettingGUI.AddSettingSliderFloat(ref Settings.Size, 1, ref sizeString, Localization["size"], 0, 2, Overlay.Instance.UpdateSize);
+        SettingGUI.AddSettingSliderFloat(ref Settings.Size, 1, ref _sizeString, Localization["size"], 0, 2, Overlay.Instance.UpdateSize);
     }
 
     protected override void OnHideGUI() {
-        sizeString = null;
+        _sizeString = null;
     }
 
     protected override void OnGUIBehind() {
@@ -102,7 +103,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         URLLabel("MovingManN(By. Kittut)", "https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js");
         URLLabel("MoreTimeTags(By. Jongyeol)", "https://github.com/Jongye0l/MoreTimeTags");
         URLLabel("BetterCalibration(By. Jongyeol)", "https://github.com/Jongye0l/BetterCalibration");
-        if(Jongyeol.Main.ModeEnabled) {
+        if(JMain.ModeEnabled) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
             URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         }

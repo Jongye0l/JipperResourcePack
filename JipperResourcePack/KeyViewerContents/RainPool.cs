@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace JipperResourcePack.Keyviewer;
+namespace JipperResourcePack.KeyViewerContents;
 
 public class RainPool {
     public readonly RectTransform Transform;

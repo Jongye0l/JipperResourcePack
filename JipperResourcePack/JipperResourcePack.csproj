@@ -513,42 +513,42 @@
     <ItemGroup>
         <Compile Include="Async\AsyncImage.cs" />
         <Compile Include="Async\AsyncText.cs" />
-        <Compile Include="Attempt.cs" />
-        <Compile Include="Keyviewer\RainManager.cs" />
-        <Compile Include="Keyviewer\RainPool.cs" />
-        <Compile Include="PlayCount.cs" />
-        <Compile Include="BPM.cs" />
+        <Compile Include="KeyViewerContents\RainManager.cs" />
+        <Compile Include="KeyViewerContents\RainPool.cs" />
+        <Compile Include="OverlayContents\Attempt.cs" />
+        <Compile Include="OverlayContents\BPM.cs" />
+        <Compile Include="OverlayContents\Combo.cs" />
+        <Compile Include="OverlayContents\Judgement.cs" />
+        <Compile Include="OverlayContents\Overlay.cs" />
         <Compile Include="BundleLoader.cs" />
-        <Compile Include="Combo.cs" />
-        <Compile Include="Jongyeol\BPM.cs" />
-        <Compile Include="Jongyeol\Combo.cs" />
+        <Compile Include="Jongyeol\Jbpm.cs" />
+        <Compile Include="Jongyeol\JCombo.cs" />
         <Compile Include="Jongyeol\JOverlay.cs" />
-        <Compile Include="Jongyeol\Status.cs" />
-        <Compile Include="Jongyeol\Main.cs" />
-        <Compile Include="Judgement.cs" />
-        <Compile Include="Keyviewer\FootKeyviewerStyle.cs" />
-        <Compile Include="Keyviewer\Key.cs" />
-        <Compile Include="Keyviewer\KeyViewer.cs" />
-        <Compile Include="Keyviewer\KeyviewerStyle.cs" />
-        <Compile Include="Keyviewer\OtherModApi\AdofaiTweaksAPI.cs" />
-        <Compile Include="Keyviewer\OtherModApi\KeyboardChatterBlockerAPI.cs" />
-        <Compile Include="Keyviewer\Rain.cs" />
-        <Compile Include="Keyviewer\RawRain.cs" />
+        <Compile Include="Jongyeol\JStatus.cs" />
+        <Compile Include="Jongyeol\JMain.cs" />
+        <Compile Include="KeyViewerContents\FootKeyviewerStyle.cs" />
+        <Compile Include="KeyViewerContents\Key.cs" />
+        <Compile Include="KeyViewerContents\KeyViewer.cs" />
+        <Compile Include="KeyViewerContents\KeyviewerStyle.cs" />
+        <Compile Include="KeyViewerContents\OtherModApi\AdofaiTweaksAPI.cs" />
+        <Compile Include="KeyViewerContents\OtherModApi\KeyboardChatterBlockerAPI.cs" />
+        <Compile Include="KeyViewerContents\Rain.cs" />
+        <Compile Include="KeyViewerContents\RawRain.cs" />
         <Compile Include="Main.cs" />
-        <Compile Include="Overlay.cs" />
-        <Compile Include="ProgressBar.cs" />
+        <Compile Include="OverlayContents\PlayCount.cs" />
+        <Compile Include="OverlayContents\ProgressBar.cs" />
+        <Compile Include="OverlayContents\Status.cs" />
+        <Compile Include="OverlayContents\TimeTextType.cs" />
+        <Compile Include="OverlayContents\TimingScale.cs" />
         <Compile Include="ResourcePackSetting.cs" />
         <Compile Include="SettingTool\ColorCache.cs" />
         <Compile Include="SettingTool\ColorPerDictionary.cs" />
         <Compile Include="SettingTool\ProgressColorCache.cs" />
-        <Compile Include="Status.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="ResourceChanger.cs" />
-        <Compile Include="TimeTextType.cs" />
-        <Compile Include="TimingScale.cs" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="Keyviewer\KeyCodes.json" />
+      <Content Include="KeyViewerContents\KeyCodes.json" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

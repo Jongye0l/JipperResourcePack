@@ -11,7 +11,7 @@ using JALib.Core.Patch;
 using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Async;
-using JipperResourcePack.Keyviewer.OtherModApi;
+using JipperResourcePack.KeyViewerContents.OtherModApi;
 using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using TMPro;
@@ -21,7 +21,7 @@ using UnityModManagerNet;
 using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
 
-namespace JipperResourcePack.Keyviewer;
+namespace JipperResourcePack.KeyViewerContents;
 
 public class KeyViewer : Feature {
     private const int HandOutIndex = 20;

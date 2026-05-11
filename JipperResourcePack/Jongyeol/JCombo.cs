@@ -1,22 +1,23 @@
 ﻿using JALib.Core;
 using JALib.Core.Patch;
+using JipperResourcePack.OverlayContents;
 using Newtonsoft.Json.Linq;
 
 namespace JipperResourcePack.Jongyeol;
 
-public class Combo : JipperResourcePack.Combo {
+public class JCombo : Combo {
     public new static JComboSettings Settings;
     protected override void AddPatch() {
         Patcher.AddPatch(OnHit2);
     }
 
-    public Combo() : base(nameof(Combo), typeof(JComboSettings)) {
+    public JCombo() : base(nameof(JCombo), typeof(JComboSettings)) {
         Settings = (JComboSettings) Setting;
     }
 
     protected override void OnGUI() {
         base.OnGUI();
-        JipperResourcePack.Main.SettingGUI.AddSettingToggle(ref Settings.YellowCombo, JipperResourcePack.Main.Instance.Localization["combo.yellowCombo"]);
+        Main.SettingGUI.AddSettingToggle(ref Settings.YellowCombo, Main.Instance.Localization["combo.yellowCombo"]);
     }
 
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true)]
@@ -41,10 +42,7 @@ public class Combo : JipperResourcePack.Combo {
         if(hit is not HitMargin.Perfect and not HitMargin.Auto) JOverlay.Instance.PerfectToCombo();
     }
 
-    public class JComboSettings : ComboSettings {
+    public class JComboSettings(JAMod mod, JObject jsonObject = null) : ComboSettings(mod, jsonObject) {
         public bool YellowCombo = true;
-
-        public JComboSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
-        }
     }
 }

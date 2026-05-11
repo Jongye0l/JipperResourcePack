@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ADOFAI;
+using JipperResourcePack.OverlayContents;
 using TMPro;
 using UnityEngine;
 
@@ -16,15 +17,15 @@ public class JOverlay : Overlay {
     public TextMeshProUGUI StartText;
     public TextMeshProUGUI TimingText;
 
-    private List<float> timings;
-    private bool purePerfect;
-    private int deathCount;
-    private int lastDeath = -1;
-    private int pseudoFloor = -1;
-    private float lastCurKPS = -1;
-    private LevelData levelData => scnGame.instance ? scnGame.instance.levelData : null;
-    private float fpsTime;
-    private bool perToCom;
+    private List<float> _timings;
+    private bool _purePerfect;
+    private int _deathCount;
+    private int _lastDeath = -1;
+    private int _pseudoFloor = -1;
+    private float _lastCurKps = -1;
+    private static LevelData LevelData => scnGame.instance ? scnGame.instance.levelData : null;
+    private float _fpsTime;
+    private bool _perToCom;
 
     public JOverlay() {
         Instance = this;
@@ -44,21 +45,21 @@ public class JOverlay : Overlay {
     public override void SetupLocationMain() {
         if(!FPSText) return;
         int y = -15;
-        bool checkAuto = !Status.Settings.RemoveNotRequireInAuto || !RDC.auto;
-        SetupLocationMainText(FPSText, Status.Settings.ShowFPS, ref y);
-        SetupLocationMainText(AuthorText, !string.IsNullOrEmpty(levelData?.author) && Status.Settings.ShowAuthor, ref y);
-        SetupLocationMainText(ProgressText, Status.Settings.ShowProgress, ref y);
-        SetupLocationMainText(AccuracyText, checkAuto && Status.Settings.ShowAccuracy, ref y);
-        SetupLocationMainText(XAccuracyText, checkAuto && Status.Settings.ShowXAccuracy, ref y);
-        SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
-        SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
+        bool checkAuto = !JStatus.Settings.RemoveNotRequireInAuto || !RDC.auto;
+        SetupLocationMainText(FPSText, JStatus.Settings.ShowFPS, ref y);
+        SetupLocationMainText(AuthorText, !string.IsNullOrEmpty(LevelData?.author) && JStatus.Settings.ShowAuthor, ref y);
+        SetupLocationMainText(ProgressText, JStatus.Settings.ShowProgress, ref y);
+        SetupLocationMainText(AccuracyText, checkAuto && JStatus.Settings.ShowAccuracy, ref y);
+        SetupLocationMainText(XAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy, ref y);
+        SetupLocationMainText(TimeText, JStatus.Settings.ShowMusicTime, ref y);
+        SetupLocationMainText(MapTimeText, JStatus.Settings.ShowMapTime, ref y);
         checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
-        SetupLocationMainText(CheckpointText, checkAuto && Status.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
-        SetupLocationMainText(BestText, checkAuto && Status.Settings.ShowBest, ref y);
-        SetupLocationMainText(StateText, Status.Settings.ShowState, ref y);
-        SetupLocationMainText(DeathText, scrController.instance.noFail && Status.Settings.ShowDeath, ref y);
-        SetupLocationMainText(StartText, startTile != 0 && Status.Settings.ShowStart, ref y);
-        SetupLocationMainText(TimingText, checkAuto && Status.Settings.ShowTiming, ref y);
+        SetupLocationMainText(CheckpointText, checkAuto && JStatus.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
+        SetupLocationMainText(BestText, checkAuto && JStatus.Settings.ShowBest, ref y);
+        SetupLocationMainText(StateText, JStatus.Settings.ShowState, ref y);
+        SetupLocationMainText(DeathText, scrController.instance.noFail && JStatus.Settings.ShowDeath, ref y);
+        SetupLocationMainText(StartText, startTile != 0 && JStatus.Settings.ShowStart, ref y);
+        SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming, ref y);
         UpdateProgress();
         UpdateAccuracy();
         UpdateTime();
@@ -66,15 +67,15 @@ public class JOverlay : Overlay {
         UpdateState();
         UpdateDeath();
         UpdateStart();
-        if(timings != null) return;
-        timings = [];
+        if(_timings != null) return;
+        _timings = [];
         UpdateTiming(0);
-        timings.Clear();
+        _timings.Clear();
     }
 
     public override void UpdateProgress() {
         if(!GameObject.activeSelf) return;
-        if(purePerfect) CheckPurePerfect();
+        if(_purePerfect) CheckPurePerfect();
         base.UpdateProgress();
         UpdateState();
         UpdateDeath();
@@ -84,31 +85,31 @@ public class JOverlay : Overlay {
         int cur = scrController.instance.currentSeqID;
         int last = ADOBase.lm.listFloors.Count - 1;
         ProgressText.text = $"<color=white>Progress |</color> {cur} / {last}{(cur == last ? "" : $" [-{last - cur}]")} ({Math.Round(Progress * 100, 5)}%)";
-        ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
+        ProgressText.color = JStatus.Settings.ProgressColor.GetColor(Progress);
     }
 
     public override void UpdateAccuracy() {
         if(!GameObject.activeSelf) return;
         float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
         xacc.SetIfNaN(1);
-        if(JipperResourcePack.Status.Settings.ShowAccuracy) {
+        if(OverlayContents.Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
             float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
-            AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
+            AccuracyText.color = JStatus.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
-        if(JipperResourcePack.Status.Settings.ShowXAccuracy) {
+        if(OverlayContents.Status.Settings.ShowXAccuracy) {
             XAccuracyText.text = $"<color=white>X-Accuracy |</color> {Math.Round(xacc * 100, 4)}%";
             XAccuracyText.color = GetColor(xacc);
         }
     }
 
     public override void UpdateTime() {
-        if(!GameObject.activeSelf || !JipperResourcePack.Status.Instance.Enabled || death) return;
+        if(!GameObject.activeSelf || !OverlayContents.Status.Instance.Enabled || death) return;
         bool requireMusicToMap = false;
-        if(Status.Settings.ShowMusicTime) {
+        if(JStatus.Settings.ShowMusicTime) {
             AudioSource song = scrConductor.instance.song;
-            if(!song?.clip && Status.Settings.ShowMapTimeIfNotMusic) requireMusicToMap = true;
+            if(!song?.clip && JStatus.Settings.ShowMapTimeIfNotMusic) requireMusicToMap = true;
             else {
                 float time = song.time;
                 float totalTime = song.clip?.length ?? 0;
@@ -116,32 +117,32 @@ public class JOverlay : Overlay {
                 else if(time == 0 && songPlaying) time = totalTime;
                 TimeSpan now = TimeSpan.FromSeconds(time);
                 TimeSpan length = TimeSpan.FromSeconds(totalTime);
-                TimeText.text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
-                TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
+                TimeText.text = $@"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+                TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
-        if(Status.Settings.ShowMapTime || requireMusicToMap) {
+        if(JStatus.Settings.ShowMapTime || requireMusicToMap) {
             float time = (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
             float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
-            if(!Status.Settings.ShowMapTime && !requireMusicToMap) return;
+            if(!JStatus.Settings.ShowMapTime && !requireMusicToMap) return;
             TimeSpan now = TimeSpan.FromSeconds(time);
             TimeSpan length = TimeSpan.FromSeconds(totalTime);
-            string text = $@"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
-            if(Status.Settings.ShowMapTime) {
+            string text = $@"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {now:m\:ss\.f}~{length:m\:ss\.f}";
+            if(JStatus.Settings.ShowMapTime) {
                 MapTimeText.text = text;
-                MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
+                MapTimeText.color = JStatus.Settings.MapTimeColor.GetColor(time / totalTime);
             }
             if(requireMusicToMap) {
                 TimeText.text = text;
-                TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
+                TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
     }
 
     public override Color UpdateComboColor(int combo) {
-        if(purePerfect) return PurePerfectColor;
+        if(_purePerfect) return PurePerfectColor;
         float value = (float) combo / (scrController.instance.currentSeqID - startTile + hit[0] + hit[6] + 1) * 2;
         if(value > 1) value = 1;
         return GetColor(value, 0.2f, false);
@@ -150,7 +151,7 @@ public class JOverlay : Overlay {
     public override void UpdateBestText() {
         float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
         BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
-        BestText.color = Status.Settings.BestColor.GetColor(best);
+        BestText.color = JStatus.Settings.BestColor.GetColor(best);
     }
 
     private Color GetColor(float value, float middle = 0.5f, bool ppColor = true) {
@@ -160,18 +161,18 @@ public class JOverlay : Overlay {
     }
 
     public void UpdateFPS(float deltaTime) {
-        if(!Status.Settings.ShowFPS || !GameObject.activeSelf || (fpsTime += deltaTime) < 0.01f) return;
+        if(!JStatus.Settings.ShowFPS || !GameObject.activeSelf || (_fpsTime += deltaTime) < 0.01f) return;
         FPSText.text = $"FPS | {1 / deltaTime:F4}";
-        fpsTime %= 0.01f;
+        _fpsTime %= 0.01f;
     }
 
     public void UpdateAuthor() {
-        if(!Status.Settings.ShowAuthor || !GameObject.activeSelf) return;
-        AuthorText.text = $"Author | {levelData?.author ?? ""}";
+        if(!JStatus.Settings.ShowAuthor || !GameObject.activeSelf) return;
+        AuthorText.text = $"Author | {LevelData?.author ?? ""}";
     }
 
     public void UpdateState() {
-        if(!Status.Settings.ShowState || !GameObject.activeSelf) return;
+        if(!JStatus.Settings.ShowState || !GameObject.activeSelf) return;
         string s;
         StateText.color = Color.white;
         if(scrController.instance.currentSeqID == startTile) s = "대기";
@@ -181,12 +182,12 @@ public class JOverlay : Overlay {
         } else if(RDC.auto) {
             s = "자동 플레이";
             StateText.color = new Color(0.1058823529411765f, 1, 0);
-        } else if(purePerfect) {
+        } else if(_purePerfect) {
             s = "완벽한 플레이";
             StateText.color = PurePerfectColor;
         } else {
             int[] hits = hit;
-            if(deathCount != 0) s = "완주";
+            if(_deathCount != 0) s = "완주";
             else if(hits[0] != 0) s = "클리어";
             else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
             else s = "완벽주의";
@@ -200,58 +201,61 @@ public class JOverlay : Overlay {
         for(int i = 0; i < 10; i++) {
             if(i is 3 or 7) i++;
             if(hit[i] != 0) {
-                purePerfect = false;
+                _purePerfect = false;
                 return;
             }
         }
     }
 
     public void UpdateDeath() {
-        if(!Status.Settings.ShowDeath || !GameObject.activeSelf) return;
-        if(lastDeath != (deathCount = hit[8] + hit[9])) DeathText.text = $"<color=white>Death |</color> {deathCount}";
+        if(!JStatus.Settings.ShowDeath || !GameObject.activeSelf) return;
+        if(_lastDeath != (_deathCount = hit[8] + hit[9])) {
+            DeathText.text = $"<color=white>Death |</color> {_deathCount}";
+            _lastDeath = _deathCount;
+        }
         float max = (scrController.instance.currentSeqID - startTile) * 0.05f;
-        DeathText.color = GetColor(1 - Math.Min(deathCount, max) / max);
+        DeathText.color = GetColor(1 - Math.Min(_deathCount, max) / max);
     }
 
     public void UpdateStart() {
-        if(!Status.Settings.ShowStart || !GameObject.activeSelf || startTile != scrController.instance.currentSeqID) return;
+        if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || startTile != scrController.instance.currentSeqID) return;
         StartText.text = $"Start | {startTile} ({Math.Round(Progress*100, 5)}%)";
     }
 
     public void UpdateTiming(float timing) {
-        if(!Status.Settings.ShowTiming || !GameObject.activeSelf) return;
-        timings.Add(timing);
-        TimingText.text = $"<color=white>Timing |</color> {Math.Round(timing, 5)} ({Math.Round(timings.Average(), 5)})";
+        if(!JStatus.Settings.ShowTiming || !GameObject.activeSelf) return;
+        _timings.Add(timing);
+        TimingText.text = $"<color=white>Timing |</color> {Math.Round(timing, 5)} ({Math.Round(_timings.Average(), 5)})";
         TimingText.color = GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
     }
 
     public override void UpdateBPM() {
         if(!GameObject.activeSelf) return;
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
-        if(floor.seqID <= pseudoFloor) return;
+        if(floor.seqID <= _pseudoFloor) return;
         scrConductor conductor = scrConductor.instance;
         float bpm = (float) (conductor.bpm * conductor.song.pitch * scrController.instance.speed);
-        bool checkPseudo = BPM.Settings.CheckPseudo;
+        bool checkPseudo = Jbpm.Settings.CheckPseudo;
         float cbpm = 0;
         int count = 0;
         bool isPesudo = checkPseudo && CheckPseudo(floor, bpm, out cbpm, out count);
         if(!isPesudo) cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
         if(isPesudo) kps *= count;
-        if(lastTileBPM == bpm && lastCurBPM == cbpm && lastCurKPS == kps) return;
-        BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(BPM.Settings.BpmColor.GetColor(bpm / BPM.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
+        if(lastTileBPM == bpm && lastCurBPM == cbpm && _lastCurKps == kps) return;
+        BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
                        $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
-                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(BPM.Settings.BpmColor.GetColor(cbpm * count / BPM.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
-        if(lastCurBPM != cbpm) BPMText.color = BPM.Settings.BpmColor.GetColor(cbpm / BPM.Settings.BpmColorMax);
+                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
+        if(lastCurBPM != cbpm) BPMText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
         lastTileBPM = bpm;
         lastCurBPM = cbpm;
-        lastCurKPS = kps;
+        _lastCurKps = kps;
     }
 
     public void PerfectToCombo() {
-        if(perToCom) return;
+        if(_perToCom) return;
         ComboTitle.text = "Combo";
-        perToCom = true;
+        _perToCom = true;
     }
 
     private bool CheckPseudo(scrFloor curFloor, float bpm, out float cbpm, out int count) {
@@ -277,7 +281,7 @@ public class JOverlay : Overlay {
                     do {
                         floor = floor.nextfloor;
                     } while(floor && Math.Abs(floor.angleLength - floor.prevfloor.angleLength) < 0.00000000000001 && Math.Abs(speed - floor.speed) < 0.00000000000001);
-                    pseudoFloor = floor.seqID - 1;
+                    _pseudoFloor = floor.seqID - 1;
                     cbpm = count = 0;
                     return false;
                 }
@@ -317,7 +321,7 @@ public class JOverlay : Overlay {
         }
         cbpm = floor.nextfloor ? (float) (60 / (floor.nextfloor.entryTime - curFloor.entryTime)) : (float) (60 / (floor.entryTime - curFloor.entryTime + 60 / bpm));
         cbpm *= scrConductor.instance?.song?.pitch ?? 1;
-        pseudoFloor = floor.seqID;
+        _pseudoFloor = floor.seqID;
         return true;
     }
 
@@ -326,15 +330,15 @@ public class JOverlay : Overlay {
     }
 
     public override void Show() {
-        perToCom = false;
-        purePerfect = true;
-        pseudoFloor = -1;
+        _perToCom = false;
+        _purePerfect = true;
+        _pseudoFloor = -1;
         ComboTitle.text = "Perfect";
         base.Show();
     }
 
     public override void Hide() {
         base.Hide();
-        timings = null;
+        _timings = null;
     }
 }

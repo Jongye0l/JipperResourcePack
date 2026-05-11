@@ -4,7 +4,7 @@ using JALib.Tools;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Attempt : Feature {
     public static AttemptSetting Settings;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.Management.Instrumentation;
 using KeyboardChatterBlocker;
 using UnityEngine;
 
-namespace JipperResourcePack.Keyviewer.OtherModApi;
+namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
 public class KeyboardChatterBlockerAPI {
     public static bool IsExist;
