@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,6 +20,7 @@ using UnityEngine.UI;
 using UnityModManagerNet;
 using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
+using ThreadPriority = System.Threading.ThreadPriority;
 
 namespace JipperResourcePack.KeyViewerContents;
 
@@ -103,7 +104,8 @@ public class KeyViewer : Feature {
         PressTimes = new ConcurrentQueue<long>();
         Stopwatch = Stopwatch.StartNew();
         KeyinputListener = new Thread(ListenKey) {
-            Name = "JipperResourcePack KeyViewer Listener Thread"
+            Name = "JipperResourcePack KeyViewer Listener Thread",
+            Priority = ThreadPriority.AboveNormal
         };
         KeyinputListener.Start();
         Application.wantsToQuit += Application_wantsToQuit;
@@ -817,9 +819,15 @@ public class KeyViewer : Feature {
             KeyViewerSettings settings = Settings;
             bool[] keyState = new bool[GhostOutIndex];
             int repeat = 0;
+            long lastMillis = 0;
             while(KeyinputListener is { IsAlive: true } && Enabled) {
                 try {
                     long currentMillis = Stopwatch.ElapsedMilliseconds;
+                    while(currentMillis == lastMillis) {
+                        Thread.Yield();
+                        currentMillis = Stopwatch.ElapsedMilliseconds;
+                    }
+                    lastMillis = currentMillis;
                     KeyCode[] keyCodes = GetKeyCode();
                     for(int i = 0; i < keyCodes.Length; i++) {
                         bool current = CheckKey(keyCodes[i]);
@@ -877,9 +885,10 @@ public class KeyViewer : Feature {
                             PressTimes.TryDequeue(out long _);
                         else break;
                     }
-                    if(lastKps == PressTimes.Count) continue;
-                    lastKps = PressTimes.Count;
-                    Kps.Value.Text = lastKps.ToString();
+                    if(lastKps != PressTimes.Count) {
+                        lastKps = PressTimes.Count;
+                        Kps.Value.Text = lastKps.ToString();
+                    }
                     if(++repeat < 100 || !Save || !Enabled) continue;
                     Main.Instance.SaveSetting();
                     Save = false;
