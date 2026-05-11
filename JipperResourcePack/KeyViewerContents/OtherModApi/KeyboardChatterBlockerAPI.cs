@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Instrumentation;
+using JALib.Tools;
 using KeyboardChatterBlocker;
 using UnityEngine;
+using UnityModManagerNet;
 
 namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
@@ -14,6 +16,10 @@ public class KeyboardChatterBlockerAPI {
 
     public static void Setup() {
         if(IsExist) return;
+        if(UnityModManager.modEntries.FirstOrDefault(mod => mod.Info.Id == "KeyboardChatterBlocker") is not { Enabled: true }) {
+            Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
+            return;
+        }
         try {
             SetSetting();
             IsExist = true;
@@ -30,14 +36,14 @@ public class KeyboardChatterBlockerAPI {
 
     public static void SetSetting() {
         Setting = KeyboardChatterBlocker.Main.setting;
-        if(Setting == null) throw new InstanceNotFoundException("KeyboardChatterBlocker setting not found.");
+        if(Setting is not KeyboardChatterBlocker.Setting) throw new InstanceNotFoundException("KeyboardChatterBlocker setting not found.");
     }
 
     public static void UpdateKeyLimit(List<KeyCode> keys, List<ushort> asyncKeys) {
         try {
             KeyLimiterProfile profile = KeyboardChatterBlocker.Main.selectedKeyLimiterProfile;
             if(profile.name != "JipperResourcePack") {
-                Setting setting = (Setting) Setting;
+                Setting setting = Setting.AsUnsafe<Setting>();
                 profile = setting.keyLimiterProfiles.FirstOrDefault(t => t.name == "JipperResourcePack");
                 if(profile == null) {
                     profile = new KeyLimiterProfile("JipperResourcePack");

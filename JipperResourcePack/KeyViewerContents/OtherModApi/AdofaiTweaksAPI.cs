@@ -2,11 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Instrumentation;
 using AdofaiTweaks.Core;
 using AdofaiTweaks.Tweaks.KeyLimiter;
 using JALib.Tools;
 using UnityEngine;
+using UnityModManagerNet;
 
 namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
@@ -16,6 +18,10 @@ public class AdofaiTweaksAPI {
 
     public static void Setup() {
         if(IsExist) return;
+        if(UnityModManager.modEntries.FirstOrDefault(mod => mod.Info.Id == "AdofaiTweaks") is not { Enabled: true }) {
+            Main.Instance.Log("AdofaiTweaksAPI is not loaded.");
+            return;
+        }
         try {
             SetTweakRunner();
             IsExist = true;

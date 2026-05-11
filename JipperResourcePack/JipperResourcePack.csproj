@@ -83,7 +83,7 @@
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\I18N.West.dll</HintPath>
         </Reference>
         <Reference Include="JALib">
-          <HintPath>..\..\JALib\JALib\obj\Debug\JALib.dll</HintPath>
+          <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\Mods\JALib\JALib.dll</HintPath>
         </Reference>
         <Reference Include="KeyboardChatterBlocker">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\Mods\KeyboardChatterBlocker\KeyboardChatterBlocker.dll</HintPath>
