@@ -62,7 +62,6 @@ public class Overlay {
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
-        GameObject.AddComponent<GraphicRaycaster>();
         Stopwatch = new Stopwatch();
         GameObject.SetActive(false);
         InitializeStatus();

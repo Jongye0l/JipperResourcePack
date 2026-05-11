@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -90,7 +90,6 @@ public class KeyViewer : Feature {
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
-        canvas.gameObject.AddComponent<GraphicRaycaster>();
         KeyViewerSizeObject = new GameObject("SizeObject");
         RectTransform rectTransform = KeyViewerSizeObject.AddComponent<RectTransform>();
         rectTransform.SetParent(KeyViewerObject.transform);
