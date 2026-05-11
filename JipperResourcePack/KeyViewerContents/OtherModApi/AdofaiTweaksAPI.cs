@@ -50,7 +50,7 @@ public class AdofaiTweaksAPI {
     public static void UpdateKeyLimit(List<KeyCode> keys, List<ushort> asyncKeys) {
         try {
             if(keySetting == null) SetTweakRunner();
-            KeyLimiterSettings keySettings = (KeyLimiterSettings) keySetting;
+            KeyLimiterSettings keySettings = keySetting.AsUnsafe<KeyLimiterSettings>();
             keySettings.ActiveKeys = keys;
             keySettings.ActiveAsyncKeys = asyncKeys;
         } catch (Exception e) {

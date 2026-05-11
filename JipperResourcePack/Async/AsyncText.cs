@@ -36,7 +36,7 @@ public class AsyncText {
         }
     }
 
-    private static bool EqualColor(Color a, Color b) {
+    private static bool EqualColor(in Color a, in Color b) {
         // ReSharper disable CompareOfFloatsByEqualityOperator
         return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
         // ReSharper restore CompareOfFloatsByEqualityOperator

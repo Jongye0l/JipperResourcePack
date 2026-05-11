@@ -145,11 +145,8 @@ public class KeyViewer : Feature {
         }
         GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
-        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], () => {
-            CheckResetRain();
-            RainManager.enabled = Settings.useRain;
-        });
-        if(settings.useRain) settingGUI.AddSettingToggle(ref settings.useGhostRain, localization["keyViewer.useGhostRain"], CheckResetRain);
+        settingGUI.AddSettingToggle(ref settings.useRain, localization["keyViewer.useRain"], CheckResetRain);
+        if(settings.useRain) settingGUI.AddSettingToggle(ref settings.useGhostRain, localization["keyViewer.useGhostRain"]);
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         settingGUI.AddSettingSliderFloat(ref settings.rainSpeed, 100, ref _rainSizeString, localization["keyViewer.rainSpeed"], 1, 800);
@@ -684,6 +681,7 @@ public class KeyViewer : Feature {
     }
 
     private static void CheckResetRain() {
+        RainManager.enabled = Settings.useRain;
         if(Settings.useRain) return;
         RainManager.RawRainQueue.Clear();
         while(RainManager.RainList.Count > 0) {
@@ -879,7 +877,7 @@ public class KeyViewer : Feature {
                     }
                     while(PressTimes.TryPeek(out long result)) {
                         if(currentMillis - result > 1000)
-                            PressTimes.TryDequeue(out long _);
+                            PressTimes.Dequeue();
                         else break;
                     }
                     if(lastKps != PressTimes.Count) {

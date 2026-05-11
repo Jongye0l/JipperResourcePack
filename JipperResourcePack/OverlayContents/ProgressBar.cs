@@ -11,7 +11,7 @@ public class ProgressBar : MonoBehaviour {
 
     private void Awake() {
         LineTransform = transform.Find("line") as RectTransform;
-        LineImage = LineTransform.GetComponent<Image>();
+        LineImage = LineTransform!.GetComponent<Image>();
         BorderImage = transform.Find("borderLine").GetComponent<Image>();
         BackgroundImage = transform.Find("background").GetComponent<Image>();
     }

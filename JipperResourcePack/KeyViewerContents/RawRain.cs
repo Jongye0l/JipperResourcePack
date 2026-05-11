@@ -1,6 +1,7 @@
 ﻿namespace JipperResourcePack.KeyViewerContents;
 
 public class RawRain {
+    public readonly Key Key;
     public readonly long StartTime;
     public readonly float XSize;
     public readonly bool IsGhost;
@@ -8,7 +9,6 @@ public class RawRain {
     public bool FinishSize;
     public bool FinishSizeSetup;
     public bool SizeOver;
-    public Key Key;
     
     public RawRain(Key key, long startTime, bool isGhost) {
         Key = key;
