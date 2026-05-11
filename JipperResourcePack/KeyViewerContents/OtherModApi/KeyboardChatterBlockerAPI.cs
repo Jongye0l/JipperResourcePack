@@ -12,7 +12,7 @@ namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
 public class KeyboardChatterBlockerAPI {
     public static bool IsExist;
-    public static object Setting;
+    private static object _setting;
 
     public static void Setup() {
         if(IsExist) return;
@@ -35,16 +35,20 @@ public class KeyboardChatterBlockerAPI {
     }
 
     public static void SetSetting() {
-        Setting = KeyboardChatterBlocker.Main.setting;
-        if(Setting is not KeyboardChatterBlocker.Setting) throw new InstanceNotFoundException("KeyboardChatterBlocker setting not found.");
+        _setting = KeyboardChatterBlocker.Main.setting;
+        if(_setting is not Setting) throw new InstanceNotFoundException("KeyboardChatterBlocker setting not found.");
     }
 
     public static void UpdateKeyLimit(List<KeyCode> keys, List<ushort> asyncKeys) {
         try {
             KeyLimiterProfile profile = KeyboardChatterBlocker.Main.selectedKeyLimiterProfile;
             if(profile.name != "JipperResourcePack") {
-                Setting setting = Setting.AsUnsafe<Setting>();
-                profile = setting.keyLimiterProfiles.FirstOrDefault(t => t.name == "JipperResourcePack");
+                Setting setting = _setting.AsUnsafe<Setting>();
+                foreach(KeyLimiterProfile limiterProfile in setting.keyLimiterProfiles) {
+                    if(limiterProfile.name != "JipperResourcePack") continue;
+                    profile = limiterProfile;
+                    break;
+                }
                 if(profile == null) {
                     profile = new KeyLimiterProfile("JipperResourcePack");
                     setting.keyLimiterProfiles.Add(profile);

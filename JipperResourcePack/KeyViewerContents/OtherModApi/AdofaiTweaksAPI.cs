@@ -14,7 +14,7 @@ namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
 public class AdofaiTweaksAPI {
     public static bool IsExist;
-    public static object keySetting;
+    private static object _keySetting;
 
     public static void Setup() {
         if(IsExist) return;
@@ -41,16 +41,16 @@ public class AdofaiTweaksAPI {
         foreach(object tweakRunner in tweakRunners) {
             TweakSettings settings = tweakRunner.Invoke<TweakSettings>("get_Settings");
             if(settings is not KeyLimiterSettings keySettings) continue;
-            keySetting = keySettings;
+            _keySetting = keySettings;
             return;
         }
-        if(keySetting == null) throw new InstanceNotFoundException("KeyLimiterSettings not found.");
+        if(_keySetting == null) throw new InstanceNotFoundException("KeyLimiterSettings not found.");
     }
 
     public static void UpdateKeyLimit(List<KeyCode> keys, List<ushort> asyncKeys) {
         try {
-            if(keySetting == null) SetTweakRunner();
-            KeyLimiterSettings keySettings = keySetting.AsUnsafe<KeyLimiterSettings>();
+            if(_keySetting == null) SetTweakRunner();
+            KeyLimiterSettings keySettings = _keySetting.AsUnsafe<KeyLimiterSettings>();
             keySettings.ActiveKeys = keys;
             keySettings.ActiveAsyncKeys = asyncKeys;
         } catch (Exception e) {
