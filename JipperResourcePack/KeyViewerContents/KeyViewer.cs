@@ -888,6 +888,8 @@ public class KeyViewer : Feature {
                     Main.Instance.SaveSetting();
                     Save = false;
                     repeat = 0;
+                } catch (ThreadAbortException) {
+                    return;
                 } catch (Exception e) {
                     if(KeyinputListener is not { IsAlive: true }) return;
                     Main.Instance.LogException(e);
