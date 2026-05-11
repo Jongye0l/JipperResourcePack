@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -101,7 +101,9 @@ public class KeyViewer : Feature {
         Object.DontDestroyOnLoad(KeyViewerObject);
         PressTimes = new ConcurrentQueue<long>();
         Stopwatch = Stopwatch.StartNew();
-        KeyinputListener = new Thread(ListenKey);
+        KeyinputListener = new Thread(ListenKey) {
+            Name = "JipperResourcePack KeyViewer Listener Thread"
+        };
         KeyinputListener.Start();
         Application.wantsToQuit += Application_wantsToQuit;
         UpdateKeyLimit();
@@ -265,7 +267,7 @@ public class KeyViewer : Feature {
                 GUILayout.Label(localization["keyViewer.inputText"]);
                 string textArea = GUILayout.TextArea(keyTexts[SelectedKey] ?? KeyToString(keyCodes[SelectedKey]));
                 if(keyTexts[SelectedKey] != textArea) {
-                    Keys[SelectedKey].text.tmp.text = textArea;
+                    Keys[SelectedKey].Text.SetTextForce(textArea);
                     if(textArea == KeyToString(keyCodes[SelectedKey])) textArea = null;
                     keyTexts[SelectedKey] = textArea;
                 }
@@ -323,9 +325,9 @@ public class KeyViewer : Feature {
                 if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
                     for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
                     if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + HandOutIndex, CheckKey(footKeyCodes[i2]));
-                    Kps.background.color = Total.background.color = settings.Background;
-                    Kps.outline.color = Total.outline.color = settings.Outline;
-                    Kps.text.tmp.color = Kps.value.tmp.color = Total.text.tmp.color = Total.value.tmp.color = settings.Text;
+                    Kps.Background.Color = Total.Background.Color = settings.Background;
+                    Kps.Outline.Color = Total.Outline.Color = settings.Outline;
+                    Kps.Text.Color = Kps.Value.Color = Total.Text.Color = Total.Value.Color = settings.Text;
                     Main.Instance.SaveSetting();
                 }
                 GUILayout.EndVertical();
@@ -341,8 +343,8 @@ public class KeyViewer : Feature {
             GUILayout.Label("<color=red>" + localization["keyViewer.resetCountConfirmText"] + "</color>");
             if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
                 _confirmResetCount = false;
-                Total.value.tmp.text = "0";
-                foreach(Key key in Keys) key?.value.text = "0";
+                Total.Value.SetTextForce("0");
+                foreach(Key key in Keys) key?.Value.SetTextForce("0");
                 for(int i = 0; i < settings.Count.Length; i++) settings.Count[i] = 0;
                 settings.TotalCount = 0;
                 Main.Instance.SaveSetting();
@@ -403,7 +405,7 @@ public class KeyViewer : Feature {
             if(ChangeState == 0) {
                 if(SelectedKey < HandOutIndex) keyCodes[SelectedKey] = keyCode;
                 else footKeyCodes[SelectedKey - HandOutIndex] = keyCode;
-                Keys[SelectedKey].text.tmp.text = (SelectedKey < HandOutIndex ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode);
+                Keys[SelectedKey].Text.SetTextForce((SelectedKey < HandOutIndex ? keyTexts[SelectedKey] : null) ?? KeyToString(keyCode));
                 UpdateKeyLimit();
             } else ghostKeyCodes[SelectedKey] = keyCode;
             
@@ -827,8 +829,8 @@ public class KeyViewer : Feature {
                             continue;
                         }
                         if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-                        key.value.text = (++settings.Count[i]).ToString();
-                        Total.value.text = (++settings.TotalCount).ToString();
+                        key.Value.Text = (++settings.Count[i]).ToString();
+                        Total.Value.Text = (++settings.TotalCount).ToString();
                         PressTimes.Enqueue(currentMillis);
                         if(settings.useRain) {
                             RawRain rawRain = key.LastRain = new RawRain(currentMillis, key.color, false);
@@ -847,7 +849,7 @@ public class KeyViewer : Feature {
                         if(!current) continue;
                         PressTimes.Enqueue(currentMillis);
                         settings.Count[index]++;
-                        Total.value.text = (++settings.TotalCount).ToString();
+                        Total.Value.Text = (++settings.TotalCount).ToString();
                         Save = true;
                     }
                     if(settings.useRain && settings.useGhostRain) {
@@ -874,7 +876,7 @@ public class KeyViewer : Feature {
                     }
                     if(lastKps == PressTimes.Count) continue;
                     lastKps = PressTimes.Count;
-                    Kps.value.text = lastKps.ToString();
+                    Kps.Value.Text = lastKps.ToString();
                     if(++repeat < 100 || !Save || !Enabled) continue;
                     Main.Instance.SaveSetting();
                     Save = false;
@@ -894,10 +896,10 @@ public class KeyViewer : Feature {
     private void UpdateKey(int i, bool enabled) {
         Key key = Keys[i];
         KeyViewerSettings settings = Settings;
-        key.background.color = enabled ? settings.BackgroundClicked : settings.Background;
-        key.outline.color = enabled ? settings.OutlineClicked : settings.Outline;
-        key.text.color = enabled ? settings.TextClicked : settings.Text;
-        if(key.value) key.value.color = key.text.color;
+        key.Background.Color = enabled ? settings.BackgroundClicked : settings.Background;
+        key.Outline.Color = enabled ? settings.OutlineClicked : settings.Outline;
+        key.Text.Color = enabled ? settings.TextClicked : settings.Text;
+        key.Value?.Color = key.Text.Color;
     }
 
     private void Initialize0KeyViewer() {
@@ -989,7 +991,7 @@ public class KeyViewer : Feature {
         image.color = settings.Background;
         image.sprite = BundleLoader.KeyBackground;
         image.type = Image.Type.Sliced;
-        key.background = gameObject.AddComponent<AsyncImage>();
+        key.Background = new AsyncImage(image);
         gameObject = new GameObject("Outline");
         transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(objTransform);
@@ -1001,7 +1003,7 @@ public class KeyViewer : Feature {
         image.color = settings.Outline;
         image.sprite = BundleLoader.KeyOutline;
         image.type = Image.Type.Sliced;
-        key.outline = gameObject.AddComponent<AsyncImage>();
+        key.Outline = new AsyncImage(image);
         gameObject = new GameObject("KeyText");
         transform = gameObject.AddComponent<RectTransform>();
         transform.SetParent(objTransform);
@@ -1022,7 +1024,7 @@ public class KeyViewer : Feature {
         text.fontSizeMax = count ? 20 : 13;
         text.alignment = slim && count ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
         text.color = settings.Text;
-        key.text = gameObject.AddComponent<AsyncText>();
+        key.Text = new AsyncText(text);
         if(count) {
             gameObject = new GameObject("CountText");
             transform = gameObject.AddComponent<RectTransform>();
@@ -1043,7 +1045,7 @@ public class KeyViewer : Feature {
             text.fontSizeMin = 0;
             text.fontSizeMax = 20;
             text.alignment = slim ? TextAlignmentOptions.Right : TextAlignmentOptions.Top;
-            key.value = gameObject.AddComponent<AsyncText>();
+            key.Value = new AsyncText(text);
         }
         UpdateKeyText(key, i);
         key.color = raining < 2 ? raining + 1 : raining;
@@ -1067,12 +1069,12 @@ public class KeyViewer : Feature {
     private static void UpdateKeyText(Key key, int i) {
         switch(i) {
             case -1:
-                key.text.tmp.text = "KPS";
-                key.value.tmp.text = "0";
+                key.Text.SetTextForce("KPS");
+                key.Value.SetTextForce("0");
                 return;
             case -2:
-                key.text.tmp.text = "Total";
-                key.value.tmp.text = Settings.TotalCount.ToString();
+                key.Text.SetTextForce("Total");
+                key.Value.SetTextForce(Settings.TotalCount.ToString());
                 return;
             default:
                 KeyCode[] keyCodes;
@@ -1080,12 +1082,12 @@ public class KeyViewer : Feature {
                 if(i < HandOutIndex) {
                     keyCodes = GetKeyCode();
                     string[] keyText = GetKeyText();
-                    key.text.tmp.text = keyText[i] ?? KeyToString(keyCodes[i]);
+                    key.Text.SetTextForce(keyText[i] ?? KeyToString(keyCodes[i]));
                     if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-                    key.value.tmp.text = settings.Count[i].ToString();
+                    key.Value.SetTextForce(settings.Count[i].ToString());
                 } else {
                     keyCodes = GetFootKeyCode();
-                    key.text.tmp.text = KeyToString(keyCodes[i - HandOutIndex]);
+                    key.Text.SetTextForce(KeyToString(keyCodes[i - HandOutIndex]));
                 }
                 break;
         }

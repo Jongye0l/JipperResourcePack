@@ -5,10 +5,10 @@ using UnityEngine;
 namespace JipperResourcePack.Keyviewer;
 
 public class Key : MonoBehaviour {
-    public AsyncText text;
-    public AsyncImage background;
-    public AsyncImage outline;
-    public AsyncText value;
+    public AsyncText Text;
+    public AsyncImage Background;
+    public AsyncImage Outline;
+    public AsyncText Value;
     public int color;
     public int siblingIndex;
     public RainPool RainPool;
