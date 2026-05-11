@@ -119,12 +119,10 @@ public class KeyViewer : Feature {
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;
         KeyViewerSizeObject = null;
-        GC.SuppressFinalize(Keys);
         Keys = null;
         KeyinputListener.Abort();
         KeyinputListener.Interrupt();
         KeyinputListener = null;
-        GC.SuppressFinalize(PressTimes);
         PressTimes = null;
         Application.quitting -= ApplicationOnquitting;
     }
@@ -136,6 +134,7 @@ public class KeyViewer : Feature {
         settingGUI.AddSettingToggle(ref KeyShare, localization["keyViewer.keyShare"]);
         GUILayout.BeginHorizontal();
         settingGUI.AddSettingSliderFloat(ref settings.YLocation, 200, ref _yLocationString, localization["keyViewer.yLocation"], 0, CurrentKeyMaxY, ResetKeyViewer);
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(settings.YLocation != 200 && GUILayout.Button(localization["keyViewer.resetYLocation"])) {
             settings.YLocation = 200;
             _yLocationString = null;
