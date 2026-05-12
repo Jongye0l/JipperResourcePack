@@ -332,12 +332,12 @@ public class JOverlay : Overlay {
         return Math.Abs(angle - 1.57079642638564) < 0.00000000000001;
     }
 
-    public override void Show() {
+    public override void Show(int floor) {
         _perToCom = false;
         _purePerfect = true;
         _pseudoFloor = -1;
         ComboTitle.text = "Perfect";
-        base.Show();
+        base.Show(floor);
     }
 
     public override void Hide() {

@@ -21,7 +21,9 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private string _sizeString;
 
     protected override void OnSetup() {
-        Patcher.AddPatch(OnGameStart);
+        Patcher.AddPatch(OnGameStart1);
+        Patcher.AddPatch(OnGameStart2);
+        Patcher.AddPatch(OnChangeState);
         Patcher.AddPatch(OnGameStop);
         FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
@@ -120,14 +122,27 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     [JAPatch(typeof(scnGame), "Play", PatchType.Postfix, false)]
+    private static void OnGameStart1(int seqID) { // scnEditor, scnGame (except practice)
+        if(GCS.practiceMode) return;
+        Overlay.Instance.Show(seqID);
+    }
+
     [JAPatch(typeof(scrPressToStart), "ShowText", PatchType.Postfix, false)]
-    private static void OnGameStart() {
-        Overlay.Instance.Show();
+    private static void OnGameStart2() { // internal, practice
+        if(!GCS.practiceMode && scnGame.instance) return;
+        Overlay.Instance.Show(scrController.instance.currentSeqID);
     }
 
     [JAPatch(typeof(StateBehaviour), "ChangeState", PatchType.Postfix, true, ArgumentTypesType = [typeof(Enum)])]
     public static void OnChangeState(Enum newState) {
-        if((States) newState == States.Fail2) Overlay.Instance.Death();
+        switch((States) newState) {
+            case States.Fail2:
+                Overlay.Instance.Death();
+                break;
+            case States.Won:
+                Overlay.Instance.Clear();
+                break;
+        }
     }
 
     [JAPatch(typeof(scrUIController), "WipeToBlack", PatchType.Postfix, false)]

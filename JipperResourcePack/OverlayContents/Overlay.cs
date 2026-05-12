@@ -73,7 +73,7 @@ public class Overlay {
         InitializeAttempt();
         UpdateSize();
         Object.DontDestroyOnLoad(GameObject);
-        if(ADOBase.controller is { paused: false } && ADOBase.conductor is { isGameWorld: true }) Show();
+        if(ADOBase.controller is { paused: false } && ADOBase.conductor is { isGameWorld: true }) Show(0);
     }
 
     protected virtual void InitializeStatus() {
@@ -489,53 +489,48 @@ public class Overlay {
         TimingScaleText.text = $"Timing Scale - {Math.Round(scrController.instance.currFloor.marginScale * 100, 2)}%";
     }
     
-    public virtual void Show() {
-        bool active = GameObject.activeSelf;
+    public virtual void Show(int floor) {
         if(lastSavedStartProgress != -1) {
-            if(!autoOnceEnabled) {
-                PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
-                curBest = PlayCount.GetData(lastHash).GetBest(lastSavedStartProgress, lastMultiplier);
-            }
+            if(!autoOnceEnabled) PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
             lastSavedStartProgress = -1;
         }
-        if(active && ADOBase.isScnGame) return;
+        
+        PlayCount.Hash hash = PlayCount.GetMapHash();
+        if(lastHash != hash) {
+            lastHash = hash;
+            checkpoints = null;
+        }
+        
+        if(scnEditor.instance) {
+            if(scrController.checkpointsUsed == 0) noCheckStartTile = floor;
+        } else if(!GCS.practiceMode) {
+            noCheckStartTile = 0;
+        } else {
+            noCheckStartTile = floor;
+        }
+        
         autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
-        MainThread.Run(new JAction(Main.Instance, () => {
-            if(ADOBase.isScnGame && scrController.checkpointsUsed == 0) {
-                checkpoints = null;
-                noCheckStartTile = startTile = 0;
-                startProgress = 1f / ADOBase.lm.listFloors.Count;
-                curBest = lastCheckpoint = -1;
-            } else {
-                if(!active) {
-                    checkpoints = null;
-                    noCheckStartTile = scrController.instance.currentSeqID;
-                }
-                if(!active || scrController.checkpointsUsed != 0) {
-                    startTile = scrController.instance.currentSeqID;
-                    startProgress = scrController.instance.percentComplete;
-                    curBest = lastCheckpoint = -1;
-                }
-            }
-            lastHash = PlayCount.GetMapHash();
-            lastSavedStartProgress = startProgress;
-            lastMultiplier = (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
-            if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
-            GameObject.SetActive(true);
-            curCheck = 0;
-            scrMistakesManager manager = scrController.instance.mistakesManager;
-            manager.percentAcc = 1;
-            manager.percentXAcc = 1;
-            songPlaying = false;
-            death = false;
-            if(Status.Instance.Enabled) SetupLocationMain();
-            if(Judgement.Instance.Enabled) UpdateJudgement();
-            if(Combo.Instance.Enabled) UpdateCombo(0, false);
-            if(BPM.Instance.Enabled) UpdateBPM();
-            if(TimingScale.Instance.Enabled) UpdateTimingScale();
-            if(Attempt.Instance.Enabled) UpdateAttempts();
-            Combo.combo = 0;
-        }));
+        startTile = floor;
+        lastSavedStartProgress = startProgress = (float) floor / ADOBase.lm.listFloors.Count;
+        curBest = lastCheckpoint = -1;
+        lastMultiplier = (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+        if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
+        
+        GameObject.SetActive(true);
+        curCheck = 0;
+        scrMistakesManager manager = scrController.instance.mistakesManager;
+        manager.percentAcc = 1;
+        manager.percentXAcc = 1;
+        songPlaying = false;
+        death = false;
+        
+        if(Status.Instance.Enabled) SetupLocationMain();
+        if(Judgement.Instance.Enabled) UpdateJudgement();
+        if(Combo.Instance.Enabled) UpdateCombo(0, false);
+        if(BPM.Instance.Enabled) UpdateBPM();
+        if(TimingScale.Instance.Enabled) UpdateTimingScale();
+        if(Attempt.Instance.Enabled) UpdateAttempts();
+        Combo.combo = 0;
     }
 
     public void Death() {
@@ -544,6 +539,13 @@ public class Overlay {
         PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
         lastSavedStartProgress = -1;
         curBest = Progress;
+    }
+
+    public void Clear() {
+        if(autoOnceEnabled || lastSavedStartProgress == -1) return;
+        PlayCount.SetBest(lastHash, lastSavedStartProgress, 1, lastMultiplier);
+        lastSavedStartProgress = -1;
+        curBest = 1;
     }
     
     public virtual void Hide() {
