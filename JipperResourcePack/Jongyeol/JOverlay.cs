@@ -53,12 +53,12 @@ public class JOverlay : Overlay {
         SetupLocationMainText(XAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy, ref y);
         SetupLocationMainText(TimeText, JStatus.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, JStatus.Settings.ShowMapTime, ref y);
-        checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
-        SetupLocationMainText(CheckpointText, checkAuto && JStatus.Settings.ShowCheckpoint && checkpoints.Length > 0, ref y);
+        Checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
+        SetupLocationMainText(CheckpointText, checkAuto && JStatus.Settings.ShowCheckpoint && Checkpoints.Length > 0, ref y);
         SetupLocationMainText(BestText, checkAuto && JStatus.Settings.ShowBest, ref y);
         SetupLocationMainText(StateText, JStatus.Settings.ShowState, ref y);
         SetupLocationMainText(DeathText, scrController.instance.noFail && JStatus.Settings.ShowDeath, ref y);
-        SetupLocationMainText(StartText, startTile != 0 && JStatus.Settings.ShowStart, ref y);
+        SetupLocationMainText(StartText, StartTile != 0 && JStatus.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming, ref y);
         UpdateProgress();
         UpdateAccuracy();
@@ -94,7 +94,7 @@ public class JOverlay : Overlay {
         xacc.SetIfNaN(1);
         if(Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
-            float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - NoCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
             AccuracyText.color = JStatus.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
@@ -105,7 +105,7 @@ public class JOverlay : Overlay {
     }
 
     public override void UpdateTime() {
-        if(!GameObject.activeSelf || !Status.Instance.Enabled || death) return;
+        if(!GameObject.activeSelf || !Status.Instance.Enabled || IsDeath) return;
         bool requireMusicToMap = false;
         if(JStatus.Settings.ShowMusicTime) {
             AudioSource song = scrConductor.instance.song;
@@ -113,8 +113,8 @@ public class JOverlay : Overlay {
             else {
                 float time = song.time;
                 float totalTime = song.clip?.length ?? 0;
-                if(time > 0) songPlaying = true;
-                else if(time == 0 && songPlaying) time = totalTime;
+                if(time > 0) SongPlaying = true;
+                else if(time == 0 && SongPlaying) time = totalTime;
                 bool hourNeed = totalTime >= 3600;
                 TimeText.text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
@@ -146,13 +146,13 @@ public class JOverlay : Overlay {
 
     public override Color UpdateComboColor(int combo) {
         if(_purePerfect) return PurePerfectColor;
-        float value = (float) combo / (scrController.instance.currentSeqID - startTile + hit[0] + hit[6] + 1) * 2;
+        float value = (float) combo / (scrController.instance.currentSeqID - StartTile + Hit[0] + Hit[6] + 1) * 2;
         if(value > 1) value = 1;
         return GetColor(value, 0.2f, false);
     }
 
     public override void UpdateBestText() {
-        float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
+        float best = CurBest > Progress || AutoOnceEnabled ? CurBest : Progress;
         BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
         BestText.color = JStatus.Settings.BestColor.GetColor(best);
     }
@@ -178,7 +178,7 @@ public class JOverlay : Overlay {
         if(!JStatus.Settings.ShowState || !GameObject.activeSelf) return;
         string s;
         StateText.color = Color.white;
-        if(scrController.instance.currentSeqID == startTile) s = "대기";
+        if(scrController.instance.currentSeqID == StartTile) s = "대기";
         else if(scrController.instance.currFloor && scrController.instance.currFloor.nextfloor && scrController.instance.currFloor.nextfloor.auto) {
             s = "자동 플레이 타일";
             StateText.color = new Color(1, 0.5f, 0);
@@ -189,21 +189,21 @@ public class JOverlay : Overlay {
             s = "완벽한 플레이";
             StateText.color = PurePerfectColor;
         } else {
-            int[] hits = hit;
+            int[] hits = Hit;
             if(_deathCount != 0) s = "완주";
             else if(hits[0] != 0) s = "클리어";
             else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
             else s = "완벽주의";
         }
         if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) s += " 중";
-        if(startTile != 0) s += "(중간에서 시작)";
+        if(StartTile != 0) s += "(중간에서 시작)";
         StateText.text = $"<color=white>State |</color> {s}";
     }
 
     private void CheckPurePerfect() {
         for(int i = 0; i < 10; i++) {
             if(i is 3 or 7) i++;
-            if(hit[i] != 0) {
+            if(Hit[i] != 0) {
                 _purePerfect = false;
                 return;
             }
@@ -212,17 +212,17 @@ public class JOverlay : Overlay {
 
     public void UpdateDeath() {
         if(!JStatus.Settings.ShowDeath || !GameObject.activeSelf) return;
-        if(_lastDeath != (_deathCount = hit[8] + hit[9])) {
+        if(_lastDeath != (_deathCount = Hit[8] + Hit[9])) {
             DeathText.text = $"<color=white>Death |</color> {_deathCount}";
             _lastDeath = _deathCount;
         }
-        float max = (scrController.instance.currentSeqID - startTile) * 0.05f;
+        float max = (scrController.instance.currentSeqID - StartTile) * 0.05f;
         DeathText.color = GetColor(1 - Math.Min(_deathCount, max) / max);
     }
 
     public void UpdateStart() {
-        if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || startTile != scrController.instance.currentSeqID) return;
-        StartText.text = $"Start | {startTile} ({Math.Round(Progress*100, 5)}%)";
+        if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || StartTile != scrController.instance.currentSeqID) return;
+        StartText.text = $"Start | {StartTile} ({Math.Round(Progress*100, 5)}%)";
     }
 
     public void UpdateTiming(float timing) {
@@ -245,13 +245,13 @@ public class JOverlay : Overlay {
         if(!isPesudo) cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
         if(isPesudo) kps *= count;
-        if(lastTileBPM == bpm && lastCurBPM == cbpm && _lastCurKps == kps) return;
+        if(LastTileBpm == bpm && LastCurBpm == cbpm && _lastCurKps == kps) return;
         BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
                        $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
                        $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
-        if(lastCurBPM != cbpm) BPMText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
-        lastTileBPM = bpm;
-        lastCurBPM = cbpm;
+        if(LastCurBpm != cbpm) BPMText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
+        LastTileBpm = bpm;
+        LastCurBpm = cbpm;
         _lastCurKps = kps;
     }
 

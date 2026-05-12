@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JipperResourcePack.Jongyeol;
 
-public class JMain {
+public static class JMain {
     public static bool ModeEnabled;
     private static readonly RDCheatCode CheatCode = new("jongyeol");
     private static JASetting _setting;

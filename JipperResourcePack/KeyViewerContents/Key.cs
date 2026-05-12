@@ -4,7 +4,7 @@ using UnityEngine;
 namespace JipperResourcePack.KeyViewerContents;
 
 public class Key {
-    public GameObject GameObject;
+    public readonly GameObject GameObject;
     public AsyncText Text;
     public AsyncImage Background;
     public AsyncImage Outline;

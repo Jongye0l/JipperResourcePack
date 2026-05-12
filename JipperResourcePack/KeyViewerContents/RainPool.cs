@@ -4,10 +4,10 @@ namespace JipperResourcePack.KeyViewerContents;
 
 public class RainPool {
     public readonly RectTransform Transform;
-    public Rain[] Pool = new Rain[16];
-    public int PoolCount;
-    public Rain[] GhostPool = new Rain[16];
-    public int GhostPoolCount;
+    private Rain[] _pool = new Rain[16];
+    private int _poolCount;
+    private Rain[] _ghostPool = new Rain[16];
+    private int _ghostPoolCount;
 
     public RainPool(RectTransform transform) {
         Transform = transform;
@@ -15,8 +15,8 @@ public class RainPool {
     
     public void AddPool(Rain rain, bool isGhost) {
         rain.GameObject.SetActive(false);
-        ref int count = ref isGhost ? ref GhostPoolCount : ref PoolCount;
-        ref Rain[] targetPool = ref isGhost ? ref GhostPool : ref Pool;
+        ref int count = ref isGhost ? ref _ghostPoolCount : ref _poolCount;
+        ref Rain[] targetPool = ref isGhost ? ref _ghostPool : ref _pool;
         if(count == targetPool.Length) {
             Rain[] newRainPool = new Rain[targetPool.Length * 2];
             targetPool.CopyTo(newRainPool, 0);
@@ -26,9 +26,9 @@ public class RainPool {
     }
 
     public Rain GetOrNewRain(bool isGhost) {
-        ref int count = ref isGhost ? ref GhostPoolCount : ref PoolCount;
+        ref int count = ref isGhost ? ref _ghostPoolCount : ref _poolCount;
         if(count <= 0) return new Rain(this, isGhost);
-        Rain rain = (isGhost ? GhostPool : Pool)[--count];
+        Rain rain = (isGhost ? _ghostPool : _pool)[--count];
         rain.GameObject.SetActive(true);
         rain.Transform.sizeDelta = Vector2.zero;
         return rain;

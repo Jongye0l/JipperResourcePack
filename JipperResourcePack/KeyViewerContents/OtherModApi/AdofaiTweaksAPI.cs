@@ -12,7 +12,7 @@ using UnityModManagerNet;
 
 namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
-public class AdofaiTweaksAPI {
+public static class AdofaiTweaksAPI {
     public static bool IsExist;
     private static object _keySetting;
 

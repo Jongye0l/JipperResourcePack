@@ -10,7 +10,7 @@ using UnityModManagerNet;
 
 namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
-public class KeyboardChatterBlockerAPI {
+public static class KeyboardChatterBlockerAPI {
     public static bool IsExist;
     private static object _setting;
 

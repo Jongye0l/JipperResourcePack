@@ -31,12 +31,12 @@ public class JCombo : Combo {
             case HitMargin.EarlyPerfect:
             case HitMargin.LatePerfect:
             case HitMargin.Auto when Settings.EnableAutoCombo:
-                Overlay.Instance.UpdateCombo(++combo, true);
+                Overlay.Instance.UpdateCombo(++ComboCount, true);
                 break;
             case HitMargin.Auto when !Settings.EnableAutoCombo:
                 break;
             default:
-                Overlay.Instance.UpdateCombo(combo = 0, false);
+                Overlay.Instance.UpdateCombo(ComboCount = 0, false);
                 break;
         }
         if(hit is not HitMargin.Perfect and not HitMargin.Auto) JOverlay.Instance.PerfectToCombo();

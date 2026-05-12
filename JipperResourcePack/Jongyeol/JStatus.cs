@@ -8,7 +8,7 @@ namespace JipperResourcePack.Jongyeol;
 
 public class JStatus : OverlayContents.Status {
     public static new JProgressSetting Settings;
-    private static bool _auto = false;
+    private static bool _auto;
 
     public JStatus() : base(nameof(JStatus), typeof(JProgressSetting)) {
         Settings = (JProgressSetting) Setting;

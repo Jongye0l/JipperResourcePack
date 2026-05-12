@@ -32,26 +32,26 @@ public class Overlay {
     public ProgressBar ProgressBar;
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
     public float Progress;
-    public int[] hit = scrMistakesManager.hitMarginsCount;
-    public Shader Shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
-    protected int lastTime = -1;
-    protected int lastMapTime = -1;
-    protected int startTile;
-    protected int noCheckStartTile;
-    protected int lastCheckpoint = -1;
-    protected int[] checkpoints;
-    protected int curCheck;
-    protected float lastTileBPM = -1;
-    protected float lastCurBPM = -1;
-    private Stopwatch Stopwatch;
-    protected bool songPlaying;
-    protected float startProgress;
-    protected float curBest = -1;
-    protected bool autoOnceEnabled;
-    protected bool death;
-    private PlayCount.Hash lastHash;
-    private float lastSavedStartProgress = -1;
-    private float lastMultiplier = 1f;
+    public int[] Hit = scrMistakesManager.hitMarginsCount;
+    public readonly Shader Shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
+    protected int LastTime = -1;
+    protected int LastMapTime = -1;
+    protected int StartTile;
+    protected int NoCheckStartTile;
+    protected int LastCheckpoint = -1;
+    protected int[] Checkpoints;
+    protected int CurCheck;
+    protected float LastTileBpm = -1;
+    protected float LastCurBpm = -1;
+    private readonly Stopwatch _stopwatch;
+    protected bool SongPlaying;
+    protected float StartProgress;
+    protected float CurBest = -1;
+    protected bool AutoOnceEnabled;
+    protected bool IsDeath;
+    private PlayCount.Hash _lastHash;
+    private float _lastSavedStartProgress = -1;
+    private float _lastMultiplier = 1f;
 
     public Overlay() {
         Instance = this;
@@ -62,7 +62,7 @@ public class Overlay {
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.matchWidthOrHeight = 0.5f;
-        Stopwatch = new Stopwatch();
+        _stopwatch = new Stopwatch();
         GameObject.SetActive(false);
         InitializeStatus();
         InitializeBPM();
@@ -115,7 +115,7 @@ public class Overlay {
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(CheckpointText, 
             Status.Settings.ShowCheckpoint &&
-            (checkpoints ??= scrLevelMaker.instance.listFloors.Where(floor => floor.GetComponent<ffxCheckpoint>())
+            (Checkpoints ??= scrLevelMaker.instance.listFloors.Where(floor => floor.GetComponent<ffxCheckpoint>())
                  .Select(floor => floor.seqID).ToArray()).Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
         UpdateProgress();
@@ -148,7 +148,7 @@ public class Overlay {
         BPMText.fontSize = 25;
         SetupShadow(BPMText);
         gameObject.SetActive(false);
-        BPM.BPMObject = gameObject;
+        BPM.BpmObject = gameObject;
     }
 
     private void InitializeJudgement() {
@@ -215,7 +215,7 @@ public class Overlay {
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 1);
         transform.anchoredPosition = new Vector2(0, -10);
         transform.sizeDelta = new Vector2(642, 18);
-        ProgressBar = gameObject.AddComponent<ProgressBar>();
+        ProgressBar = new ProgressBar(transform);
         gameObject.SetActive(false);
         Status.ProgressBarObject = gameObject;
     }
@@ -302,7 +302,7 @@ public class Overlay {
         if(float.IsNaN(xacc)) xacc = 1;
         if(Status.Settings.ShowAccuracy) {
             float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
-            float maxAcc = 1 + (scrController.instance.currentSeqID - noCheckStartTile + 1) * 0.0001f;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - NoCheckStartTile + 1) * 0.0001f;
             AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
             AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
@@ -339,22 +339,22 @@ public class Overlay {
     }
 
     public void UpdateCheckPointText() {
-        if(checkpoints.Length == 0) return;
+        if(Checkpoints.Length == 0) return;
         bool updated = false;
-        while(checkpoints.Length > curCheck && scrController.instance.currentSeqID >= checkpoints[curCheck]) {
-            curCheck++;
+        while(Checkpoints.Length > CurCheck && scrController.instance.currentSeqID >= Checkpoints[CurCheck]) {
+            CurCheck++;
             updated = true;
         }
-        if(lastCheckpoint == scrController.checkpointsUsed && !updated) return;
-        CheckpointText.text = $"<color=white>CheckPoint |</color> {scrController.checkpointsUsed} ({curCheck}/{checkpoints.Length})";
-        lastCheckpoint = scrController.checkpointsUsed;
+        if(LastCheckpoint == scrController.checkpointsUsed && !updated) return;
+        CheckpointText.text = $"<color=white>CheckPoint |</color> {scrController.checkpointsUsed} ({CurCheck}/{Checkpoints.Length})";
+        LastCheckpoint = scrController.checkpointsUsed;
     }
 
     public void UpdateAttempts() {
         string[] values = new string[2];
         int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(lastHash)?.GetAttempts(startProgress) ?? 0}";
-        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(lastHash)?.GetAttempts() ?? 0}";
+        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(_lastHash)?.GetAttempts(StartProgress) ?? 0}";
+        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(_lastHash)?.GetAttempts() ?? 0}";
         AttemptText.text = count switch {
             0 => "",
             1 => values[0],
@@ -363,26 +363,26 @@ public class Overlay {
     }
 
     public void UpdateBest() {
-        if(RDC.auto && !autoOnceEnabled) autoOnceEnabled = true;
-        if(curBest == -1) curBest = PlayCount.GetData(lastHash)?.GetBest(startProgress, lastMultiplier) ?? 0;
-        else if(curBest > Progress || autoOnceEnabled) return;
+        if(RDC.auto && !AutoOnceEnabled) AutoOnceEnabled = true;
+        if(CurBest == -1) CurBest = PlayCount.GetData(_lastHash)?.GetBest(StartProgress, _lastMultiplier) ?? 0;
+        else if(CurBest > Progress || AutoOnceEnabled) return;
         UpdateBestText();
     }
 
     public virtual void UpdateBestText() {
-        float best = curBest > Progress || autoOnceEnabled ? curBest : Progress;
+        float best = CurBest > Progress || AutoOnceEnabled ? CurBest : Progress;
         BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
         BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
     public void UpdateJudgement() {
         if(!GameObject.activeSelf) return;
-        int[] hits = hit;
+        int[] hits = Hit;
         JudgementText.text = $"{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}";
     }
     
     public virtual void UpdateTime() {
-        if(!GameObject.activeSelf || !Status.Instance.Enabled || death) return;
+        if(!GameObject.activeSelf || !Status.Instance.Enabled || IsDeath) return;
         bool requireMusicToMap = false;
         if(Status.Settings.ShowMusicTime) {
             AudioSource song = scrConductor.instance.song;
@@ -390,12 +390,12 @@ public class Overlay {
             else {
                 float time = song.time;
                 float totalTime = song.clip?.length ?? 0;
-                if(lastTime == (int) time) return;
-                if(time > 0) songPlaying = true;
-                else if(time == 0 && songPlaying) time = totalTime;
+                if(LastTime == (int) time) return;
+                if(time > 0) SongPlaying = true;
+                else if(time == 0 && SongPlaying) time = totalTime;
                 bool hourNeed = totalTime >= 3600;
                 TimeText.text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
-                lastTime = (int) time;
+                LastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
@@ -404,18 +404,18 @@ public class Overlay {
             float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
-            if((!Status.Settings.ShowMapTime || lastMapTime == (int) time) &&
-               (!requireMusicToMap || lastTime == (int) time)) return;
+            if((!Status.Settings.ShowMapTime || LastMapTime == (int) time) &&
+               (!requireMusicToMap || LastTime == (int) time)) return;
             bool hourNeed = totalTime >= 3600;
             string text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
-                lastMapTime = (int) time;
+                LastMapTime = (int) time;
                 MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
             }
             if(requireMusicToMap) {
                 TimeText.text = text;
-                lastTime = (int) time;
+                LastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
@@ -431,10 +431,10 @@ public class Overlay {
         ComboText.text = combo.ToString();
         ComboText.color = UpdateComboColor(combo);
         if(bump) {
-            Stopwatch.Restart();
+            _stopwatch.Restart();
             UpdateComboSize();
         } else {
-            Stopwatch.Stop();
+            _stopwatch.Stop();
             ComboText.fontSize = 78;
             ComboTransform.anchoredPosition = new Vector2(0, 43.505f);
         }
@@ -446,11 +446,11 @@ public class Overlay {
     }
 
     public void UpdateComboSize() {
-        if(!Stopwatch.IsRunning || !GameObject.activeSelf) return;
-        double t = Stopwatch.Elapsed.TotalMilliseconds / 500;
+        if(!_stopwatch.IsRunning || !GameObject.activeSelf) return;
+        double t = _stopwatch.Elapsed.TotalMilliseconds / 500;
         if(t > 1) {
             t = 1;
-            Stopwatch.Stop();
+            _stopwatch.Stop();
         }
         ComboText.fontSize = 30 * OutExpoChange(t) + 78;
         Task.Yield().OnCompleted(UpdateComboLocation);
@@ -473,13 +473,13 @@ public class Overlay {
         float bpm = (float) (conductor.bpm * conductor.song.pitch * scrController.instance.speed);
         float cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
-        if(lastTileBPM == bpm && lastCurBPM == cbpm) return;
+        if(LastTileBpm == bpm && LastCurBpm == cbpm) return;
         BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(BPM.Settings.BpmColor.GetColor(bpm / BPM.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
                        $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
                        $"<color=white>KPS |</color> {Math.Round(kps, 2)}";
-        if(lastCurBPM != cbpm) BPMText.color = BPM.Settings.BpmColor.GetColor(cbpm / BPM.Settings.BpmColorMax);
-        lastTileBPM = bpm;
-        lastCurBPM = cbpm;
+        if(LastCurBpm != cbpm) BPMText.color = BPM.Settings.BpmColor.GetColor(cbpm / BPM.Settings.BpmColorMax);
+        LastTileBpm = bpm;
+        LastCurBpm = cbpm;
     }
 
     protected static string ColorToHex(Color color) => $"{Mathf.RoundToInt(color.r * 255):X2}{Mathf.RoundToInt(color.g * 255):X2}{Mathf.RoundToInt(color.b * 255):X2}{(color.a == 1 ? "" : Mathf.RoundToInt(color.a * 255).ToString("X2"))}";
@@ -490,39 +490,39 @@ public class Overlay {
     }
     
     public virtual void Show(int floor) {
-        if(lastSavedStartProgress != -1) {
-            if(!autoOnceEnabled) PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
-            lastSavedStartProgress = -1;
+        if(_lastSavedStartProgress != -1) {
+            if(!AutoOnceEnabled) PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
+            _lastSavedStartProgress = -1;
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();
-        if(lastHash != hash) {
-            lastHash = hash;
-            checkpoints = null;
+        if(_lastHash != hash) {
+            _lastHash = hash;
+            Checkpoints = null;
         }
         
         if(scnEditor.instance) {
-            if(scrController.checkpointsUsed == 0) noCheckStartTile = floor;
+            if(scrController.checkpointsUsed == 0) NoCheckStartTile = floor;
         } else if(!GCS.practiceMode) {
-            noCheckStartTile = 0;
+            NoCheckStartTile = 0;
         } else {
-            noCheckStartTile = floor;
+            NoCheckStartTile = floor;
         }
         
-        autoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
-        startTile = floor;
-        lastSavedStartProgress = startProgress = (float) floor / ADOBase.lm.listFloors.Count;
-        curBest = lastCheckpoint = -1;
-        lastMultiplier = (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
-        if(Status.Instance.Enabled && !autoOnceEnabled) PlayCount.AddAttempts(lastHash, startProgress);
+        AutoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
+        StartTile = floor;
+        _lastSavedStartProgress = StartProgress = (float) floor / ADOBase.lm.listFloors.Count;
+        CurBest = LastCheckpoint = -1;
+        _lastMultiplier = (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+        if(Status.Instance.Enabled && !AutoOnceEnabled) PlayCount.AddAttempts(_lastHash, StartProgress);
         
         GameObject.SetActive(true);
-        curCheck = 0;
+        CurCheck = 0;
         scrMistakesManager manager = scrController.instance.mistakesManager;
         manager.percentAcc = 1;
         manager.percentXAcc = 1;
-        songPlaying = false;
-        death = false;
+        SongPlaying = false;
+        IsDeath = false;
         
         if(Status.Instance.Enabled) SetupLocationMain();
         if(Judgement.Instance.Enabled) UpdateJudgement();
@@ -530,37 +530,37 @@ public class Overlay {
         if(BPM.Instance.Enabled) UpdateBPM();
         if(TimingScale.Instance.Enabled) UpdateTimingScale();
         if(Attempt.Instance.Enabled) UpdateAttempts();
-        Combo.combo = 0;
+        Combo.ComboCount = 0;
     }
 
     public void Death() {
-        death = true;
-        if(autoOnceEnabled || lastSavedStartProgress == -1) return;
-        PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
-        lastSavedStartProgress = -1;
-        curBest = Progress;
+        IsDeath = true;
+        if(AutoOnceEnabled || _lastSavedStartProgress == -1) return;
+        PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
+        _lastSavedStartProgress = -1;
+        CurBest = Progress;
     }
 
     public void Clear() {
-        if(autoOnceEnabled || lastSavedStartProgress == -1) return;
-        PlayCount.SetBest(lastHash, lastSavedStartProgress, 1, lastMultiplier);
-        lastSavedStartProgress = -1;
-        curBest = 1;
+        if(AutoOnceEnabled || _lastSavedStartProgress == -1) return;
+        PlayCount.SetBest(_lastHash, _lastSavedStartProgress, 1, _lastMultiplier);
+        _lastSavedStartProgress = -1;
+        CurBest = 1;
     }
     
     public virtual void Hide() {
         if(!GameObject.activeSelf) return;
         GameObject.SetActive(false);
         try {
-            if(!autoOnceEnabled && lastSavedStartProgress != -1) {
-                PlayCount.SetBest(lastHash, lastSavedStartProgress, Progress, lastMultiplier);
-                lastSavedStartProgress = -1;
+            if(!AutoOnceEnabled && _lastSavedStartProgress != -1) {
+                PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
+                _lastSavedStartProgress = -1;
             }
-            if(startProgress == Progress && !autoOnceEnabled) PlayCount.RemoveAttempts(lastHash, startProgress);
+            if(StartProgress == Progress && !AutoOnceEnabled) PlayCount.RemoveAttempts(_lastHash, StartProgress);
         } catch (Exception e) {
             Main.Instance.LogException("Failed to set play data on hide", e);
         }
-        startProgress = startTile = noCheckStartTile = -1;
+        StartProgress = StartTile = NoCheckStartTile = -1;
     }
 
     public void Destroy() {
