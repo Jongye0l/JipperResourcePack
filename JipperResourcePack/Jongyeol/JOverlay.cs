@@ -336,7 +336,7 @@ public class JOverlay : Overlay {
         _perToCom = false;
         _purePerfect = true;
         _pseudoFloor = -1;
-        ComboTitle.text = "Perfect";
+        if(scrController.checkpointsUsed == 0) ComboTitle.text = "Perfect";
         base.Show(floor);
     }
 
