@@ -49,6 +49,8 @@ public class Overlay {
     protected float CurBest = -1;
     protected bool AutoOnceEnabled;
     protected bool IsDeath;
+    protected string MusicTimeCache;
+    protected string MapTimeCache;
     private PlayCount.Hash _lastHash;
     private float _lastSavedStartProgress = -1;
     private float _lastMultiplier = 1f;
@@ -388,13 +390,20 @@ public class Overlay {
             AudioSource song = scrConductor.instance.song;
             if(!song?.clip && Status.Settings.ShowMapTimeIfNotMusic) requireMusicToMap = true;
             else {
-                float time = song.time;
+                float time = song!.time;
                 float totalTime = song.clip?.length ?? 0;
                 if(LastTime == (int) time) return;
-                if(time > 0) SongPlaying = true;
-                else if(time == 0 && SongPlaying) time = totalTime;
                 bool hourNeed = totalTime >= 3600;
-                TimeText.text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
+                MusicTimeCache ??= GetTimeString(totalTime, hourNeed);
+                string timeStr;
+                if(time == 0 && SongPlaying) {
+                    time = totalTime;
+                    timeStr = MusicTimeCache;
+                } else {
+                    if(time > 0) SongPlaying = true;
+                    timeStr = GetTimeString(time, hourNeed);
+                }
+                TimeText.text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {timeStr}~{MusicTimeCache}";
                 LastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
@@ -407,7 +416,10 @@ public class Overlay {
             if((!Status.Settings.ShowMapTime || LastMapTime == (int) time) &&
                (!requireMusicToMap || LastTime == (int) time)) return;
             bool hourNeed = totalTime >= 3600;
-            string text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
+            MapTimeCache ??= GetTimeString(totalTime, hourNeed);
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
+            string text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {timeStr}~{MapTimeCache}";
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 LastMapTime = (int) time;
@@ -493,6 +505,7 @@ public class Overlay {
         if(_lastSavedStartProgress != -1) {
             if(!AutoOnceEnabled) PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
             _lastSavedStartProgress = -1;
+            MusicTimeCache = MapTimeCache = null;
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();

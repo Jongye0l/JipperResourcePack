@@ -111,12 +111,21 @@ public class JOverlay : Overlay {
             AudioSource song = scrConductor.instance.song;
             if(!song?.clip && JStatus.Settings.ShowMapTimeIfNotMusic) requireMusicToMap = true;
             else {
-                float time = song.time;
+                float time = song!.time;
                 float totalTime = song.clip?.length ?? 0;
                 if(time > 0) SongPlaying = true;
                 else if(time == 0 && SongPlaying) time = totalTime;
                 bool hourNeed = totalTime >= 3600;
-                TimeText.text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
+                MusicTimeCache ??= GetTimeString(totalTime, hourNeed);
+                string timeStr;
+                if(time == 0 && SongPlaying) {
+                    time = totalTime;
+                    timeStr = MusicTimeCache;
+                } else {
+                    if(time > 0) SongPlaying = true;
+                    timeStr = GetTimeString(time, hourNeed);
+                }
+                TimeText.text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {timeStr}~{MusicTimeCache}";
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
@@ -127,7 +136,10 @@ public class JOverlay : Overlay {
             else if(time > totalTime) time = totalTime;
             if(!JStatus.Settings.ShowMapTime && !requireMusicToMap) return;
             bool hourNeed = totalTime >= 3600;
-            string text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {GetTimeString(time, hourNeed)}~{GetTimeString(totalTime, hourNeed)}";
+            MapTimeCache ??= GetTimeString(totalTime, hourNeed);
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
+            string text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {timeStr}~{MapTimeCache}";
             if(JStatus.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 MapTimeText.color = JStatus.Settings.MapTimeColor.GetColor(time / totalTime);
