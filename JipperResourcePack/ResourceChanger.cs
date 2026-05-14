@@ -159,7 +159,7 @@ public class ResourceChanger : Feature {
     
     [JAPatch(typeof(scrPlanet), "Start", PatchType.Postfix, false)]
     public static void OnPlanetStart(scrPlanet __instance) {
-        if(!Settings.ChangeBallColor) return;
+        if(!Settings.ChangeBallColor || VersionSafe.IsCoopMode()) return;
         object obj = __instance;
         if(IsAfterR129) obj = obj.GetValue("planetRenderer");
         obj.Invoke("DisableAllSpecialPlanets");
@@ -175,10 +175,10 @@ public class ResourceChanger : Feature {
     [JAPatch(typeof(PlanetarySystem), nameof(PlanetarySystem.EnbyMode), PatchType.Prefix, false, TryingCatch = false, MinVersion = 141)]
     [JAPatch(typeof(scrLogoText), nameof(scrLogoText.UpdateColors), PatchType.Prefix, false, TryingCatch = false)]
     [JAPatch(typeof(scrLogoText), nameof(scrLogoText.LateUpdate), PatchType.Prefix, false, TryingCatch = false)]
-    public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor;
+    public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor || VersionSafe.IsCoopMode();
 
     public static void Prefix(ref Color color) {
-        if(Settings.ChangeBallColor) color = PlanetColor;
+        if(Settings.ChangeBallColor && !VersionSafe.IsCoopMode()) color = PlanetColor;
     }
 
     [JAPatch(typeof(scrFloor), nameof(scrFloor.SetTileColor), PatchType.Prefix, false, TryingCatch = false)]
@@ -188,7 +188,7 @@ public class ResourceChanger : Feature {
     public static void OnLogoTextAwake(scrLogoText __instance) {
         RectTransform rectTransform = __instance.gameObject.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = rectTransform.anchoredPosition with { y = 0.75f };
-        if(Settings.ChangeBallColor) {
+        if(Settings.ChangeBallColor && !VersionSafe.IsCoopMode()) {
             __instance.ColorLogoSafe(PlanetColor, true);
             __instance.ColorLogoSafe(PlanetColor, false);
         }

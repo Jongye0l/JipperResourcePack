@@ -22,6 +22,7 @@ public static class VersionSafe {
             patcher.AddPatch(LoadSceneR136, new JAPatchAttribute(LoadScene, PatchType.Transpiler, false));
             patcher.AddPatch(GetPercentAccR136, new JAPatchAttribute(GetPercentAcc, PatchType.Transpiler, false));
             patcher.AddPatch(GetPercentXAccR136, new JAPatchAttribute(GetPercentXAcc, PatchType.Transpiler, false));
+            patcher.AddPatch(IsCoopModeR136, new JAPatchAttribute(IsCoopMode, PatchType.Replace, false));
         } else {
             patcher.AddPatch(ColorLogoR141, new JAPatchAttribute(ColorLogoSafe, PatchType.Replace, false));
             patcher.AddPatch(GetMistakesManagerR141, new JAPatchAttribute(GetMistakesManagerSafe, PatchType.Replace, false));
@@ -31,6 +32,7 @@ public static class VersionSafe {
             patcher.AddPatch(LoadSceneR141, new JAPatchAttribute(LoadScene, PatchType.Replace, false));
             patcher.AddPatch(GetPercentAccR141, new JAPatchAttribute(GetPercentAcc, PatchType.Replace, false));
             patcher.AddPatch(GetPercentXAccR141, new JAPatchAttribute(GetPercentXAcc, PatchType.Replace, false));
+            patcher.AddPatch(IsCoopModeR141, new JAPatchAttribute(IsCoopMode, PatchType.Replace, false));
         }
         patcher.Patch();
     }
@@ -43,6 +45,7 @@ public static class VersionSafe {
     public static void LoadScene(string name) => throw new NotSupportedException("This functionality is not implemented");
     public static float GetPercentAcc() => throw new NotSupportedException("This functionality is not implemented");
     public static float GetPercentXAcc() => throw new NotSupportedException("This functionality is not implemented");
+    public static bool IsCoopMode() => throw new NotSupportedException("This functionality is not implemented");
 
     #region R136
 
@@ -90,6 +93,8 @@ public static class VersionSafe {
         new(OpCodes.Ldfld, typeof(scrMistakesManager).GetField("percentXAcc", BindingFlags.Public | BindingFlags.Instance))
     ];
 
+    private static bool IsCoopModeR136() => false;
+
     #endregion
 
     #region R141
@@ -102,6 +107,7 @@ public static class VersionSafe {
     private static void LoadSceneR141(string name) => ADOBase.loader.LoadScene(name);
     private static float GetPercentAccR141() => scrController.instance.playerManager.mistakesManager.percentAcc;
     private static float GetPercentXAccR141() => scrController.instance.playerManager.mistakesManager.percentXAcc;
+    private static bool IsCoopModeR141() => scrController.coopMode;
 
     #endregion
 
