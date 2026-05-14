@@ -8,25 +8,25 @@ using ADOFAI;
 using HarmonyLib;
 using JALib.Tools.ByteTool;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class PlayCount {
 
-    public static Dictionary<Hash, PlayData> datas;
+    public static Dictionary<Hash, PlayData> Datas;
     private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
 
     public static float Multiplier => (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
 
     public static void Load() {
         string path = FilePath;
-        datas = new Dictionary<Hash, PlayData>();
+        Datas = new Dictionary<Hash, PlayData>();
         if(File.Exists(path)) {
             try {
                 LoadFile(path);
                 return;
             } catch (Exception e) {
                 Main.Instance.LogException("Error On Load File", e);
-                datas.Clear();
+                Datas.Clear();
             }
         }
         path += ".bak";
@@ -44,12 +44,12 @@ public class PlayCount {
         int count = fileStream.ReadInt();
         for(int i = 0; i < count; i++) {
             Hash key = fileStream.ReadBytes(16);
-            (datas[key] = new PlayData()).Read(fileStream, version);
+            (Datas[key] = new PlayData()).Read(fileStream, version);
         }
     }
 
     public static void Dispose() {
-        datas = null;
+        Datas = null;
     }
 
     public static void AddAttempts(Hash hash, float progress) => GetData(hash).AddAttempts(progress, Multiplier);
@@ -70,8 +70,8 @@ public class PlayCount {
             using FileStream fileStream = File.OpenWrite(path);
             using MemoryStream memoryStream = new();
             memoryStream.WriteByte(1);
-            memoryStream.WriteInt(datas.Count);
-            foreach(KeyValuePair<Hash, PlayData> pair in datas) {
+            memoryStream.WriteInt(Datas.Count);
+            foreach(KeyValuePair<Hash, PlayData> pair in Datas) {
                 if(pair.Value == null) continue;
                 memoryStream.Write(pair.Key.data);
                 pair.Value.Write(memoryStream);
@@ -83,8 +83,8 @@ public class PlayCount {
     }
 
     public static PlayData GetData(Hash hash) {
-        if(!datas.ContainsKey(hash)) datas[hash] = new PlayData();
-        return datas[hash];
+        if(!Datas.ContainsKey(hash)) Datas[hash] = new PlayData();
+        return Datas[hash];
     }
 
     public class PlayData {

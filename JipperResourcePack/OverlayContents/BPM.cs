@@ -7,32 +7,32 @@ using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class BPM : Feature {
-    public static GameObject BPMObject;
+    public static GameObject BpmObject;
     public static BPMSettings Settings;
-    private string BpmColorMaxString;
+    private string _bpmColorMaxString;
     public static BPM Instance;
 
-    public BPM() : this(nameof(BPM), typeof(BPMSettings)) {
+    public BPM() : this(typeof(BPMSettings)) {
     }
 
-    public BPM(string name, Type settingType) : base(Main.Instance, name, true, typeof(BPM), settingType) {
+    public BPM(Type settingType) : base(Main.Instance, nameof(BPM), true, typeof(BPM), settingType) {
         Instance = this;
     }
 
     protected override void OnEnable() {
-        BPMObject?.SetActive(true);
+        BpmObject?.SetActive(true);
     }
     
     protected override void OnDisable() {
-        BPMObject?.SetActive(false);
+        BpmObject?.SetActive(false);
     }
 
     protected override void OnGUI() {
         SettingGUI settingGUI = Main.SettingGUI;
-        settingGUI.AddSettingFloat(ref Settings.BpmColorMax, 8000, ref BpmColorMaxString, Main.Instance.Localization["bpm.bpmColorMax"], 0);
+        settingGUI.AddSettingFloat(ref Settings.BpmColorMax, 8000, ref _bpmColorMaxString, Main.Instance.Localization["bpm.bpmColorMax"], 0);
         if(Settings.BpmColor.SettingGUI(settingGUI, Main.Instance.Localization["bpm.bpmColor"])) Overlay.Instance.UpdateBPM();
     }
 

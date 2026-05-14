@@ -7,14 +7,14 @@ using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Combo : Feature {
-    public static int combo;
+    public static int ComboCount;
     public static ComboSettings Settings;
     public static GameObject ComboObject;
     public static RectTransform ComboTransform;
-    private string ComboColorMaxString;
+    private string _comboColorMaxString;
     public static Combo Instance;
     public Combo() : this(nameof(Combo), typeof(ComboSettings)) {
     }
@@ -39,8 +39,8 @@ public class Combo : Feature {
     protected override void OnGUI() {
         SettingGUI settingGUI = Main.SettingGUI;
         settingGUI.AddSettingToggle(ref Settings.EnableAutoCombo, Main.Instance.Localization["combo.enableAutoCombo"]);
-        settingGUI.AddSettingInt(ref Settings.ComboColorMax, 1000, ref ComboColorMaxString, Main.Instance.Localization["combo.comboColorMax"], 0);
-        if(Settings.ComboColor.SettingGUI(settingGUI, Main.Instance.Localization["combo.comboColor"])) Overlay.Instance.UpdateComboColor(combo);
+        settingGUI.AddSettingInt(ref Settings.ComboColorMax, 1000, ref _comboColorMaxString, Main.Instance.Localization["combo.comboColorMax"], 0);
+        if(Settings.ComboColor.SettingGUI(settingGUI, Main.Instance.Localization["combo.comboColor"])) Overlay.Instance.UpdateComboColor(ComboCount);
     }
 
     public class ComboSettings : JASetting {
@@ -59,7 +59,7 @@ public class Combo : Feature {
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
     public static void OnHit(HitMargin hit) {
-        if(hit == HitMargin.Perfect || Settings.EnableAutoCombo && hit == HitMargin.Auto) Overlay.Instance.UpdateCombo(++combo, true);
-        else if(Settings.EnableAutoCombo || hit != HitMargin.Auto) Overlay.Instance.UpdateCombo(combo = 0, false);
+        if(hit == HitMargin.Perfect || Settings.EnableAutoCombo && hit == HitMargin.Auto) Overlay.Instance.UpdateCombo(++ComboCount, true);
+        else if(Settings.EnableAutoCombo || hit != HitMargin.Auto) Overlay.Instance.UpdateCombo(ComboCount = 0, false);
     }
 }

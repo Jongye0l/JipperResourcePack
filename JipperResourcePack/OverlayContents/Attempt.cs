@@ -4,7 +4,7 @@ using JALib.Tools;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Attempt : Feature {
     public static AttemptSetting Settings;
@@ -34,7 +34,7 @@ public class Attempt : Feature {
 
     public class AttemptSetting : JASetting {
         public bool ShowAttempt = true;
-        public bool ShowFullAttempt;
+        public bool ShowFullAttempt = true;
         
         public AttemptSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
         }

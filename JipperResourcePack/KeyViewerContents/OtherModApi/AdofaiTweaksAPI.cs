@@ -2,20 +2,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Management.Instrumentation;
 using AdofaiTweaks.Core;
 using AdofaiTweaks.Tweaks.KeyLimiter;
 using JALib.Tools;
 using UnityEngine;
+using UnityModManagerNet;
 
-namespace JipperResourcePack.Keyviewer.OtherModApi;
+namespace JipperResourcePack.KeyViewerContents.OtherModApi;
 
-public class AdofaiTweaksAPI {
+public static class AdofaiTweaksAPI {
     public static bool IsExist;
-    public static object keySetting;
+    private static object _keySetting;
 
     public static void Setup() {
         if(IsExist) return;
+        if(UnityModManager.modEntries.FirstOrDefault(mod => mod.Info.Id == "AdofaiTweaks") is not { Enabled: true }) {
+            Main.Instance.Log("AdofaiTweaksAPI is not loaded.");
+            return;
+        }
         try {
             SetTweakRunner();
             IsExist = true;
@@ -35,16 +41,16 @@ public class AdofaiTweaksAPI {
         foreach(object tweakRunner in tweakRunners) {
             TweakSettings settings = tweakRunner.Invoke<TweakSettings>("get_Settings");
             if(settings is not KeyLimiterSettings keySettings) continue;
-            keySetting = keySettings;
+            _keySetting = keySettings;
             return;
         }
-        if(keySetting == null) throw new InstanceNotFoundException("KeyLimiterSettings not found.");
+        if(_keySetting == null) throw new InstanceNotFoundException("KeyLimiterSettings not found.");
     }
 
     public static void UpdateKeyLimit(List<KeyCode> keys, List<ushort> asyncKeys) {
         try {
-            if(keySetting == null) SetTweakRunner();
-            KeyLimiterSettings keySettings = (KeyLimiterSettings) keySetting;
+            if(_keySetting == null) SetTweakRunner();
+            KeyLimiterSettings keySettings = _keySetting.AsUnsafe<KeyLimiterSettings>();
             keySettings.ActiveKeys = keys;
             keySettings.ActiveAsyncKeys = asyncKeys;
         } catch (Exception e) {

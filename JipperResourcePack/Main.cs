@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using JALib.Core;
@@ -6,7 +6,8 @@ using JALib.Core.Patch;
 using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Jongyeol;
-using JipperResourcePack.Keyviewer;
+using JipperResourcePack.KeyViewerContents;
+using JipperResourcePack.OverlayContents;
 using MonsterLove.StateMachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,13 +19,15 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     public static SettingGUI SettingGUI;
     public static ResourcePackSetting Settings;
     private static bool _creditsShown;
-    private string sizeString;
+    private string _sizeString;
 
     protected override void OnSetup() {
-        Patcher.AddPatch(OnGameStart);
+        Patcher.AddPatch(OnGameStart1);
+        Patcher.AddPatch(OnGameStart2);
+        Patcher.AddPatch(OnChangeState);
         Patcher.AddPatch(OnGameStop);
         VersionSafe.Setup();
-        FeatureReset(Jongyeol.Main.CheckEnable(Setting));
+        FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
     }
@@ -39,7 +42,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         this.GetValue<JASetting>("ModSetting").PutFieldData();
         Features.Clear();
         this.GetValue<JASetting>("ModSetting").RemoveFieldData();
-        if(jongyeolMode) AddFeature(Jongyeol.Main.GetFeatures());
+        if(jongyeolMode) AddFeature(JMain.GetFeatures());
         else AddFeature();
         if(!enabled) return;
         _ = jongyeolMode ? new JOverlay() : new Overlay();
@@ -50,7 +53,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         BundleLoader.LoadBundle();
         PlayCount.Load();
-        _ = Jongyeol.Main.CheckEnable(Setting) ? new JOverlay() : new Overlay();
+        _ = JMain.CheckEnable(Setting) ? new JOverlay() : new Overlay();
     }
 
     protected override void OnDisable() {
@@ -66,15 +69,15 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     protected override void OnUpdate(float deltaTime) {
         Overlay.Instance.UpdateTime();
         Overlay.Instance.UpdateComboSize();
-        Jongyeol.Main.Update(deltaTime);
+        JMain.Update(deltaTime);
     }
 
     protected override void OnGUI() {
-        SettingGUI.AddSettingSliderFloat(ref Settings.Size, 1, ref sizeString, Localization["size"], 0, 2, Overlay.Instance.UpdateSize);
+        SettingGUI.AddSettingSliderFloat(ref Settings.Size, 1, ref _sizeString, Localization["size"], 0, 2, Overlay.Instance.UpdateSize);
     }
 
     protected override void OnHideGUI() {
-        sizeString = null;
+        _sizeString = null;
     }
 
     protected override void OnGUIBehind() {
@@ -88,7 +91,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         if(GUILayout.Button(BundleLoader.SideImage, GUI.skin.label)) Application.OpenURL("https://github.com/Jongye0l/JipperResourcePack");
         GUILayout.BeginVertical();
         GUILayout.Space(5f);
-        URLLabel($"Jipper Resource Pack", "https://github.com/Jongye0l/JipperResourcePack");
+        URLLabel("Jipper Resource Pack", "https://github.com/Jongye0l/JipperResourcePack");
         URLLabel(Localization["credit.developer"] + ": Jongyeol", "https://www.youtube.com/@Jongyeol");
         URLLabel(Localization["credit.design"] + ": Jipper", "https://www.youtube.com/@jipper1214");
         URLLabel(Localization["credit.translator"] + ": changhyeon", "https://www.youtube.com/@changhyeon7492");
@@ -104,11 +107,10 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         URLLabel("MovingManN(By. Kittut)", "https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js");
         URLLabel("MoreTimeTags(By. Jongyeol)", "https://github.com/Jongye0l/MoreTimeTags");
         URLLabel("BetterCalibration(By. Jongyeol)", "https://github.com/Jongye0l/BetterCalibration");
-        if(Jongyeol.Main.ModeEnabled) {
+        if(JMain.ModeEnabled) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
             URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         }
-        URLLabel("AdofaiModInstaller(By. tjwogud)", "https://github.com/tjwogud/AdofaiModInstaller");
         GUILayout.Space(25f);
         GUILayout.Label(Localization["credit.font"]);
         URLLabel("Maplestory OTF Bold", "https://fontmeme.com/ktype/maplestory-font/");
@@ -122,14 +124,27 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     [JAPatch(typeof(scnGame), "Play", PatchType.Postfix, false)]
+    private static void OnGameStart1(int seqID) { // scnEditor, scnGame (except practice)
+        if(GCS.practiceMode) return;
+        Overlay.Instance.Show(seqID);
+    }
+
     [JAPatch(typeof(scrPressToStart), "ShowText", PatchType.Postfix, false)]
-    private static void OnGameStart() {
-        Overlay.Instance.Show();
+    private static void OnGameStart2() { // internal, practice
+        if(!GCS.practiceMode && scnGame.instance) return;
+        Overlay.Instance.Show(scrController.instance.currentSeqID);
     }
 
     [JAPatch(typeof(StateBehaviour), "ChangeState", PatchType.Postfix, true, ArgumentTypesType = [typeof(Enum)])]
     public static void OnChangeState(Enum newState) {
-        if((States) newState == States.Fail2) Overlay.Instance.Death();
+        switch((States) newState) {
+            case States.Fail2:
+                Overlay.Instance.Death();
+                break;
+            case States.Won:
+                Overlay.Instance.Clear();
+                break;
+        }
     }
 
     [JAPatch(typeof(scrUIController), "WipeToBlack", PatchType.Postfix, false)]

@@ -1,4 +1,4 @@
-﻿namespace JipperResourcePack;
+﻿namespace JipperResourcePack.OverlayContents;
 
 public enum TimeTextType {
     Korean,

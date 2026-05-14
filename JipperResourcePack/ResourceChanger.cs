@@ -23,7 +23,7 @@ public class ResourceChanger : Feature {
     public static Color TitleColor;
     public static Color TileColor;
     public static string ResourcePackName;
-    public static Sprite autoSprite;
+    public static Sprite AutoSprite;
     public static ResourceChangerSetting Settings;
 
     public ResourceChanger() : base(Main.Instance, nameof(ResourceChanger), true, typeof(ResourceChanger), typeof(ResourceChangerSetting)) {
@@ -110,8 +110,8 @@ public class ResourceChanger : Feature {
     }
 
     private static void UnloadRabbit() {
-        if(!autoSprite || !ADOBase.editor) return;
-        ADOBase.editor.autoImage.sprite = autoSprite;
+        if(!AutoSprite || !ADOBase.editor) return;
+        ADOBase.editor.autoImage.sprite = AutoSprite;
         ADOBase.editor.Invoke("OttoUpdate");
     }
 
@@ -145,7 +145,7 @@ public class ResourceChanger : Feature {
         if(!Settings.ChangeRabbit) return;
         Image autoImage = scnEditor.instance.autoImage;
         if(autoImage.sprite == BundleLoader.Auto) return;
-        autoSprite = autoImage.sprite;
+        AutoSprite = autoImage.sprite;
         autoImage.sprite = BundleLoader.Auto;
         // auto ? #9900FF : #320054
         autoImage.color = RDC.auto ? new Color(0.5703125f, 0, 1) : new Color(0.19607843f, 0, 0.32941177f);

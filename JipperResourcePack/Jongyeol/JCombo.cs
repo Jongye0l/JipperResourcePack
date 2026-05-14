@@ -1,22 +1,23 @@
 ﻿using JALib.Core;
 using JALib.Core.Patch;
+using JipperResourcePack.OverlayContents;
 using Newtonsoft.Json.Linq;
 
 namespace JipperResourcePack.Jongyeol;
 
-public class Combo : JipperResourcePack.Combo {
+public class JCombo : Combo {
     public new static JComboSettings Settings;
     protected override void AddPatch() {
         Patcher.AddPatch(OnHit2);
     }
 
-    public Combo() : base(nameof(Combo), typeof(JComboSettings)) {
+    public JCombo() : base(nameof(JCombo), typeof(JComboSettings)) {
         Settings = (JComboSettings) Setting;
     }
 
     protected override void OnGUI() {
         base.OnGUI();
-        JipperResourcePack.Main.SettingGUI.AddSettingToggle(ref Settings.YellowCombo, JipperResourcePack.Main.Instance.Localization["combo.yellowCombo"]);
+        Main.SettingGUI.AddSettingToggle(ref Settings.YellowCombo, Main.Instance.Localization["combo.yellowCombo"]);
     }
 
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
@@ -31,21 +32,18 @@ public class Combo : JipperResourcePack.Combo {
             case HitMargin.EarlyPerfect:
             case HitMargin.LatePerfect:
             case HitMargin.Auto when Settings.EnableAutoCombo:
-                Overlay.Instance.UpdateCombo(++combo, true);
+                Overlay.Instance.UpdateCombo(++ComboCount, true);
                 break;
             case HitMargin.Auto when !Settings.EnableAutoCombo:
                 break;
             default:
-                Overlay.Instance.UpdateCombo(combo = 0, false);
+                Overlay.Instance.UpdateCombo(ComboCount = 0, false);
                 break;
         }
         if(hit is not HitMargin.Perfect and not HitMargin.Auto) JOverlay.Instance.PerfectToCombo();
     }
 
-    public class JComboSettings : ComboSettings {
+    public class JComboSettings(JAMod mod, JObject jsonObject = null) : ComboSettings(mod, jsonObject) {
         public bool YellowCombo = true;
-
-        public JComboSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
-        }
     }
 }

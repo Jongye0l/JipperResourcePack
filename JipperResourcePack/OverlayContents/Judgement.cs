@@ -5,7 +5,7 @@ using JALib.Tools;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace JipperResourcePack;
+namespace JipperResourcePack.OverlayContents;
 
 public class Judgement : Feature {
     public static GameObject JudgementObject;
