@@ -17,3 +17,7 @@ AssetBundles/
 
 # TextMesh Pro
 Assets/TextMesh Pro/
+
+# Rider
+*.sln
+*.csproj

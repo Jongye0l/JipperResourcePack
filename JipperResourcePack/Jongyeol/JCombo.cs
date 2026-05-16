@@ -20,7 +20,8 @@ public class JCombo : Combo {
         Main.SettingGUI.AddSettingToggle(ref Settings.YellowCombo, Main.Instance.Localization["combo.yellowCombo"]);
     }
 
-    [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true)]
+    [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
     private static void OnHit2(HitMargin hit) {
         if(!Settings.YellowCombo) {
             OnHit(hit);

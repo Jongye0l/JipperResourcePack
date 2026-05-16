@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
+using HarmonyLib;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -25,7 +27,7 @@ public class ResourceChanger : Feature {
     public static ResourceChangerSetting Settings;
 
     public ResourceChanger() : base(Main.Instance, nameof(ResourceChanger), true, typeof(ResourceChanger), typeof(ResourceChangerSetting)) {
-        IsAfterR129 = typeof(scrPlanet).Field("planetarySystem") != null;
+        IsAfterR129 = SimpleReflect.Field(typeof(scrPlanet), "planetarySystem") != null;
         Patch();
         ResourcePackName = "Jipper Resource Pack";
         PlanetColor = new Color(0.8125f, 0.70703125f, 0.96875f);
@@ -54,7 +56,7 @@ public class ResourceChanger : Feature {
     }
 
     protected override void OnEnable() {
-        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) ADOBase.LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) VersionSafe.LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
             if(Settings.ChangeRabbit) LoadRabbit();
             if(Settings.ChangeBallColor) LoadPlanet();
@@ -63,7 +65,7 @@ public class ResourceChanger : Feature {
 
     protected override async void OnDisable() {
         while(Patcher.patched) await Task.Yield();
-        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) ADOBase.LoadScene(ADOBase.sceneName);
+        if(ADOBase.isLevelSelect && Settings.ChangeTileColor) VersionSafe.LoadScene(ADOBase.sceneName);
         else if(ADOBase.controller) {
             if(Settings.ChangeRabbit) UnloadRabbit();
             if(Settings.ChangeBallColor) UnloadPlanet();
@@ -83,7 +85,7 @@ public class ResourceChanger : Feature {
             else UnloadPlanet();
         });
         settingGUI.AddSettingToggle(ref Settings.ChangeTileColor, localization["resourceChanger.changeTileColor"], () => {
-            if(ADOBase.isLevelSelect) ADOBase.LoadScene(ADOBase.sceneName);
+            if(ADOBase.isLevelSelect) VersionSafe.LoadScene(ADOBase.sceneName);
             else if(!Settings.ChangeTileColor) UnloadTileColor();
         });
     }
@@ -157,7 +159,7 @@ public class ResourceChanger : Feature {
     
     [JAPatch(typeof(scrPlanet), "Start", PatchType.Postfix, false)]
     public static void OnPlanetStart(scrPlanet __instance) {
-        if(!Settings.ChangeBallColor) return;
+        if(!Settings.ChangeBallColor || VersionSafe.IsCoopMode()) return;
         object obj = __instance;
         if(IsAfterR129) obj = obj.GetValue("planetRenderer");
         obj.Invoke("DisableAllSpecialPlanets");
@@ -167,26 +169,28 @@ public class ResourceChanger : Feature {
         scrLogoText.instance?.UpdateColors();
     }
 
-    [JAPatch(typeof(scnLevelSelect), "RainbowMode", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scnLevelSelect), "EnbyMode", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrLogoText), "UpdateColors", PatchType.Prefix, false, TryingCatch = false)]
-    [JAPatch(typeof(scrLogoText), "LateUpdate", PatchType.Prefix, false, TryingCatch = false)]
-    public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor;
+    [JAPatch(typeof(scnLevelSelect), "RainbowMode", PatchType.Prefix, false, TryingCatch = false, MaxVersion = 140)]
+    [JAPatch(typeof(PlanetarySystem), nameof(PlanetarySystem.RainbowMode), PatchType.Prefix, false, TryingCatch = false, MinVersion = 141)]
+    [JAPatch(typeof(scnLevelSelect), "EnbyMode", PatchType.Prefix, false, TryingCatch = false, MaxVersion = 140)]
+    [JAPatch(typeof(PlanetarySystem), nameof(PlanetarySystem.EnbyMode), PatchType.Prefix, false, TryingCatch = false, MinVersion = 141)]
+    [JAPatch(typeof(scrLogoText), nameof(scrLogoText.UpdateColors), PatchType.Prefix, false, TryingCatch = false)]
+    [JAPatch(typeof(scrLogoText), nameof(scrLogoText.LateUpdate), PatchType.Prefix, false, TryingCatch = false)]
+    public static bool OnPlanetAndLogoColorChange() => !Settings.ChangeBallColor || VersionSafe.IsCoopMode();
 
     public static void Prefix(ref Color color) {
-        if(Settings.ChangeBallColor) color = PlanetColor;
+        if(Settings.ChangeBallColor && !VersionSafe.IsCoopMode()) color = PlanetColor;
     }
 
-    [JAPatch(typeof(scrFloor), "SetTileColor", PatchType.Prefix, false, TryingCatch = false)]
+    [JAPatch(typeof(scrFloor), nameof(scrFloor.SetTileColor), PatchType.Prefix, false, TryingCatch = false)]
     public static bool OnTileColorChange(scrFloor __instance) => !Settings.ChangeTileColor || __instance.tag != "Beat";
     
     [JAPatch(typeof(scrLogoText), "Awake", PatchType.Postfix, false)]
     public static void OnLogoTextAwake(scrLogoText __instance) {
         RectTransform rectTransform = __instance.gameObject.GetComponent<RectTransform>();
         rectTransform.anchoredPosition = rectTransform.anchoredPosition with { y = 0.75f };
-        if(Settings.ChangeBallColor) {
-            __instance.ColorLogo(PlanetColor, true);
-            __instance.ColorLogo(PlanetColor, false);
+        if(Settings.ChangeBallColor && !VersionSafe.IsCoopMode()) {
+            __instance.ColorLogoSafe(PlanetColor, true);
+            __instance.ColorLogoSafe(PlanetColor, false);
         }
         Transform transform = rectTransform.parent.parent.Find("Hit Space");
         if(transform.Find("JipperResourcepack Logo")) return;

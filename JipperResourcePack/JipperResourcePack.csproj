@@ -17,7 +17,7 @@
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
         <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
+        <DebugType>portable</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>bin\Debug\</OutputPath>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -26,7 +26,7 @@
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugType>pdbonly</DebugType>
+        <DebugType>portable</DebugType>
         <Optimize>true</Optimize>
         <OutputPath>bin\Release\</OutputPath>
         <DefineConstants>TRACE</DefineConstants>
@@ -218,9 +218,6 @@
         <Reference Include="Unity.Addressables">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Unity.Addressables.dll</HintPath>
         </Reference>
-        <Reference Include="Unity.AI.Navigation">
-          <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Unity.AI.Navigation.dll</HintPath>
-        </Reference>
         <Reference Include="Unity.MemoryProfiler">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Unity.MemoryProfiler.dll</HintPath>
         </Reference>
@@ -268,9 +265,6 @@
         </Reference>
         <Reference Include="Unity.TextMeshPro">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Unity.TextMeshPro.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.Timeline">
-          <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\Unity.Timeline.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine">
           <HintPath>D:\SteamLibrary\steamapps\common\A Dance of Fire and Ice\A Dance of Fire and Ice_Data\Managed\UnityEngine.dll</HintPath>
@@ -519,11 +513,15 @@
     <ItemGroup>
         <Compile Include="Async\AsyncImage.cs" />
         <Compile Include="Async\AsyncText.cs" />
+        <Compile Include="Jongyeol\IJOverlayTextManager.cs" />
+        <Compile Include="Jongyeol\JOverlayTextManagerCoop.cs" />
+        <Compile Include="Jongyeol\JOverlayTextManagerNormal.cs" />
         <Compile Include="KeyViewerContents\RainManager.cs" />
         <Compile Include="KeyViewerContents\RainPool.cs" />
         <Compile Include="OverlayContents\Attempt.cs" />
         <Compile Include="OverlayContents\BPM.cs" />
         <Compile Include="OverlayContents\Combo.cs" />
+        <Compile Include="OverlayContents\IOverlayTextManager.cs" />
         <Compile Include="OverlayContents\Judgement.cs" />
         <Compile Include="OverlayContents\Overlay.cs" />
         <Compile Include="BundleLoader.cs" />
@@ -541,6 +539,8 @@
         <Compile Include="KeyViewerContents\Rain.cs" />
         <Compile Include="KeyViewerContents\RawRain.cs" />
         <Compile Include="Main.cs" />
+        <Compile Include="OverlayContents\OverlayTextManagerNormal.cs" />
+        <Compile Include="OverlayContents\OverlayTextManagerCoop.cs" />
         <Compile Include="OverlayContents\PlayCount.cs" />
         <Compile Include="OverlayContents\ProgressBar.cs" />
         <Compile Include="OverlayContents\Status.cs" />
@@ -552,6 +552,7 @@
         <Compile Include="SettingTool\ProgressColorCache.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="ResourceChanger.cs" />
+        <Compile Include="VersionSafe.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="KeyViewerContents\KeyCodes.json" />

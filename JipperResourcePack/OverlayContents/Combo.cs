@@ -56,7 +56,8 @@ public class Combo : Feature {
         }
     }
     
-    [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true)]
+    [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
     public static void OnHit(HitMargin hit) {
         if(hit == HitMargin.Perfect || Settings.EnableAutoCombo && hit == HitMargin.Auto) Overlay.Instance.UpdateCombo(++ComboCount, true);
         else if(Settings.EnableAutoCombo || hit != HitMargin.Auto) Overlay.Instance.UpdateCombo(ComboCount = 0, false);

@@ -15,7 +15,7 @@ public class PlayCount {
     public static Dictionary<Hash, PlayData> Datas;
     private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
 
-    public static float Multiplier => (float) (ADOBase.conductor.song.pitch * ADOBase.controller.speed);
+    public static float Multiplier => (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
 
     public static void Load() {
         string path = FilePath;
@@ -172,8 +172,9 @@ public class PlayCount {
                 case LevelEventType.SetSpeed:
                     memoryStream.WriteInt(levelEvent.floor);
                     memoryStream.WriteByte(0);
-                    memoryStream.WriteByte((byte) levelEvent.Get<SpeedType>("speedType"));
-                    memoryStream.WriteFloat((float) levelEvent[levelEvent.Get<SpeedType>("speedType") == SpeedType.Bpm ? "beatsPerMinute" : "bpmMultiplier"]);
+                    memoryStream.WriteByte((byte) (SpeedType) levelEvent["speedType"]);
+                    // ReSharper disable once PossibleInvalidCastException
+                    memoryStream.WriteFloat((float) levelEvent[(SpeedType) levelEvent["speedType"] == SpeedType.Bpm ? "beatsPerMinute" : "bpmMultiplier"]);
                     break;
                 case LevelEventType.Twirl:
                     memoryStream.WriteInt(levelEvent.floor);
@@ -187,7 +188,7 @@ public class PlayCount {
                 case LevelEventType.MultiPlanet:
                     memoryStream.WriteInt(levelEvent.floor);
                     memoryStream.WriteByte(3);
-                    memoryStream.WriteByte((byte) levelEvent.Get<PlanetCount>("planets"));
+                    memoryStream.WriteByte((byte) (PlanetCount) levelEvent["planets"]);
                     break;
                 case LevelEventType.Pause:
                     memoryStream.WriteInt(levelEvent.floor);
@@ -224,7 +225,8 @@ public class PlayCount {
         public override bool Equals(object obj) => obj is Hash hash ? Equals(hash) : obj is byte[] bytes && Equals(bytes);
         public bool Equals(Hash other) => Equals(other.data);
         public bool Equals(byte[] hash) {
-            if(data.Length != hash.Length) return false;
+            if(data == hash) return true;
+            if(data == null || hash == null || data.Length != hash.Length) return false;
             return data.Length == hash.Length && !data.Where((t, i) => t != hash[i]).Any();
         }
         public override int GetHashCode() => data != null ? ToString().GetHashCode() : 0;

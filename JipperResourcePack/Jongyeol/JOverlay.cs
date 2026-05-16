@@ -10,6 +10,7 @@ namespace JipperResourcePack.Jongyeol;
 
 public class JOverlay : Overlay {
     public static new JOverlay Instance;
+    public new IJOverlayTextManager OverlayTextManager;
     public TextMeshProUGUI FPSText;
     public TextMeshProUGUI AuthorText;
     public TextMeshProUGUI StateText;
@@ -29,6 +30,12 @@ public class JOverlay : Overlay {
 
     public JOverlay() {
         Instance = this;
+    }
+
+    protected override void SetupTextManager() {
+        base.OverlayTextManager = OverlayTextManager = VersionSafe.IsCoopMode()
+            ? new JOverlayTextManagerCoop(this)
+            : new JOverlayTextManagerNormal();
     }
 
     protected override void InitializeStatus() {
@@ -61,7 +68,7 @@ public class JOverlay : Overlay {
         SetupLocationMainText(StartText, StartTile != 0 && JStatus.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming, ref y);
         UpdateProgress();
-        UpdateAccuracy();
+        VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
         UpdateAuthor();
         UpdateState();
@@ -73,35 +80,12 @@ public class JOverlay : Overlay {
         _timings.Clear();
     }
 
-    public override void UpdateProgress() {
+    public override void UpdateProgress(scrPlanet planet = null) {
         if(!GameObject.activeSelf) return;
         if(_purePerfect) CheckPurePerfect();
-        base.UpdateProgress();
+        base.UpdateProgress(planet);
         UpdateState();
         UpdateDeath();
-    }
-
-    public override void UpdateProgressText() {
-        int cur = scrController.instance.currentSeqID;
-        int last = ADOBase.lm.listFloors.Count - 1;
-        ProgressText.text = $"<color=white>Progress |</color> {cur} / {last}{(cur == last ? "" : $" [-{last - cur}]")} ({Math.Round(Progress * 100, 5)}%)";
-        ProgressText.color = JStatus.Settings.ProgressColor.GetColor(Progress);
-    }
-
-    public override void UpdateAccuracy() {
-        if(!GameObject.activeSelf) return;
-        float xacc = scrController.instance.mistakesManager?.percentXAcc ?? 1;
-        xacc.SetIfNaN(1);
-        if(Status.Settings.ShowAccuracy) {
-            float acc = scrController.instance.mistakesManager?.percentAcc ?? 1;
-            float maxAcc = 1 + (scrController.instance.currentSeqID - NoCheckStartTile + 1) * 0.0001f;
-            AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
-            AccuracyText.color = JStatus.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
-        }
-        if(Status.Settings.ShowXAccuracy) {
-            XAccuracyText.text = $"<color=white>X-Accuracy |</color> {Math.Round(xacc * 100, 4)}%";
-            XAccuracyText.color = GetColor(xacc);
-        }
     }
 
     public override void UpdateTime() {
@@ -161,12 +145,6 @@ public class JOverlay : Overlay {
         float value = (float) combo / (scrController.instance.currentSeqID - StartTile + Hit[0] + Hit[6] + 1) * 2;
         if(value > 1) value = 1;
         return GetColor(value, 0.2f, false);
-    }
-
-    public override void UpdateBestText() {
-        float best = CurBest > Progress || AutoOnceEnabled ? CurBest : Progress;
-        BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
-        BestText.color = JStatus.Settings.BestColor.GetColor(best);
     }
 
     private Color GetColor(float value, float middle = 0.5f, bool ppColor = true) {
@@ -234,7 +212,7 @@ public class JOverlay : Overlay {
 
     public void UpdateStart() {
         if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || StartTile != scrController.instance.currentSeqID) return;
-        StartText.text = $"Start | {StartTile} ({Math.Round(Progress*100, 5)}%)";
+        StartText.text = $"Start | {StartTile} ({Math.Round(OverlayTextManager.GetProgress() * 100, 5)}%)";
     }
 
     public void UpdateTiming(float timing) {
@@ -249,7 +227,7 @@ public class JOverlay : Overlay {
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
         if(floor.seqID <= _pseudoFloor) return;
         scrConductor conductor = scrConductor.instance;
-        float bpm = (float) (conductor.bpm * conductor.song.pitch * scrController.instance.speed);
+        float bpm = (float) (conductor.bpm * conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
         bool checkPseudo = Jbpm.Settings.CheckPseudo;
         float cbpm = 0;
         int count = 0;
