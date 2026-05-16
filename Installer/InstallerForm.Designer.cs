@@ -27,6 +27,7 @@ namespace JipperResourcePack.Installer {
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(InstallerForm));
             this.MainPanel = new System.Windows.Forms.Panel();
+            this.VersionLabel = new System.Windows.Forms.Label();
             this.UnderPanel = new System.Windows.Forms.Panel();
             this.Prev = new System.Windows.Forms.Button();
             this.Next = new System.Windows.Forms.Button();
@@ -39,6 +40,12 @@ namespace JipperResourcePack.Installer {
             // 
             resources.ApplyResources(this.MainPanel, "MainPanel");
             this.MainPanel.Name = "MainPanel";
+            // 
+            // VersionLabel
+            // 
+            resources.ApplyResources(this.VersionLabel, "VersionLabel");
+            this.VersionLabel.ForeColor = System.Drawing.Color.FromArgb(((int) (((byte) (224)))), ((int) (((byte) (224)))), ((int) (((byte) (224)))));
+            this.VersionLabel.Name = "VersionLabel";
             // 
             // UnderPanel
             // 
@@ -78,6 +85,7 @@ namespace JipperResourcePack.Installer {
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
+            this.Controls.Add(this.VersionLabel);
             this.Controls.Add(this.TopPanel);
             this.Controls.Add(this.UnderPanel);
             this.Controls.Add(this.MainPanel);
@@ -87,6 +95,7 @@ namespace JipperResourcePack.Installer {
             this.UnderPanel.ResumeLayout(false);
             this.ResumeLayout(false);
         }
+        private System.Windows.Forms.Label VersionLabel;
 
         private System.Windows.Forms.Panel TopPanel;
 
