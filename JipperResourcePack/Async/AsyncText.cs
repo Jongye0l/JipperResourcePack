@@ -19,7 +19,7 @@ public class AsyncText {
     public string Text {
         get => _text;
         set {
-            if(_text == TMP.text) return;
+            if(_text == value) return;
             _text = value;
             if(MainThread.IsMainThread()) TMP.text = _text;
             else if(Interlocked.Increment(ref _textChangeRequested) == 1) MainThread.Run(Main.Instance, ApplyText);
