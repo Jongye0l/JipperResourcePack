@@ -12,6 +12,7 @@ namespace JipperResourcePack.OverlayContents;
 
 public class Overlay {
     public static Overlay Instance;
+    public IOverlayTextManager OverlayTextManager;
     public GameObject GameObject;
     public Canvas Canvas;
     public TextMeshProUGUI ProgressText;
@@ -31,33 +32,29 @@ public class Overlay {
     public TextMeshProUGUI TimingScaleText;
     public ProgressBar ProgressBar;
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
-    public float Progress;
     public int[] Hit;
     public readonly Shader Shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
     protected int LastTime = -1;
     protected int LastMapTime = -1;
     protected int StartTile;
-    protected int NoCheckStartTile;
-    protected int LastCheckpoint = -1;
-    protected int[] Checkpoints;
-    protected int CurCheck;
+    public int NoCheckStartTile;
+    public int[] Checkpoints;
     protected float LastTileBpm = -1;
     protected float LastCurBpm = -1;
     private readonly Stopwatch _stopwatch;
     protected bool SongPlaying;
-    protected float StartProgress;
-    protected float CurBest = -1;
-    protected bool AutoOnceEnabled;
+    public float StartProgress;
+    public bool AutoOnceEnabled;
     protected bool IsDeath;
     protected string MusicTimeCache;
     protected string MapTimeCache;
-    private PlayCount.Hash _lastHash;
+    public PlayCount.Hash LastHash;
     private float _lastSavedStartProgress = -1;
-    private float _lastMultiplier = 1f;
+    public float LastMultiplier = 1f;
 
     public Overlay() {
         Instance = this;
-        UpdateHit();
+        OnChangePlayers();
         GameObject = new GameObject("JipperResourcePack Overlay");
         Canvas = GameObject.AddComponent<Canvas>();
         Canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -79,8 +76,15 @@ public class Overlay {
         if(ADOBase.controller is { paused: false } && ADOBase.conductor is { isGameWorld: true }) Show(0);
     }
 
-    public void UpdateHit() {
+    public void OnChangePlayers() {
         Hit = VersionSafe.GetHitMarginsCount();
+        SetupTextManager();
+    }
+
+    protected virtual void SetupTextManager() {
+        OverlayTextManager = VersionSafe.IsCoopMode()
+            ? new OverlayTextManagerCoop(this)
+            : new OverlayTextManagerNormal();
     }
 
     protected virtual void InitializeStatus() {
@@ -299,83 +303,44 @@ public class Overlay {
         });
     }
 
-    public virtual void UpdateAccuracy() {
+    public void UpdateAccuracy(int index = -1) {
         if(!GameObject.activeSelf) return;
-        float xacc = VersionSafe.GetPercentXAcc();
-        if(float.IsNaN(xacc)) xacc = 1;
-        if(Status.Settings.ShowAccuracy) {
-            float acc = VersionSafe.GetPercentAcc();
-            float maxAcc = 1 + (scrController.instance.currentSeqID - NoCheckStartTile + 1) * 0.0001f;
-            AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
-            AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
-        }
-        if(Status.Settings.ShowXAccuracy) {
-            XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, 2)}%";
-            XAccuracyText.color = Status.Settings.XAccuracyColor.GetColor(xacc);
-        }
+        OverlayTextManager.UpdateAccuracy(this, index);
     }
     
-    public virtual void UpdateProgress() {
+    public virtual void UpdateProgress(scrPlanet planet = null) {
         if(!GameObject.activeSelf) return;
-        Progress = scrController.instance.percentComplete;
-        if(Status.Settings.ShowProgress) UpdateProgressText();
+        OverlayTextManager.CacheProgress(planet);
+        if(Status.Settings.ShowProgress) OverlayTextManager.UpdateProgress(this);
         if(Status.Settings.ShowCheckpoint) UpdateCheckPointText();
         if(Status.Settings.ShowProgressBar) UpdateProgressBar();
-        if(Status.Settings.ShowBest) UpdateBest();
+        if(Status.Settings.ShowBest) OverlayTextManager.UpdateBest(this);
     }
 
     public void UpdateProgressBar() {
         try {
             if(!ProgressBar.LineTransform) return;
-            ProgressBar.LineTransform.SizeDeltaX(Progress * 638);
-            ProgressBar.BackgroundImage.color = Status.Settings.ProgressBarBackgroundColor.GetColor(Progress);
-            ProgressBar.LineImage.color = Status.Settings.ProgressBarColor.GetColor(Progress);
-            ProgressBar.BorderImage.color = Status.Settings.ProgressBarBorderColor.GetColor(Progress);
+            OverlayTextManager.UpdateProgressBar(this);
         } catch (Exception e) {
             Main.Instance.LogException(e);
         }
     }
 
-    public virtual void UpdateProgressText() {
-        ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, 2)}%";
-        ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
-    }
-
     public void UpdateCheckPointText() {
         if(Checkpoints.Length == 0) return;
-        bool updated = false;
-        while(Checkpoints.Length > CurCheck && scrController.instance.currentSeqID >= Checkpoints[CurCheck]) {
-            CurCheck++;
-            updated = true;
-        }
-        if(LastCheckpoint == scrController.checkpointsUsed && !updated) return;
-        CheckpointText.text = $"<color=white>CheckPoint |</color> {scrController.checkpointsUsed} ({CurCheck}/{Checkpoints.Length})";
-        LastCheckpoint = scrController.checkpointsUsed;
+        OverlayTextManager.UpdateCheckpoint(this);
     }
 
     public void UpdateAttempts() {
         string[] values = new string[2];
         int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(_lastHash)?.GetAttempts(StartProgress) ?? 0}";
-        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(_lastHash)?.GetAttempts() ?? 0}";
+        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(LastHash)?.GetAttempts(StartProgress) ?? 0}";
+        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(LastHash)?.GetAttempts() ?? 0}";
         AttemptText.text = count switch {
             0 => "",
             1 => values[0],
             _ => $"{values[0]}\n{values[1]}"
         };
-    }
-
-    public void UpdateBest() {
-        if(RDC.auto && !AutoOnceEnabled) AutoOnceEnabled = true;
-        if(CurBest == -1) CurBest = PlayCount.GetData(_lastHash)?.GetBest(StartProgress, _lastMultiplier) ?? 0;
-        else if(CurBest > Progress || AutoOnceEnabled) return;
-        UpdateBestText();
-    }
-
-    public virtual void UpdateBestText() {
-        float best = CurBest > Progress || AutoOnceEnabled ? CurBest : Progress;
-        BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
-        BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
     public void UpdateJudgement() {
@@ -504,14 +469,14 @@ public class Overlay {
     
     public virtual void Show(int floor) {
         if(_lastSavedStartProgress != -1) {
-            if(!AutoOnceEnabled) PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
+            if(!AutoOnceEnabled) PlayCount.SetBest(LastHash, _lastSavedStartProgress, OverlayTextManager.GetProgress(), LastMultiplier);
             _lastSavedStartProgress = -1;
             MusicTimeCache = MapTimeCache = null;
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();
-        if(_lastHash != hash) {
-            _lastHash = hash;
+        if(LastHash != hash) {
+            LastHash = hash;
             Checkpoints = null;
         }
         
@@ -526,12 +491,11 @@ public class Overlay {
         AutoOnceEnabled = RDC.auto || ADOBase.controller.noFail;
         StartTile = floor;
         _lastSavedStartProgress = StartProgress = (float) floor / ADOBase.lm.listFloors.Count;
-        CurBest = LastCheckpoint = -1;
-        _lastMultiplier = (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
-        if(Status.Instance.Enabled && !AutoOnceEnabled) PlayCount.AddAttempts(_lastHash, StartProgress);
+        LastMultiplier = (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
+        if(Status.Instance.Enabled && !AutoOnceEnabled) PlayCount.AddAttempts(LastHash, StartProgress);
+        SetupTextManager();
         
         GameObject.SetActive(true);
-        CurCheck = 0;
         SongPlaying = false;
         IsDeath = false;
         
@@ -547,16 +511,16 @@ public class Overlay {
     public void Death() {
         IsDeath = true;
         if(AutoOnceEnabled || _lastSavedStartProgress == -1) return;
-        PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
+        PlayCount.SetBest(LastHash, _lastSavedStartProgress, OverlayTextManager.GetProgress(), LastMultiplier);
         _lastSavedStartProgress = -1;
-        CurBest = Progress;
+        OverlayTextManager.SetBest(OverlayTextManager.GetProgress());
     }
 
     public void Clear() {
         if(AutoOnceEnabled || _lastSavedStartProgress == -1) return;
-        PlayCount.SetBest(_lastHash, _lastSavedStartProgress, 1, _lastMultiplier);
+        PlayCount.SetBest(LastHash, _lastSavedStartProgress, 1, LastMultiplier);
         _lastSavedStartProgress = -1;
-        CurBest = 1;
+        OverlayTextManager.SetBest(1);
     }
     
     public virtual void Hide() {
@@ -564,14 +528,15 @@ public class Overlay {
         GameObject.SetActive(false);
         try {
             if(!AutoOnceEnabled && _lastSavedStartProgress != -1) {
-                PlayCount.SetBest(_lastHash, _lastSavedStartProgress, Progress, _lastMultiplier);
+                PlayCount.SetBest(LastHash, _lastSavedStartProgress, OverlayTextManager.GetProgress(), LastMultiplier);
                 _lastSavedStartProgress = -1;
             }
-            if(StartProgress == Progress && !AutoOnceEnabled) PlayCount.RemoveAttempts(_lastHash, StartProgress);
+            if(StartProgress == OverlayTextManager.GetProgress() && !AutoOnceEnabled) PlayCount.RemoveAttempts(LastHash, StartProgress);
         } catch (Exception e) {
             Main.Instance.LogException("Failed to set play data on hide", e);
         }
         StartProgress = StartTile = NoCheckStartTile = -1;
+        OverlayTextManager = null;
     }
 
     public void Destroy() {

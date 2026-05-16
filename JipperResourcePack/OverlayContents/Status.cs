@@ -41,7 +41,7 @@ public class Status : Feature {
         JALocalization localization = Main.Instance.Localization;
         settingGUI.AddSettingToggle(ref Settings.ShowProgress, localization["progress.showProgress"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowProgress && Settings.ProgressColor.SettingGUI(settingGUI, localization["progress.progressColor"]))
-            Overlay.Instance.UpdateProgressText();
+            Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
         settingGUI.AddSettingToggle(ref Settings.ShowAccuracy, localization["progress.showAccuracy"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowAccuracy && Settings.AccuracyColor.SettingGUI(settingGUI, localization["progress.accuracyColor"]))
             Overlay.Instance.UpdateAccuracy();
@@ -59,7 +59,7 @@ public class Status : Feature {
         settingGUI.AddSettingToggle(ref Settings.ShowCheckpoint, localization["progress.showCheckpoint"], Overlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowBest, localization["progress.showBest"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowBest && Settings.BestColor.SettingGUI(settingGUI, localization["progress.bestColor"]))
-            Overlay.Instance.UpdateBestText();
+            Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance);
         settingGUI.AddSettingToggle(ref Settings.ShowProgressBar, localization["progress.showProgressBar"], () => {
             ProgressBarObject?.SetActive(Settings.ShowProgressBar);
         });
@@ -108,14 +108,27 @@ public class Status : Feature {
     }
 
     [JAPatch(typeof(scrMistakesManager), "CalculatePercentAcc", PatchType.Postfix, false, MaxVersion = 140)]
-    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.CalculatePercentAcc), PatchType.Postfix, false, MinVersion = 141)]
     private static void OnAccuracyChange() {
         Overlay.Instance.UpdateAccuracy();
     }
+    
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.CalculatePercentAcc), PatchType.Postfix, false, MinVersion = 141)]
+    private static void OnAccuracyChange(object __instance) {
+        int index = 0;
+        if(scrController.coopMode) {
+            scrMarginTracker marginTracker = __instance.AsUnsafe<scrMarginTracker>();
+            for(int i = 0; i < scrPlayerManager.playerCount; i++) {
+                if(scrMistakesManager.marginTrackers[i] != marginTracker) continue;
+                index = i;
+                break;
+            }
+        }
+        Overlay.Instance.UpdateAccuracy(index);
+    }
 
     [JAPatch(typeof(scrPlanet), "MoveToNextFloor", PatchType.Postfix, false)]
-    private static void OnProgressChange() {
-        Overlay.Instance.UpdateProgress();
+    private static void OnProgressChange(scrPlanet __instance) {
+        Overlay.Instance.UpdateProgress(__instance);
     }
     
     [JAPatch(typeof(scrShowIfDebug), "Awake", PatchType.Postfix, false, TryingCatch = false)]

@@ -26,6 +26,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         Patcher.AddPatch(OnGameStart2);
         Patcher.AddPatch(OnChangeState);
         Patcher.AddPatch(OnGameStop);
+        Patcher.AddPatch(UpdatePlayersCount);
         VersionSafe.Setup();
         FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
@@ -153,4 +154,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private static void OnGameStop() {
         Overlay.Instance.Hide();
     }
+
+    [JAPatch(typeof(scrMistakesManager), nameof(scrMistakesManager.SetPlayerCount), PatchType.Postfix, false, MinVersion = 141)]
+    private static void UpdatePlayersCount() => Overlay.Instance.OnChangePlayers();
 }

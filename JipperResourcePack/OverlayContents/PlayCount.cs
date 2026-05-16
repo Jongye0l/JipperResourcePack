@@ -225,7 +225,8 @@ public class PlayCount {
         public override bool Equals(object obj) => obj is Hash hash ? Equals(hash) : obj is byte[] bytes && Equals(bytes);
         public bool Equals(Hash other) => Equals(other.data);
         public bool Equals(byte[] hash) {
-            if(data.Length != hash.Length) return false;
+            if(data == hash) return true;
+            if(data == null || hash == null || data.Length != hash.Length) return false;
             return data.Length == hash.Length && !data.Where((t, i) => t != hash[i]).Any();
         }
         public override int GetHashCode() => data != null ? ToString().GetHashCode() : 0;

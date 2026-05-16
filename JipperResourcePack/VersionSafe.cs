@@ -101,7 +101,9 @@ public static class VersionSafe {
 
     private static void ColorLogoR141(scrLogoText text, Color color, bool isFire) => text.ColorLogo(color, isFire);
     private static scrMistakesManager GetMistakesManagerR141() => scrController.instance.playerManager.mistakesManager;
-    private static void CalculatePercentAccR141() => scrMistakesManager.marginTrackers[0].CalculatePercentAcc();
+    private static void CalculatePercentAccR141() {
+        foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
+    }
     private static int[] GetHitMarginsCountR141() => scrMistakesManager.marginTrackers[0].hitMarginsCount;
     private static double GetPlanetSpeedR141(scrController controller) => controller.playerOne.planetarySystem.speed;
     private static void LoadSceneR141(string name) => ADOBase.loader.LoadScene(name);
@@ -110,8 +112,4 @@ public static class VersionSafe {
     private static bool IsCoopModeR141() => scrController.coopMode;
 
     #endregion
-
-
-
-
 }

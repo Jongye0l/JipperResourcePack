@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
             Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
@@ -513,11 +513,15 @@
     <ItemGroup>
         <Compile Include="Async\AsyncImage.cs" />
         <Compile Include="Async\AsyncText.cs" />
+        <Compile Include="Jongyeol\IJOverlayTextManager.cs" />
+        <Compile Include="Jongyeol\JOverlayTextManagerCoop.cs" />
+        <Compile Include="Jongyeol\JOverlayTextManagerNormal.cs" />
         <Compile Include="KeyViewerContents\RainManager.cs" />
         <Compile Include="KeyViewerContents\RainPool.cs" />
         <Compile Include="OverlayContents\Attempt.cs" />
         <Compile Include="OverlayContents\BPM.cs" />
         <Compile Include="OverlayContents\Combo.cs" />
+        <Compile Include="OverlayContents\IOverlayTextManager.cs" />
         <Compile Include="OverlayContents\Judgement.cs" />
         <Compile Include="OverlayContents\Overlay.cs" />
         <Compile Include="BundleLoader.cs" />
@@ -535,6 +539,8 @@
         <Compile Include="KeyViewerContents\Rain.cs" />
         <Compile Include="KeyViewerContents\RawRain.cs" />
         <Compile Include="Main.cs" />
+        <Compile Include="OverlayContents\OverlayTextManagerNormal.cs" />
+        <Compile Include="OverlayContents\OverlayTextManagerCoop.cs" />
         <Compile Include="OverlayContents\PlayCount.cs" />
         <Compile Include="OverlayContents\ProgressBar.cs" />
         <Compile Include="OverlayContents\Status.cs" />

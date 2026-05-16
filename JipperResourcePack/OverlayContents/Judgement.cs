@@ -36,9 +36,6 @@ public class Judgement : Feature {
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.Reset), PatchType.Postfix, false, MinVersion = 141)]
     private static void OnHit() => Overlay.Instance.UpdateJudgement();
 
-    [JAPatch(typeof(scrMistakesManager), nameof(scrMistakesManager.SetPlayerCount), PatchType.Postfix, false, MinVersion = 141)]
-    private static void UpdateHitMargins() => Overlay.Instance.UpdateHit();
-
     public class JudgementSettings : JASetting {
         public bool LocationUp;
 
