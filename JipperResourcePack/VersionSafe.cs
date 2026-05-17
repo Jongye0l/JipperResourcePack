@@ -53,44 +53,52 @@ public static class VersionSafe {
         new(OpCodes.Ldarg_0),
         new(OpCodes.Ldarg_1),
         new(OpCodes.Ldarg_2),
-        new(OpCodes.Call, typeof(scrLogoText).GetMethod("ColorLogo", BindingFlags.Public | BindingFlags.Instance))
+        new(OpCodes.Call, typeof(scrLogoText).GetMethod("ColorLogo", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
     ];
 
     private static IEnumerable<CodeInstruction> GetMistakesManagerR136(IEnumerable<CodeInstruction> instructions) => [
         new(OpCodes.Ldarg_0),
-        new(OpCodes.Ldfld, typeof(scrController).GetField("mistakesManager", BindingFlags.Public | BindingFlags.Instance))
+        new(OpCodes.Ldfld, typeof(scrController).GetField("mistakesManager", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
     ];
 
     private static IEnumerable<CodeInstruction> CalculatePercentAccR136(IEnumerable<CodeInstruction> instructions) => [
         new(OpCodes.Ldsfld, typeof(scrController).GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static)),
         new(OpCodes.Ldfld, typeof(scrController).GetField("mistakesManager", BindingFlags.Public | BindingFlags.Instance)),
-        new(OpCodes.Call, typeof(scrMistakesManager).GetMethod("CalculatePercentAcc", BindingFlags.Public | BindingFlags.Instance))
+        new(OpCodes.Call, typeof(scrMistakesManager).GetMethod("CalculatePercentAcc", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
     ];
 
     private static IEnumerable<CodeInstruction> GetHitMarginsCountR136(IEnumerable<CodeInstruction> instructions) => [
-        new(OpCodes.Ldsfld, typeof(scrMistakesManager).GetField("hitMarginsCount", BindingFlags.Public | BindingFlags.Static))
+        new(OpCodes.Ldsfld, typeof(scrMistakesManager).GetField("hitMarginsCount", BindingFlags.Public | BindingFlags.Static)),
+        new(OpCodes.Ret)
     ];
 
     private static IEnumerable<CodeInstruction> GetPlanetSpeedR136(IEnumerable<CodeInstruction> instructions) => [
         new(OpCodes.Ldarg_0),
-        new(OpCodes.Ldfld, typeof(scrController).GetField("speed", BindingFlags.Public | BindingFlags.Instance))
+        new(OpCodes.Ldfld, typeof(scrController).GetField("speed", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
     ];
 
     private static IEnumerable<CodeInstruction> LoadSceneR136(IEnumerable<CodeInstruction> instructions) => [
         new(OpCodes.Ldarg_0),
-        new(OpCodes.Call, typeof(ADOBase).GetMethod("LoadScene", BindingFlags.Public | BindingFlags.Static))
+        new(OpCodes.Call, typeof(ADOBase).GetMethod("LoadScene", BindingFlags.Public | BindingFlags.Static)),
+        new(OpCodes.Ret)
     ];
     
     private static IEnumerable<CodeInstruction> GetPercentAccR136(IEnumerable<CodeInstruction> instructions) => [
         new(OpCodes.Ldsfld, typeof(scrController).GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static)),
         new(OpCodes.Ldfld, typeof(scrController).GetField("mistakesManager", BindingFlags.Public | BindingFlags.Instance)),
-        new(OpCodes.Ldfld, typeof(scrMistakesManager).GetField("percentAcc", BindingFlags.Public | BindingFlags.Instance))
+        new(OpCodes.Ldfld, typeof(scrMistakesManager).GetField("percentAcc", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
     ];
     
     private static IEnumerable<CodeInstruction> GetPercentXAccR136(IEnumerable<CodeInstruction> instructions) => [
         new(OpCodes.Ldsfld, typeof(scrController).GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static)),
         new(OpCodes.Ldfld, typeof(scrController).GetField("mistakesManager", BindingFlags.Public | BindingFlags.Instance)),
-        new(OpCodes.Ldfld, typeof(scrMistakesManager).GetField("percentXAcc", BindingFlags.Public | BindingFlags.Instance))
+        new(OpCodes.Ldfld, typeof(scrMistakesManager).GetField("percentXAcc", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
     ];
 
     private static bool IsCoopModeR136() => false;
