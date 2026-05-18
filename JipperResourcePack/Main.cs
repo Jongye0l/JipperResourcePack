@@ -14,7 +14,9 @@ using UnityEngine.SceneManagement;
 
 namespace JipperResourcePack;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 public class Main() : JAMod(typeof(ResourcePackSetting)) {
+    // ReSharper disable once UnassignedField.Global
     public static Main Instance;
     public static SettingGUI SettingGUI;
     public static ResourcePackSetting Settings;
@@ -59,9 +61,13 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
 
     protected override void OnDisable() {
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
-        PlayCount.Dispose();
+        try {
+            PlayCount.Dispose();
+            Overlay.Instance.Destroy();
+        } catch (Exception e) {
+            LogException(e);
+        }
         SaveSetting();
-        Overlay.Instance.Destroy();
         BundleLoader.UnloadBundle();
     }
 
