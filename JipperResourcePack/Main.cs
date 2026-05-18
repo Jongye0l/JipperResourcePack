@@ -41,10 +41,12 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
 
     public void FeatureReset(bool jongyeolMode) {
         bool enabled = Features.Count != 0;
-        foreach(Feature feature in Features) feature.Invoke("Disable");
-        this.GetValue<JASetting>("ModSetting").PutFieldData();
-        Features.Clear();
-        this.GetValue<JASetting>("ModSetting").RemoveFieldData();
+        if(enabled) {
+            foreach(Feature feature in Features) feature.Invoke("Disable");
+            this.GetValue<JASetting>("ModSetting").PutFieldData();
+            Features.Clear();
+            this.GetValue<JASetting>("ModSetting").RemoveFieldData();
+        }
         if(jongyeolMode) AddFeature(JMain.GetFeatures());
         else AddFeature();
         if(!enabled) return;
@@ -71,7 +73,13 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         BundleLoader.UnloadBundle();
     }
 
-    private static void OnSceneUnloaded(Scene _) => Overlay.Instance.Hide();
+    private static void OnSceneUnloaded(Scene _) {
+        try {
+            Overlay.Instance.Hide();
+        } catch (Exception e) {
+            Instance.LogException(e);
+        }
+    }
     
     protected override void OnUpdate(float deltaTime) {
         Overlay.Instance.UpdateTime();

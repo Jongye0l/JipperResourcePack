@@ -524,7 +524,7 @@ public class Overlay {
     }
     
     public virtual void Hide() {
-        if(!GameObject.activeSelf) return;
+        if((object) GameObject == null || !GameObject.activeSelf) return;
         GameObject.SetActive(false);
         try {
             if(!AutoOnceEnabled && _lastSavedStartProgress != -1) {
