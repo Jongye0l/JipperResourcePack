@@ -11,7 +11,7 @@ public class JCombo : Combo {
         Patcher.AddPatch(OnHit2);
     }
 
-    public JCombo() : base(nameof(JCombo), typeof(JComboSettings)) {
+    public JCombo() : base(typeof(JComboSettings)) {
         Settings = (JComboSettings) Setting;
     }
 

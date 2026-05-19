@@ -17,10 +17,10 @@ public class Status : Feature {
     public static GameObject ProgressBarObject;
     public static Status Instance;
     
-    public Status() : this(nameof(Status), typeof(ProgressSetting)) {
+    public Status() : this(typeof(ProgressSetting)) {
     }
 
-    protected Status(string name, Type settingType) : base(Main.Instance, name, true, typeof(Status), settingType) {
+    protected Status(Type settingType) : base(Main.Instance, nameof(Status), true, typeof(Status), settingType) {
         Settings = (ProgressSetting) Setting;
         Instance = this;
     }

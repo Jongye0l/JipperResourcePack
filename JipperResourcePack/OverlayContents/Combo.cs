@@ -16,10 +16,10 @@ public class Combo : Feature {
     public static RectTransform ComboTransform;
     private string _comboColorMaxString;
     public static Combo Instance;
-    public Combo() : this(nameof(Combo), typeof(ComboSettings)) {
+    public Combo() : this(typeof(ComboSettings)) {
     }
 
-    public Combo(string name, Type settingType) : base(Main.Instance, name, settingType: settingType) {
+    public Combo(Type settingType) : base(Main.Instance, nameof(Combo), settingType: settingType) {
         AddPatch();
         Instance = this;
     }

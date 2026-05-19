@@ -10,7 +10,7 @@ public class JStatus : OverlayContents.Status {
     public static new JProgressSetting Settings;
     private static bool _auto;
 
-    public JStatus() : base(nameof(JStatus), typeof(JProgressSetting)) {
+    public JStatus() : base(typeof(JProgressSetting)) {
         Settings = (JProgressSetting) Setting;
         Patcher.AddPatch(typeof(JStatus));
     }
