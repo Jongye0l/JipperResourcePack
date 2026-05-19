@@ -471,13 +471,13 @@ public class Overlay {
         if(_lastSavedStartProgress != -1) {
             if(!AutoOnceEnabled) PlayCount.SetBest(LastHash, _lastSavedStartProgress, OverlayTextManager.GetProgress(), LastMultiplier);
             _lastSavedStartProgress = -1;
-            MusicTimeCache = MapTimeCache = null;
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();
         if(LastHash != hash) {
             LastHash = hash;
             Checkpoints = null;
+            MusicTimeCache = MapTimeCache = null;
         }
         
         if(scnEditor.instance) {
