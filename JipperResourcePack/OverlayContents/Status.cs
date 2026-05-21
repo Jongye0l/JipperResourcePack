@@ -7,7 +7,6 @@ using JALib.Tools;
 using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace JipperResourcePack.OverlayContents;
 
@@ -143,16 +142,5 @@ public class Status : Feature {
                 Main.Instance.LogReportException(e);
             }
         });
-    }
-
-    [JAPatch(typeof(scrController), "Awake_Rewind", PatchType.Postfix, false)]
-    private static void OnHUDTextAwake(Text ___txtLevelName) {
-        if(!___txtLevelName) return;
-        RectTransform transform = ___txtLevelName.GetComponent<RectTransform>();
-        float size = Main.Settings.Size;
-        transform.anchoredPosition = new Vector2(0, -20 - 7 * size);
-        transform.localScale = new Vector3(0.5f * size, 0.5f * size);
-        transform.sizeDelta = new Vector2(Math.Abs(transform.sizeDelta.x * 2.5f), transform.sizeDelta.y);
-        ___txtLevelName.text = ___txtLevelName.text.Replace('\n', ' ');
     }
 }
