@@ -53,7 +53,7 @@ public class FinishScreen : Screen {
             new Label {
                 Text = Resources.Current.MainScreen_BugReport,
                 Font = Constants.Arial12,
-                Size = new Size(64, 18),
+                AutoSize = true,
                 Location = new Point(440, 444)
             },
             new LinkedImageButton("https://discord.gg/qTbnPhY7YA", "JipperResourcePack.Installer.Resource.Discord-Symbol-Blurple.png") {
@@ -73,7 +73,7 @@ public class FinishScreen : Screen {
             new Label {
                 Text = Resources.Current.MainScreen_Donate,
                 Font = Constants.Arial12,
-                Size = new Size(34, 16),
+                AutoSize = true,
                 Location = new Point(605, 444)
             },
             new LinkedImageButton(null, "JipperResourcePack.Installer.Resource.payment_icon_yellow_small.png") {

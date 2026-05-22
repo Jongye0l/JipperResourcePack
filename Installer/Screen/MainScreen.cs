@@ -27,7 +27,7 @@ public class MainScreen : Screen {
             new Label {
                 Text = Resources.Current.MainScreen_Title,
                 Font = Constants.Arial24B,
-                Size = new Size(392, 32),
+                Size = new Size(392, 40),
                 Location = new Point(430, 48)
             },
             
@@ -79,7 +79,7 @@ public class MainScreen : Screen {
             new Label {
                 Text = Resources.Current.MainScreen_BugReport,
                 Font = descriptionFont,
-                Size = new Size(64, 18),
+                AutoSize = true,
                 Location = new Point(440, 444)
             },
             new LinkedImageButton("https://discord.gg/qTbnPhY7YA", "JipperResourcePack.Installer.Resource.Discord-Symbol-Blurple.png") {
@@ -99,7 +99,7 @@ public class MainScreen : Screen {
             new Label {
                 Text = Resources.Current.MainScreen_Donate,
                 Font = descriptionFont,
-                Size = new Size(34, 16),
+                AutoSize = true,
                 Location = new Point(605, 444)
             },
             new LinkedImageButton(null, "JipperResourcePack.Installer.Resource.payment_icon_yellow_small.png") {
