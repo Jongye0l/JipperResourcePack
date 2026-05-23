@@ -305,7 +305,7 @@ public class InstallScreen : Screen {
             WorkLog();
             Next();
         } catch (Exception e) {
-            MessageBox.Show(e.Message, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(e.ToString(), Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 

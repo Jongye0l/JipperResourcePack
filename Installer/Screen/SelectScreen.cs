@@ -326,7 +326,7 @@ public class SelectScreen : Screen {
                     }
                 } catch (Exception e) {
                     Console.WriteLine(e);
-                    MessageBox.Show(e.Message, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(e.ToString(), Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 ContentsPanel.Size = new Size(916, 114 + 25 * line);
             }
@@ -390,7 +390,7 @@ public class SelectScreen : Screen {
             }
         } catch (Exception e) {
             Console.WriteLine(e);
-            MessageBox.Show(e.Message, Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(e.ToString(), Resources.Current.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
