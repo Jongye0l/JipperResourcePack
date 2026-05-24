@@ -65,7 +65,7 @@ public class Combo : Feature {
     }
 
     [JAPatch(typeof(scrController), "Awake_Rewind", PatchType.Postfix, false)]
-    private static void OnHUDTextAwake(Text ___txtLevelName) {
+    public static void OnHUDTextAwake(Text ___txtLevelName) {
         if(!___txtLevelName) return;
         RectTransform transform = ___txtLevelName.GetComponent<RectTransform>();
         float size = Main.Settings.Size;
