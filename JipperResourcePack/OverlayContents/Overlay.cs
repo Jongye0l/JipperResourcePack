@@ -477,8 +477,9 @@ public class Overlay {
         if(LastHash != hash) {
             LastHash = hash;
             Checkpoints = null;
-            MusicTimeCache = MapTimeCache = null;
+            MapTimeCache = null;
         }
+        MusicTimeCache = null;
         
         if(scnEditor.instance) {
             if(scrController.checkpointsUsed == 0) NoCheckStartTile = floor;
