@@ -117,7 +117,7 @@ public static class VersionSafe {
     private static void LoadSceneR141(string name) => ADOBase.loader.LoadScene(name);
     private static float GetPercentAccR141() => scrController.instance.playerManager.mistakesManager.percentAcc;
     private static float GetPercentXAccR141() => scrController.instance.playerManager.mistakesManager.percentXAcc;
-    private static bool IsCoopModeR141() => scrController.coopMode;
+    private static bool IsCoopModeR141() => scrPlayerManager.playerCount > 1;
 
     #endregion
 }
