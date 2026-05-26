@@ -22,6 +22,7 @@ public class Combo : Feature {
 
     public Combo(Type settingType) : base(Main.Instance, nameof(Combo), settingType: settingType) {
         AddPatch();
+        Patcher.AddPatch(OnHUDTextAwake);
         Instance = this;
     }
 

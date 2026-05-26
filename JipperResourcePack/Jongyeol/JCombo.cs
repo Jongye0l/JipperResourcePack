@@ -44,10 +44,6 @@ public class JCombo : Combo {
         if(hit is not HitMargin.Perfect and not HitMargin.Auto) JOverlay.Instance.PerfectToCombo();
     }
 
-
-    [JAPatch(typeof(scrController), "Awake_Rewind", PatchType.Postfix, false)]
-    public static void OnHUDTextAwake2(Text ___txtLevelName) => OnHUDTextAwake(___txtLevelName);
-
     public class JComboSettings(JAMod mod, JObject jsonObject = null) : ComboSettings(mod, jsonObject) {
         public bool YellowCombo = true;
     }
