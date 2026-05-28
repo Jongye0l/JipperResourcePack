@@ -862,7 +862,7 @@ public class KeyViewer : Feature {
                             bool current = CheckKey(keyCodes[i]);
                             Key key = Keys[i];
                             if(key == null) continue;
-                            int index = i + HandOutIndex;
+                            int index = i + FootOutIndex;
                             if(current == keyState[index]) continue;
                             keyState[index] = current;
                             if(!current) {
