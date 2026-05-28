@@ -27,6 +27,13 @@ public class RainManager : MonoBehaviour {
         for(int i = 0; i < RainList.Count; i++) {
             Rain rain = RainList[i];
             RawRain rawRain = rain.RawRain;
+            if(!rain.Transform) {
+                rain = rain.Pool.GetOrNewRain(rain.IsGhost);
+                rain.RawRain = rawRain;
+                rain.Transform.SetSiblingIndex(rawRain.IsGhost ? rawRain.Key.SiblingIndex + 1 : rawRain.Key.SiblingIndex);
+                if(rawRain.FinishSize) rain.Transform.sizeDelta = new Vector2(rawRain.XSize, rawRain.FinalSizeY);
+                rawRain.SizeOver = false;
+            }
             float y = (time - rawRain.StartTime) / 300f * speed;
             if(rawRain.FinishSize) {
                 if(y > height) {
