@@ -72,9 +72,9 @@ public class KeyViewer : Feature {
     private string _yLocationString;
 
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSettings)) {
+        _currentKeyViewerStyle = Settings.KeyViewerStyle;
         if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
-        _currentKeyViewerStyle = Settings.KeyViewerStyle;
         AdofaiTweaksAPI.Setup();
         KeyboardChatterBlockerAPI.Setup();
     }
