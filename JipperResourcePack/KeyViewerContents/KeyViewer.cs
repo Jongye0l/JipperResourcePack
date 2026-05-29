@@ -1185,6 +1185,7 @@ public class KeyViewer : Feature {
                 continue;
             }
             if(keyCode > KeyCode.Mouse6) break;
+            if(keyCode is KeyCode.WheelUp or KeyCode.WheelDown) continue;
             if(lastCode == keyCode) continue;
             lastCode = keyCode;
             JToken token = array[i++];
