@@ -23,11 +23,12 @@ using ThreadPriority = System.Threading.ThreadPriority;
 
 namespace JipperResourcePack.KeyViewerContents;
 
-public class KeyViewer : Feature {
+public partial class KeyViewer : Feature {
     private const int HandOutIndex = 20;
     private const int FootOutIndex = 36;
     private const int GhostOutIndex = 56;
 
+    public static KeyViewer Instance;
     public static KeyViewerSettings Settings;
     public static readonly Color Background = new(0.5607843f, 0.2352941f, 1, 0.1960784f);
     public static readonly Color BackgroundClicked = Color.white;
@@ -72,6 +73,7 @@ public class KeyViewer : Feature {
     private string _yLocationString;
 
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSettings)) {
+        Instance = this;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
         if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
@@ -81,6 +83,7 @@ public class KeyViewer : Feature {
 
     protected override void OnEnable() {
         KeyViewerObject = new GameObject("JipperResourcePack KeyViewer");
+        KeyViewerObject.AddComponent<KeyViewerUpdater>();
         RainManager = KeyViewerObject.AddComponent<RainManager>();
         if(!Settings.useRain) RainManager.enabled = false;
         Canvas canvas = KeyViewerObject.AddComponent<Canvas>();
@@ -805,108 +808,6 @@ public class KeyViewer : Feature {
 
     private static bool CheckKey(KeyCode keyCode) {
         return (int) keyCode < 0x1000 ? Input.GetKey(keyCode) : GetAsyncKeyState((int) keyCode - 0x1000) != 0;
-    }
-
-    private void ListenKey() {
-        try {
-            KeyViewerSettings settings = Settings;
-            bool[] keyState = new bool[GhostOutIndex];
-            int repeat = 0;
-            long lastMillis = 0;
-            while(KeyInputListener is { IsAlive: true } && Enabled) {
-                try {
-                    long currentMillis = Stopwatch.ElapsedMilliseconds;
-                    while(currentMillis == lastMillis) {
-                        Thread.Yield();
-                        currentMillis = Stopwatch.ElapsedMilliseconds;
-                    }
-                    lastMillis = currentMillis;
-                    KeyCode[] keyCodes = GetKeyCode();
-                    for(int i = 0; i < keyCodes.Length; i++) {
-                        bool current = CheckKey(keyCodes[i]);
-                        Key key = Keys[i];
-                        if(key == null || current == keyState[i]) continue;
-                        keyState[i] = current;
-                        UpdateKey(i, current);
-                        if(!current) {
-                            key.LastRain?.Finish(currentMillis);
-                            continue;
-                        }
-                        if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-                        key.Value.Text = (++settings.Count[i]).ToString();
-                        Total.Value.Text = (++settings.TotalCount).ToString();
-                        PressTimes.Enqueue(currentMillis);
-                        if(settings.useRain) {
-                            RawRain rawRain = key.LastRain = new RawRain(key, currentMillis, false);
-                            RainManager.RawRainQueue.Enqueue(rawRain);
-                        }
-                        _save = true;
-                    }
-                    keyCodes = GetFootKeyCode();
-                    for(int i = 0; i < keyCodes.Length; i++) {
-                        bool current = CheckKey(keyCodes[i]);
-                        int index = i + HandOutIndex;
-                        Key key = Keys[index];
-                        if(key == null || current == keyState[index]) continue;
-                        keyState[index] = current;
-                        UpdateKey(index, current);
-                        if(!current) continue;
-                        PressTimes.Enqueue(currentMillis);
-                        settings.Count[index]++;
-                        Total.Value.Text = (++settings.TotalCount).ToString();
-                        _save = true;
-                    }
-                    if(settings.useRain && settings.useGhostRain) {
-                        keyCodes = GetGhostKeyCode();
-                        for(int i = 0; i < keyCodes.Length; i++) {
-                            bool current = CheckKey(keyCodes[i]);
-                            Key key = Keys[i];
-                            if(key == null) continue;
-                            int index = i + FootOutIndex;
-                            if(current == keyState[index]) continue;
-                            keyState[index] = current;
-                            if(!current) {
-                                key.LastGhostRain?.Finish(currentMillis);
-                            } else {
-                                RawRain rawRain = key.LastGhostRain = new RawRain(key, currentMillis, true);
-                                RainManager.RawRainQueue.Enqueue(rawRain);
-                            }
-                        }
-                    }
-                    while(PressTimes.TryPeek(out long result)) {
-                        if(currentMillis - result > 1000)
-                            PressTimes.Dequeue();
-                        else break;
-                    }
-                    if(LastKps != PressTimes.Count) {
-                        LastKps = PressTimes.Count;
-                        Kps.Value.Text = LastKps.ToString();
-                    }
-                    if(++repeat < 100 || !_save || !Enabled) continue;
-                    Main.Instance.SaveSetting();
-                    _save = false;
-                    repeat = 0;
-                } catch (ThreadAbortException) {
-                    return;
-                } catch (Exception e) {
-                    if(KeyInputListener is not { IsAlive: true }) return;
-                    Main.Instance.LogException(e);
-                }
-            }
-        } catch (ThreadAbortException) {
-        } catch (Exception e) {
-            if(KeyInputListener is not { IsAlive: true }) return;
-            Main.Instance.LogException(e);
-        }
-    }
-
-    private void UpdateKey(int i, bool enabled) {
-        Key key = Keys[i];
-        KeyViewerSettings settings = Settings;
-        key.Background.Color = enabled ? settings.BackgroundClicked : settings.Background;
-        key.Outline.Color = enabled ? settings.OutlineClicked : settings.Outline;
-        key.Text.Color = enabled ? settings.TextClicked : settings.Text;
-        key.Value?.Color = key.Text.Color;
     }
 
     private void Initialize0KeyViewer() {
