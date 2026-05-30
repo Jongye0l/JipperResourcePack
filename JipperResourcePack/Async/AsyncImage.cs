@@ -20,7 +20,7 @@ public class AsyncImage {
         set {
             if(EqualColor(_color, value)) return;
             _color = value;
-            if(MainThread.IsMainThread()) _image.color = _color;
+            if(MainThread.IsMainThread() && Volatile.Read(ref _colorChangeRequested) == 0) _image.color = _color;
             else if(Interlocked.Increment(ref _colorChangeRequested) == 1) MainThread.Run(Main.Instance, ApplyColor);
         }
     }
