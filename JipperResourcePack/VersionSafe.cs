@@ -108,15 +108,15 @@ public static class VersionSafe {
     #region R141
 
     private static void ColorLogoR141(scrLogoText text, Color color, bool isFire) => text.ColorLogo(color, isFire);
-    private static scrMistakesManager GetMistakesManagerR141() => scrController.instance.playerManager.mistakesManager;
+    private static scrMistakesManager GetMistakesManagerR141() => scrPlayerManager.instance.mistakesManager;
     private static void CalculatePercentAccR141() {
         foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
     }
     private static int[] GetHitMarginsCountR141() => scrMistakesManager.marginTrackers[0].hitMarginsCount;
     private static double GetPlanetSpeedR141(scrController controller) => controller.playerOne.planetarySystem.speed;
     private static void LoadSceneR141(string name) => ADOBase.loader.LoadScene(name);
-    private static float GetPercentAccR141() => scrController.instance.playerManager.mistakesManager.percentAcc;
-    private static float GetPercentXAccR141() => scrController.instance.playerManager.mistakesManager.percentXAcc;
+    private static float GetPercentAccR141() => scrPlayerManager.instance.mistakesManager.percentAcc;
+    private static float GetPercentXAccR141() => scrPlayerManager.instance.mistakesManager.percentXAcc;
     private static bool IsCoopModeR141() => scrPlayerManager.playerCount > 1;
 
     #endregion
