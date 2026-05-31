@@ -1,5 +1,7 @@
-﻿using JALib.Core;
+﻿using System.Threading.Tasks;
+using JALib.Core;
 using JALib.Core.Setting;
+using JALib.Tools;
 using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -49,8 +51,6 @@ public class KeyViewerSetting : JASetting {
         KeyCode.Alpha0, KeyCode.Alpha6, KeyCode.Alpha9, KeyCode.Alpha5, KeyCode.Alpha8, KeyCode.Alpha4, KeyCode.Alpha7, KeyCode.Alpha3
     ];
 
-    public int[] Count = new int[36];
-    public int TotalCount;
     public float YLocation = 200;
     public bool AutoSetupKeyLimit = true;
     public float Size = 1;
@@ -72,14 +72,30 @@ public class KeyViewerSetting : JASetting {
 
     public KeyViewerSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
         KeyViewer.Settings = this;
-        if(jsonObject != null && jsonObject.TryGetValue("DownLocation", out JToken value)) {
+        if(jsonObject == null) return;
+        if(jsonObject.TryGetValue("DownLocation", out JToken value)) {
             jsonObject.Remove("DownLocation");
             YLocation = value.Value<bool>() ? 0 : 200;
         }
-        if(Count.Length != 24) return;
-        int[] cur = Count;
-        Count = new int[KeyViewer.FootOutIndex];
-        for(int i = 0; i < 16; i++) Count[i] = cur[i];
-        for(int i = 16; i < 24; i++) Count[i + 4] = cur[i];
+        if(jsonObject.TryGetValue("Count", out JToken count)) {
+            jsonObject.Remove("Count");
+            JArray countArray = (JArray) count;
+            KeyCountData.Instance ??= new KeyCountData();
+            if(countArray.Count is KeyViewer.FootOutIndex or 24) {
+                for(int i = 0; i < countArray.Count; i++) KeyCountData.Instance.Count[i] = countArray[i].Value<int>();
+            } else {
+                for(int i = 0; i < 16; i++) KeyCountData.Instance.Count[i] = countArray[i].Value<int>();
+                for(int i = 16; i < 24; i++) KeyCountData.Instance.Count[i + 4] = countArray[i].Value<int>();
+            }
+        }
+        if(jsonObject.TryGetValue("TotalCount", out JToken totalCount)) {
+            jsonObject.Remove("TotalCount");
+            KeyCountData.Instance ??= new KeyCountData();
+            KeyCountData.Instance.TotalCount = totalCount.Value<int>();
+        }
+        if(KeyCountData.Instance != null) {
+            KeyCountData.Instance.Save();
+            Task.Yield().OnCompleted(Main.Instance.SaveSetting);
+        }
     }
 }

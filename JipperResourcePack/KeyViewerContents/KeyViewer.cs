@@ -80,6 +80,7 @@ public partial class KeyViewer : Feature {
     }
 
     protected override void OnEnable() {
+        KeyCountData.Load();
         KeyViewerObject = new GameObject("JipperResourcePack KeyViewer");
         KeyViewerObject.AddComponent<KeyViewerUpdater>();
         RainManager = KeyViewerObject.AddComponent<RainManager>();
@@ -344,8 +345,8 @@ public partial class KeyViewer : Feature {
                 _confirmResetCount = false;
                 Total.Value.TMP.text = "0";
                 foreach(Key key in Keys) key?.Value.SetTextForce("0");
-                for(int i = 0; i < settings.Count.Length; i++) settings.Count[i] = 0;
-                settings.TotalCount = 0;
+                for(int i = 0; i < KeyCountData.Instance.Count.Length; i++) KeyCountData.Instance.Count[i] = 0;
+                KeyCountData.Instance.TotalCount = 0;
                 Main.Instance.SaveSetting();
             }
             if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) _confirmResetCount = false;
@@ -981,7 +982,7 @@ public partial class KeyViewer : Feature {
                 return;
             case -2:
                 key.Text.SetTextForce("Total");
-                key.Value.SetTextForce(Settings.TotalCount.ToString());
+                key.Value.SetTextForce(KeyCountData.Instance.TotalCount.ToString());
                 return;
             default:
                 KeyCode[] keyCodes;
@@ -991,7 +992,7 @@ public partial class KeyViewer : Feature {
                     string[] keyText = GetKeyText();
                     key.Text.SetTextForce(keyText[i] ?? KeyToString(keyCodes[i]));
                     if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-                    key.Value.SetTextForce(settings.Count[i].ToString());
+                    key.Value.SetTextForce(KeyCountData.Instance.Count[i].ToString());
                 } else {
                     keyCodes = GetFootKeyCode();
                     key.Text.SetTextForce(KeyToString(keyCodes[i - HandOutIndex]));

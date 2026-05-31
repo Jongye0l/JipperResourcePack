@@ -44,6 +44,7 @@ public partial class KeyViewer {
 
     private void Work(long currentMillis, bool skipSave) {
         KeyViewerSetting settings = Settings;
+        KeyCountData countData = KeyCountData.Instance;
         KeyCode[] keyCodes = GetKeyCode();
         for(int i = 0; i < keyCodes.Length; i++) {
             bool current = CheckKey(keyCodes[i]);
@@ -56,8 +57,8 @@ public partial class KeyViewer {
                 continue;
             }
             if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-            key.Value.Text = (++settings.Count[i]).ToString();
-            settings.TotalCount++;
+            key.Value.Text = (++countData.Count[i]).ToString();
+            countData.TotalCount++;
             PressTimes.Enqueue(currentMillis);
             if(settings.useRain) {
                 RawRain rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
@@ -75,8 +76,8 @@ public partial class KeyViewer {
             UpdateKey(index, current);
             if(!current) continue;
             PressTimes.Enqueue(currentMillis);
-            settings.Count[index]++;
-            settings.TotalCount++;
+            countData.Count[index]++;
+            countData.TotalCount++;
             _save = true;
         }
         if(settings.useRain && settings.useGhostRain) {
@@ -103,7 +104,7 @@ public partial class KeyViewer {
         }
         KpsCount = PressTimes.Count;
         if(skipSave || ++_saveRepeat < 1000 || !_save || !Enabled) return;
-        Main.Instance.SaveSetting();
+        KeyCountData.Instance.Save();
         _save = false;
         _saveRepeat = 0;
     }
@@ -124,7 +125,7 @@ public partial class KeyViewer {
                 Instance.LastKpsCount = kpsCount;
                 Instance.Kps.Value.TMP.text = kpsCount.ToString();
             }
-            int totalCount = Settings.TotalCount;
+            int totalCount = KeyCountData.Instance.TotalCount;
             if(totalCount != Instance.LastTotalCount) {
                 Instance.LastTotalCount = totalCount;
                 Instance.Total.Value.TMP.text = totalCount.ToString();

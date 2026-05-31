@@ -13,6 +13,7 @@
         <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -517,6 +518,7 @@
         <Compile Include="Jongyeol\IJOverlayTextManager.cs" />
         <Compile Include="Jongyeol\JOverlayTextManagerCoop.cs" />
         <Compile Include="Jongyeol\JOverlayTextManagerNormal.cs" />
+        <Compile Include="KeyViewerContents\KeyCountData.cs" />
         <Compile Include="KeyViewerContents\KeyViewer.Update.cs" />
         <Compile Include="KeyViewerContents\KeyViewerSetting.cs" />
         <Compile Include="KeyViewerContents\RainManager.cs" />
