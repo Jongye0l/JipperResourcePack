@@ -1,11 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using JipperResourcePack.Async;
 using UnityEngine;
 
 namespace JipperResourcePack.KeyViewerContents;
 
 public partial class KeyViewer {
     private readonly bool[] KeyState = new bool[GhostOutIndex];
+    public Queue<long> PressTimes;
+    public int KpsCount;
+    public int LastKpsCount;
+    public int LastTotalCount;
     private long _lastUpdateMillis;
     private int _saveRepeat;
     
@@ -49,7 +57,7 @@ public partial class KeyViewer {
             }
             if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
             key.Value.Text = (++settings.Count[i]).ToString();
-            Total.Value.Text = (++settings.TotalCount).ToString();
+            settings.TotalCount++;
             PressTimes.Enqueue(currentMillis);
             if(settings.useRain) {
                 RawRain rawRain = key.LastRain = new RawRain(key, currentMillis, false);
@@ -68,7 +76,7 @@ public partial class KeyViewer {
             if(!current) continue;
             PressTimes.Enqueue(currentMillis);
             settings.Count[index]++;
-            Total.Value.Text = (++settings.TotalCount).ToString();
+            settings.TotalCount++;
             _save = true;
         }
         if(settings.useRain && settings.useGhostRain) {
@@ -93,11 +101,8 @@ public partial class KeyViewer {
                 PressTimes.Dequeue();
             else break;
         }
-        if(LastKps != PressTimes.Count) {
-            LastKps = PressTimes.Count;
-            Kps.Value.Text = LastKps.ToString();
-        }
-        if(++_saveRepeat < 100 || !_save || !Enabled || skipSave) return;
+        KpsCount = PressTimes.Count;
+        if(skipSave || ++_saveRepeat < 1000 || !_save || !Enabled) return;
         Main.Instance.SaveSetting();
         _save = false;
         _saveRepeat = 0;
@@ -114,8 +119,18 @@ public partial class KeyViewer {
 
     public class KeyViewerUpdater : MonoBehaviour {
         private void Update() {
+            int kpsCount = Instance.KpsCount;
+            if(kpsCount != Instance.LastKpsCount) {
+                Instance.LastKpsCount = kpsCount;
+                Instance.Kps.Value.TMP.text = kpsCount.ToString();
+            }
+            int totalCount = Settings.TotalCount;
+            if(totalCount != Instance.LastTotalCount) {
+                Instance.LastTotalCount = totalCount;
+                Instance.Total.Value.TMP.text = totalCount.ToString();
+            }
             long currentMillis = Stopwatch.ElapsedMilliseconds;
-            if(currentMillis == Instance._lastUpdateMillis) return;
+            if(currentMillis <= Instance._lastUpdateMillis) return;
             if(currentMillis - Instance._lastUpdateMillis > 1) Main.Instance.Log("Listen Delay: " + (currentMillis - Instance._lastUpdateMillis)); // TODO: Remove this
             Instance._lastUpdateMillis = currentMillis;
             Instance.Work(currentMillis, true);

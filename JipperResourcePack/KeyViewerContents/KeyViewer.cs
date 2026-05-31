@@ -49,9 +49,7 @@ public partial class KeyViewer : Feature {
     public Key[] Keys;
     public Thread KeyInputListener;
     public Key Kps;
-    public int LastKps;
     public Key Total;
-    public Queue<long> PressTimes;
     public static Stopwatch Stopwatch;
     private bool _save;
     private bool _keyShare;
@@ -326,9 +324,9 @@ public partial class KeyViewer : Feature {
                 if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
                     for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
                     if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + HandOutIndex, CheckKey(footKeyCodes[i2]));
-                    Kps.Background.Color = Total.Background.Color = settings.Background;
-                    Kps.Outline.Color = Total.Outline.Color = settings.Outline;
-                    Kps.Text.Color = Kps.Value.Color = Total.Text.Color = Total.Value.Color = settings.Text;
+                    Kps.Background.Image.color = Total.Background.Image.color = settings.Background;
+                    Kps.Outline.Image.color = Total.Outline.Image.color = settings.Outline;
+                    Kps.Text.TMP.color = Kps.Value.TMP.color = Total.Text.TMP.color = Total.Value.TMP.color = settings.Text;
                     Main.Instance.SaveSetting();
                 }
                 GUILayout.EndVertical();
@@ -344,7 +342,7 @@ public partial class KeyViewer : Feature {
             GUILayout.Label("<color=red>" + localization["keyViewer.resetCountConfirmText"] + "</color>");
             if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
                 _confirmResetCount = false;
-                Total.Value.SetTextForce("0");
+                Total.Value.TMP.text = "0";
                 foreach(Key key in Keys) key?.Value.SetTextForce("0");
                 for(int i = 0; i < settings.Count.Length; i++) settings.Count[i] = 0;
                 settings.TotalCount = 0;

@@ -6,12 +6,12 @@ using UnityEngine.UI;
 namespace JipperResourcePack.Async;
 
 public class AsyncImage {
-    private readonly Image _image;
+    public readonly Image Image;
     private Color _color;
     private int _colorChangeRequested;
 
     public AsyncImage(Image image) {
-        _image = image;
+        Image = image;
         _color = image.color;
     }
     
@@ -20,7 +20,7 @@ public class AsyncImage {
         set {
             if(EqualColor(_color, value)) return;
             _color = value;
-            if(MainThread.IsMainThread() && Volatile.Read(ref _colorChangeRequested) == 0) _image.color = _color;
+            if(MainThread.IsMainThread() && Volatile.Read(ref _colorChangeRequested) == 0) Image.color = _color;
             else if(Interlocked.Increment(ref _colorChangeRequested) == 1) MainThread.Run(Main.Instance, ApplyColor);
         }
     }
@@ -36,7 +36,7 @@ public class AsyncImage {
         do {
             current = Volatile.Read(ref _colorChangeRequested);
             if(current == 0) return;
-            _image.color = _color;
+            Image.color = _color;
         } while(Interlocked.CompareExchange(ref _colorChangeRequested, 0, current) != current);
     }
 }
