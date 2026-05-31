@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using JipperResourcePack.Async;
 using UnityEngine;
 
 namespace JipperResourcePack.KeyViewerContents;
@@ -15,7 +12,6 @@ public partial class KeyViewer {
     public int LastKpsCount;
     public int LastTotalCount;
     private long _lastUpdateMillis;
-    private int _saveRepeat;
     
     private void ListenKey() {
         try {
@@ -103,10 +99,9 @@ public partial class KeyViewer {
             else break;
         }
         KpsCount = PressTimes.Count;
-        if(skipSave || ++_saveRepeat < 1000 || !_save || !Enabled) return;
+        if(skipSave || !_save || !Enabled) return;
         KeyCountData.Instance.Save();
         _save = false;
-        _saveRepeat = 0;
     }
 
     private void UpdateKey(int i, bool enabled) {

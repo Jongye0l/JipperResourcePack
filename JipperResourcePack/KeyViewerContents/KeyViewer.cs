@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using JALib.Core;
 using JALib.Core.Patch;
-using JALib.Core.Setting;
 using JALib.Tools;
 using JipperResourcePack.Async;
 using JipperResourcePack.KeyViewerContents.OtherModApi;
