@@ -28,6 +28,7 @@ public class RainManager : MonoBehaviour {
             Rain rain = RainList[i];
             RawRain rawRain = rain.RawRain;
             if(!rain.Transform) {
+                Main.Instance.Warning("Rain transform is null, this should not happen");
                 rain = rain.Pool.GetOrNewRain(rain.IsGhost);
                 rain.RawRain = rawRain;
                 rain.Transform.SetSiblingIndex(rawRain.IsGhost ? rawRain.Key.SiblingIndex + 1 : rawRain.Key.SiblingIndex);
@@ -40,6 +41,7 @@ public class RainManager : MonoBehaviour {
                     float sizeY = rawRain.FinalSizeY - y + height;
                     if(sizeY < 0) {
                         RainList.RemoveAt(i--);
+                        RawRain.AddPool(rawRain);
                         rain.RawRain = null;
                         rain.Pool.AddPool(rain, rain.IsGhost);
                         continue;

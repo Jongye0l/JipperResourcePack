@@ -9,7 +9,7 @@ using UnityEngine;
 namespace JipperResourcePack.KeyViewerContents;
 
 public partial class KeyViewer {
-    private readonly bool[] KeyState = new bool[GhostOutIndex];
+    private readonly bool[] _keyState = new bool[GhostOutIndex];
     public Queue<long> PressTimes;
     public int KpsCount;
     public int LastKpsCount;
@@ -48,8 +48,8 @@ public partial class KeyViewer {
         for(int i = 0; i < keyCodes.Length; i++) {
             bool current = CheckKey(keyCodes[i]);
             Key key = Keys[i];
-            if(key == null || current == KeyState[i]) continue;
-            KeyState[i] = current;
+            if(key == null || current == _keyState[i]) continue;
+            _keyState[i] = current;
             UpdateKey(i, current);
             if(!current) {
                 key.LastRain?.Finish(currentMillis);
@@ -60,7 +60,7 @@ public partial class KeyViewer {
             settings.TotalCount++;
             PressTimes.Enqueue(currentMillis);
             if(settings.useRain) {
-                RawRain rawRain = key.LastRain = new RawRain(key, currentMillis, false);
+                RawRain rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
                 RainManager.RawRainQueue.Enqueue(rawRain);
             }
             _save = true;
@@ -70,8 +70,8 @@ public partial class KeyViewer {
             bool current = CheckKey(keyCodes[i]);
             int index = i + HandOutIndex;
             Key key = Keys[index];
-            if(key == null || current == KeyState[index]) continue;
-            KeyState[index] = current;
+            if(key == null || current == _keyState[index]) continue;
+            _keyState[index] = current;
             UpdateKey(index, current);
             if(!current) continue;
             PressTimes.Enqueue(currentMillis);
@@ -86,12 +86,12 @@ public partial class KeyViewer {
                 Key key = Keys[i];
                 if(key == null) continue;
                 int index = i + FootOutIndex;
-                if(current == KeyState[index]) continue;
-                KeyState[index] = current;
+                if(current == _keyState[index]) continue;
+                _keyState[index] = current;
                 if(!current) {
                     key.LastGhostRain?.Finish(currentMillis);
                 } else {
-                    RawRain rawRain = key.LastGhostRain = new RawRain(key, currentMillis, true);
+                    RawRain rawRain = key.LastGhostRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
                     RainManager.RawRainQueue.Enqueue(rawRain);
                 }
             }

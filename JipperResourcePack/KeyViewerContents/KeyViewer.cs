@@ -682,11 +682,12 @@ public partial class KeyViewer : Feature {
     private static void CheckResetRain() {
         RainManager.enabled = Settings.useRain;
         if(Settings.useRain) return;
-        RainManager.RawRainQueue.Clear();
+        while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
         while(RainManager.RainList.Count > 0) {
             int index = RainManager.RainList.Count - 1;
             Rain rain = RainManager.RainList[index];
             RainManager.RainList.RemoveAt(index);
+            RawRain.AddPool(rain.RawRain);
             rain.RawRain = null;
             rain.Pool.AddPool(rain, rain.IsGhost);
         }
