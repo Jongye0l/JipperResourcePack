@@ -50,7 +50,7 @@
 * [개발: Jongyeol](https://www.youtube.com/@Jongyeol)
 * [디자인: Jipper](https://www.youtube.com/@jipper1214)
 * [번역: changhyeon](https://www.youtube.com/@changhyeon7492)
-* [번역: sjk / Phygia](https://www.youtube.com/@sjk04_)
+* [번역: Phrygia](https://www.youtube.com/@sjk04_)
 * [테스트: dofaer](https://www.youtube.com/@%EB%8F%84%ED%8E%98)
 * [테스트: NTure](https://www.youtube.com/@NTure_1253)
 * 참고한 코드
