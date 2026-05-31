@@ -748,7 +748,7 @@ public partial class KeyViewer : Feature {
         _currentKeyMaxY = Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
-            _ => 935
+            _ => 940
         };
         switch(Settings.KeyViewerStyle) {
             case KeyviewerStyle.Key12:
@@ -826,14 +826,14 @@ public partial class KeyViewer : Feature {
 
     private void Initialize1KeyViewer() {
         float y = Settings.YLocation;
-        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 120 + y, 50, 0);
+        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 115 + y, 50, 0);
         for(int i = 0; i < 8; i++) {
             int j = BackSequence16[i];
-            Keys[j] = CreateKey(j, 54 * i, 66 + y, 50, 1);
+            Keys[j] = CreateKey(j, 54 * i, 61 + y, 50, 1);
             Keys[j].RainPool = Keys[i].RainPool;
         }
-        Kps = CreateKey(-1, 0, 20 + y, 212, -1, true);
-        Total = CreateKey(-2, 216, 20 + y, 212, -1, true);
+        Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
+        Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
     }
 
     private void Initialize2KeyViewer() {
