@@ -43,7 +43,7 @@ public partial class KeyViewer {
     }
 
     private void Work(long currentMillis, bool skipSave) {
-        KeyViewerSettings settings = Settings;
+        KeyViewerSetting settings = Settings;
         KeyCode[] keyCodes = GetKeyCode();
         for(int i = 0; i < keyCodes.Length; i++) {
             bool current = CheckKey(keyCodes[i]);
@@ -110,7 +110,7 @@ public partial class KeyViewer {
 
     private void UpdateKey(int i, bool enabled) {
         Key key = Keys[i];
-        KeyViewerSettings settings = Settings;
+        KeyViewerSetting settings = Settings;
         key.Background.Color = enabled ? settings.BackgroundClicked : settings.Background;
         key.Outline.Color = enabled ? settings.OutlineClicked : settings.Outline;
         key.Text.Color = enabled ? settings.TextClicked : settings.Text;

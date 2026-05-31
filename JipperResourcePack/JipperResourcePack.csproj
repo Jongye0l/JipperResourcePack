@@ -518,6 +518,7 @@
         <Compile Include="Jongyeol\JOverlayTextManagerCoop.cs" />
         <Compile Include="Jongyeol\JOverlayTextManagerNormal.cs" />
         <Compile Include="KeyViewerContents\KeyViewer.Update.cs" />
+        <Compile Include="KeyViewerContents\KeyViewerSetting.cs" />
         <Compile Include="KeyViewerContents\RainManager.cs" />
         <Compile Include="KeyViewerContents\RainPool.cs" />
         <Compile Include="OverlayContents\Attempt.cs" />
