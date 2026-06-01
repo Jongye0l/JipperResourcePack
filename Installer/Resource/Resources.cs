@@ -85,7 +85,7 @@ public class Resources {
         Next = "다음 >",
         MainScreen_Title = "지퍼 리소스팩 설치를 시작합니다.",
         MainScreen_Description1 = "불과 얼음의 춤에 지퍼 리소스팩을 설치합니다.",
-        MainScreen_Description2 = "설치를 위해 github에 접속할 수 있는 환경이 필요합니다.",
+        MainScreen_Description2 = "설치를 위해 Github에 접속할 수 있는 환경이 필요합니다.",
         MainScreen_Description3 = "UnityModManager와 JALib등 필요한 시스템이 자동으로 설치될 수 있습니다.",
         MainScreen_Description4 = "지퍼 리소스팩은 최신 older, default, beta, alpha 브랜치만 지원하며\n그 외 버전에서는 작동하지 않을 수 있습니다.",
         MainScreen_Description5 = "설치 작업을 진행하면 불과 얼음의 춤이 강제 종료됩니다.",
