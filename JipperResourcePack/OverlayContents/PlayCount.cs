@@ -13,7 +13,6 @@ namespace JipperResourcePack.OverlayContents;
 public static class PlayCount {
     private static Dictionary<Hash, PlayData> _datas;
     private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
-    private static float Multiplier => (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
 
     public static void Load() {
         string path = FilePath;
@@ -50,10 +49,10 @@ public static class PlayCount {
         _datas = null;
     }
 
-    public static void AddAttempts(Hash hash, float progress) => GetData(hash).AddAttempts(progress, Multiplier);
+    public static void AddAttempts(Hash hash, float progress, float multiplier) => GetData(hash).AddAttempts(progress, multiplier);
 
 
-    public static void RemoveAttempts(Hash hash, float progress) => GetData(hash).RemoveAttempts(progress, Multiplier);
+    public static void RemoveAttempts(Hash hash, float progress, float multiplier) => GetData(hash).RemoveAttempts(progress, multiplier);
 
 
     public static void SetBest(Hash hash, float start, float cur, float multiplier) {
@@ -146,7 +145,7 @@ public static class PlayCount {
 
         public float GetBest(float start, float multiplier) => _best.GetValueOrDefault((start, multiplier), 0);
 
-        public int GetAttempts(float progress) => _attempts.GetValueOrDefault((progress, Multiplier), 0);
+        public int GetAttempts(float progress, float multiplier) => _attempts.GetValueOrDefault((progress, multiplier), 0);
         
         public int GetAttempts() => _attempts.Values.Sum();
 

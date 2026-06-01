@@ -334,7 +334,7 @@ public class Overlay {
     public void UpdateAttempts() {
         string[] values = new string[2];
         int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(LastHash)?.GetAttempts(StartProgress) ?? 0}";
+        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0}";
         if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(LastHash)?.GetAttempts() ?? 0}";
         AttemptText.text = count switch {
             0 => "",
@@ -498,7 +498,7 @@ public class Overlay {
         StartTile = floor;
         _lastSavedStartProgress = StartProgress = (float) floor / ADOBase.lm.listFloors.Count;
         LastMultiplier = (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
-        if(Status.Instance.Enabled && !AutoOnceEnabled) PlayCount.AddAttempts(LastHash, StartProgress);
+        if(Status.Instance.Enabled && !AutoOnceEnabled) PlayCount.AddAttempts(LastHash, StartProgress, LastMultiplier);
         SetupTextManager();
         
         GameObject.SetActive(true);
@@ -541,7 +541,7 @@ public class Overlay {
                 _lastSavedStartProgress = -1;
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if(StartProgress == OverlayTextManager.GetProgress() && !AutoOnceEnabled) PlayCount.RemoveAttempts(LastHash, StartProgress);
+            if(StartProgress == OverlayTextManager.GetProgress() && !AutoOnceEnabled) PlayCount.RemoveAttempts(LastHash, StartProgress, LastMultiplier);
         } catch (Exception e) {
             Main.Instance.LogException("Failed to set play data on hide", e);
         }
