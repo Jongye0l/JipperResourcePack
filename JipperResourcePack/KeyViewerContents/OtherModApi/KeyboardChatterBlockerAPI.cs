@@ -39,6 +39,8 @@ public static class KeyboardChatterBlockerAPI {
         try {
             KeyLimiterProfile profile = KeyboardChatterBlocker.Main.selectedKeyLimiterProfile;
             if(profile.name != "JipperResourcePack") {
+                profile.isSelected = false;
+                profile = null;
                 Setting setting = _setting.AsUnsafe<Setting>();
                 foreach(KeyLimiterProfile limiterProfile in setting.keyLimiterProfiles) {
                     if(limiterProfile.name != "JipperResourcePack") continue;
@@ -46,10 +48,13 @@ public static class KeyboardChatterBlockerAPI {
                     break;
                 }
                 if(profile == null) {
-                    profile = new KeyLimiterProfile("JipperResourcePack");
+                    profile = new KeyLimiterProfile {
+                        name = "JipperResourcePack" // WTF KeyLimiterProfile(string name) assigns its own argument instead of setting the 'name' field.
+                    };
                     setting.keyLimiterProfiles.Add(profile);
-                    KeyboardChatterBlocker.Main.selectedKeyLimiterProfile = profile;
                 }
+                KeyboardChatterBlocker.Main.selectedKeyLimiterProfile = profile;
+                profile.isSelected = true;
             }
             profile.allowedKeys = keys;
             profile.allowedAsyncKeys = asyncKeys;
