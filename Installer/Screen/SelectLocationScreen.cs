@@ -100,6 +100,7 @@ public class SelectLocationScreen : Screen {
     public void UpdateInformation(bool init) {
         int count = 0;
         try {
+            RequirementStatus.Reset();
             NotifyBox.SuspendLayout();
             if(Cts != null) {
                 Cts.Cancel();

@@ -7,4 +7,8 @@ public class RequirementStatus {
     public bool IsAssemblyInstalled;
     public bool IsOldDoorStop;
     public bool ExistMods;
+
+    public void Reset() {
+        IsExistUnityModManager = IsExistJALib = IsExistJipperResourcePack = IsAssemblyInstalled = IsOldDoorStop = ExistMods = false;
+    }
 }
