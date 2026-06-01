@@ -126,8 +126,7 @@ public partial class KeyViewer {
                 Instance.Total.Value.TMP.text = totalCount.ToString();
             }
             long currentMillis = Stopwatch.ElapsedMilliseconds;
-            if(currentMillis <= Instance._lastUpdateMillis) return;
-            if(currentMillis - Instance._lastUpdateMillis > 1) Main.Instance.Log("Listen Delay: " + (currentMillis - Instance._lastUpdateMillis)); // TODO: Remove this
+            if(currentMillis - 4 <= Instance._lastUpdateMillis) return;
             Instance._lastUpdateMillis = currentMillis;
             Instance.Work(currentMillis, true);
         }
