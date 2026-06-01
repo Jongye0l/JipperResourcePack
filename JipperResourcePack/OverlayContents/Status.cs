@@ -69,13 +69,14 @@ public class Status : Feature {
             Overlay.Instance.UpdateProgressBar();
     }
 
-    public class ProgressSetting : JASetting {
+    public class ProgressSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
+        // ReSharper disable FieldCanBeMadeReadOnly.Global
         public bool ShowProgress = true;
         public ColorPerDictionary ProgressColor = new([
             (0f, Color.white),
             (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
         ]);
-        public bool ShowAccuracy = false;
+        public bool ShowAccuracy;
         public ColorPerDictionary AccuracyColor = new([
             (0.98f, Color.magenta),
             (1f, Color.white)
@@ -87,12 +88,12 @@ public class Status : Feature {
         ], new Color(1, 0.8549019607843137f, 0)) ;
         public bool ShowMusicTime = true;
         public ColorPerDictionary MusicTimeColor = new([ (1f, Color.white) ]);
-        public bool ShowMapTime = false;
+        public bool ShowMapTime;
         public ColorPerDictionary MapTimeColor = new([(1f, Color.white)]);
         public bool ShowMapTimeIfNotMusic = true;
         public TimeTextType TimeTextType = TimeTextType.Korean;
-        public bool ShowCheckpoint = false;
-        public bool ShowBest = false;
+        public bool ShowCheckpoint;
+        public bool ShowBest;
         public ColorPerDictionary BestColor = new([
             (0f, Color.white),
             (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
@@ -101,11 +102,10 @@ public class Status : Feature {
         public ColorPerDictionary ProgressBarColor = new([(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
         public ColorPerDictionary ProgressBarBackgroundColor = new([(1f, Color.white)]);
         public ColorPerDictionary ProgressBarBorderColor = new([(1f, Color.black)]);
-        
-        public ProgressSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
-        }
+        // ReSharper restore FieldCanBeMadeReadOnly.Global
     }
 
+    // ReSharper disable UnusedMember.Local
     [JAPatch(typeof(scrMistakesManager), "CalculatePercentAcc", PatchType.Postfix, false, MaxVersion = 140)]
     private static void OnAccuracyChange() {
         Overlay.Instance.UpdateAccuracy();
@@ -143,4 +143,5 @@ public class Status : Feature {
             }
         });
     }
+    // ReSharper restore UnusedMember.Local
 }

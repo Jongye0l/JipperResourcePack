@@ -100,7 +100,7 @@ public partial class KeyViewer : Feature {
         InitializeKeyViewer();
         InitializeFootKeyViewer();
         Object.DontDestroyOnLoad(KeyViewerObject);
-        PressTimes = new Queue<long>();
+        _pressTimes = new Queue<long>();
         Stopwatch = Stopwatch.StartNew();
         KeyInputListener = new Thread(ListenKey) {
             Name = "JipperResourcePack KeyViewer Listener Thread",
@@ -124,7 +124,7 @@ public partial class KeyViewer : Feature {
         KeyInputListener.Abort();
         KeyInputListener.Interrupt();
         KeyInputListener = null;
-        PressTimes = null;
+        _pressTimes = null;
         Application.quitting -= ApplicationOnquitting;
     }
 

@@ -3,11 +3,7 @@ using JipperResourcePack.OverlayContents;
 
 namespace JipperResourcePack.Jongyeol;
 
-public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextManager {
-    
-    public JOverlayTextManagerCoop(Overlay overlay) : base(overlay) {
-    }
-
+public class JOverlayTextManagerCoop(Overlay overlay) : OverlayTextManagerCoop(overlay), IJOverlayTextManager {
     protected override void SetProgress(ref PlayerData pData, float progress) {
         pData.Progress = progress;
         pData.ProgressString = $" | {ColorToString(JStatus.Settings.ProgressColor.GetColor(progress))}{Math.Round(progress * 100, 5)}%</color>";
@@ -26,8 +22,8 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         pData.XAccuracyString = $" | {ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc))}{Math.Round(xacc * 100, 5)}%</color>";
     }
-    
-    public override void UpdateBestText(Overlay overlay) {
+
+    protected override void UpdateBestText(Overlay overlay) {
         float best = CurBest > MaxProgress || overlay.AutoOnceEnabled ? CurBest : MaxProgress;
         overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
         overlay.BestText.color = JStatus.Settings.BestColor.GetColor(best);

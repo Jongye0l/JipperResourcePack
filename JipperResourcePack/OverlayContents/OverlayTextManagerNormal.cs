@@ -21,6 +21,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             float acc = VersionSafe.GetPercentAcc();
             float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile + 1) * 0.0001f;
             overlay.AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             overlay.AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
         if(Status.Settings.ShowXAccuracy) {
@@ -63,7 +64,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     
     public float GetProgress() => Progress;
 
-    public virtual void UpdateBestText(Overlay overlay) {
+    protected virtual void UpdateBestText(Overlay overlay) {
         float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
         overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);

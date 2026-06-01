@@ -29,6 +29,7 @@ public class JStatus : OverlayContents.Status {
         settingGUI.AddSettingToggle(ref Settings.RemoveNotRequireInAuto, localization["progress.removeNotRequireInAuto"], JOverlay.Instance.SetupLocationMain);
     }
 
+    // ReSharper disable UnusedMember.Local
     [JAPatch(typeof(scrShowIfDebug), "Update", PatchType.Prefix, false)]
     private static bool HideDebugText(Text ___txt) => !Settings.HideDebugText || (___txt.enabled = false);
 
@@ -41,16 +42,19 @@ public class JStatus : OverlayContents.Status {
     }
 
     [JAPatch(typeof(scrMisc), "GetHitMargin", PatchType.Postfix, false)]
+    // ReSharper disable once InconsistentNaming
     private static void OnHitMarginChange(float hitangle, float refangle, bool isCW, float bpmTimesSpeed, float conductorPitch) {
         float angle = (hitangle - refangle) * (isCW ? 1 : -1) * 57.29578f;
         float timing = angle / 180 / bpmTimesSpeed / conductorPitch * 60000;
         JOverlay.Instance.UpdateTiming(timing);
     }
+    // ReSharper restore UnusedMember.Local
 
     public class JProgressSetting : ProgressSetting {
         public bool ShowFPS = true;
         public bool ShowAuthor = true;
         public bool ShowState = true;
+        // ReSharper disable once MemberHidesStaticFromOuterClass
         public bool HideDebugText = true;
         public bool ShowDeath = true;
         public bool ShowStart = true;

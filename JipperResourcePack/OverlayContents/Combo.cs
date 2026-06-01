@@ -46,12 +46,14 @@ public class Combo : Feature {
     }
 
     public class ComboSettings : JASetting {
+        // ReSharper disable FieldCanBeMadeReadOnly.Global
         public bool EnableAutoCombo = true;
         public int ComboColorMax = 1000;
         public ColorPerDictionary ComboColor = new([
             (0f, new Color(0.8745098039215686f, 0.7098039215686275f, 1)),
             (1f, new Color(0.7176470588235294f, 0.3490196078431373f, 1))
         ]);
+        // ReSharper restore FieldCanBeMadeReadOnly.Global
 
         public ComboSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;

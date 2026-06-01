@@ -9,7 +9,7 @@ namespace JipperResourcePack.KeyViewerContents;
 
 public class KeyCountData {
     public static KeyCountData Instance;
-    public int[] Count = new int[KeyViewer.FootOutIndex];
+    public readonly int[] Count = new int[KeyViewer.FootOutIndex];
     public int TotalCount;
     private int _saveDirtyVersion;
 

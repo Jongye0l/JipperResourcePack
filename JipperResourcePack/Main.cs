@@ -35,7 +35,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     private void AddFeature() {
-        AddFeature(new Status(), new BPM(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
+        AddFeature(new Status(), new Bpm(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
     }
 
     public void FeatureReset(bool jongyeolMode) {
@@ -150,7 +150,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     [JAPatch(typeof(StateBehaviour), "ChangeState", PatchType.Postfix, true, ArgumentTypesType = [typeof(Enum)])]
-    public static void OnChangeState(Enum newState) {
+    private static void OnChangeState(Enum newState) {
         switch((States) newState) {
             case States.Fail2:
                 Overlay.Instance.Death();

@@ -1,12 +1,11 @@
 ﻿using System.IO;
-using JALib.Tools;
 using TMPro;
 using UnityEngine;
 
 namespace JipperResourcePack;
 
-public class BundleLoader {
-    public static AssetBundle Bundle;
+public static class BundleLoader {
+    private static AssetBundle _bundle;
     public static TMP_FontAsset FontAsset;
     public static GameObject ProgressObject;
     public static Sprite Auto;
@@ -35,8 +34,8 @@ public class BundleLoader {
         Main.Instance.Log("Unity Version: " + Application.unityVersion);
         if(Application.unityVersion.StartsWith("2022")) path += "2022";
         
-        Bundle = AssetBundle.LoadFromFile(path);
-        foreach(Object asset in Bundle.LoadAllAssets()) {
+        _bundle = AssetBundle.LoadFromFile(path);
+        foreach(Object asset in _bundle.LoadAllAssets()) {
             switch(asset.name) {
                 case "MAPLESTORY_OTF_BOLD SDF":
                     FontAsset = (TMP_FontAsset) asset;
@@ -65,6 +64,6 @@ public class BundleLoader {
     }
     
     public static void UnloadBundle() {
-        Bundle.Unload(true);
+        _bundle.Unload(true);
     }
 }

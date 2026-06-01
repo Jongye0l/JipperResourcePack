@@ -32,11 +32,8 @@ public class Attempt : Feature {
         AttemptObject.SetActive(false);
     }
 
-    public class AttemptSetting : JASetting {
+    public class AttemptSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
         public bool ShowAttempt = true;
         public bool ShowFullAttempt = true;
-        
-        public AttemptSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
-        }
     }
 }

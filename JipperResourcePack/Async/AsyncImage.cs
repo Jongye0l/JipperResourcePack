@@ -5,16 +5,11 @@ using UnityEngine.UI;
 
 namespace JipperResourcePack.Async;
 
-public class AsyncImage {
-    public readonly Image Image;
-    private Color _color;
+public class AsyncImage(Image image) {
+    public readonly Image Image = image;
+    private Color _color = image.color;
     private int _colorChangeRequested;
 
-    public AsyncImage(Image image) {
-        Image = image;
-        _color = image.color;
-    }
-    
     public Color Color {
         get => _color;
         set {

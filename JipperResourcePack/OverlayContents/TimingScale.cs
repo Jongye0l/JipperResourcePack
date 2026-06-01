@@ -20,6 +20,7 @@ public class TimingScale : Feature {
         TimingScaleObject?.SetActive(false);
     }
     
+    // ReSharper disable once UnusedMember.Local
     [JAPatch(typeof(scrPlanet), "MoveToNextFloor", PatchType.Postfix, true)]
     private static void OnMoveToNextFloor() {
         Overlay.Instance.UpdateTimingScale();

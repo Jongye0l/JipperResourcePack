@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace JipperResourcePack.KeyViewerContents;
 
-public class Key {
-    public readonly GameObject GameObject;
+public class Key(GameObject gameObject) {
+    public readonly GameObject GameObject = gameObject;
     public AsyncText Text;
     public AsyncImage Background;
     public AsyncImage Outline;
@@ -14,8 +14,4 @@ public class Key {
     public RainPool RainPool;
     public RawRain LastRain;
     public RawRain LastGhostRain;
-
-    public Key(GameObject gameObject) {
-        GameObject = gameObject;
-    }
 }

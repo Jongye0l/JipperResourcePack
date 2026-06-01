@@ -5,17 +5,13 @@ using UnityEngine;
 
 namespace JipperResourcePack.Async;
 
-public class AsyncText {
-    public readonly TextMeshProUGUI TMP;
+public class AsyncText(TextMeshProUGUI tmp) {
+    public readonly TextMeshProUGUI TMP = tmp;
     private string _text;
     private Color _color;
     private int _textChangeRequested;
     private int _colorChangeRequested;
-    
-    public AsyncText(TextMeshProUGUI tmp) {
-        TMP = tmp;
-    }
-    
+
     public string Text {
         get => _text;
         set {

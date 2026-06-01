@@ -11,6 +11,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
             float acc = VersionSafe.GetPercentAcc();
             float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile + 1) * 0.0001f;
             overlay.AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 4)}%";
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             overlay.AccuracyText.color = JStatus.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
         if(Status.Settings.ShowXAccuracy) {
@@ -25,8 +26,8 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
         overlay.ProgressText.text = $"<color=white>Progress |</color> {cur} / {last}{(cur == last ? "" : $" [-{last - cur}]")} ({Math.Round(Progress * 100, 5)}%)";
         overlay.ProgressText.color = JStatus.Settings.ProgressColor.GetColor(Progress);
     }
-    
-    public override void UpdateBestText(Overlay overlay) {
+
+    protected override void UpdateBestText(Overlay overlay) {
         float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
         overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 5)}%";
         overlay.BestText.color = JStatus.Settings.BestColor.GetColor(best);

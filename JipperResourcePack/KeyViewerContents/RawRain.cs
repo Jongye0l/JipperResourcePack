@@ -11,8 +11,8 @@ public class RawRain {
     public bool FinishSize;
     public bool FinishSizeSetup;
     public bool SizeOver;
-    
-    public RawRain(Key key, long startTime, bool isGhost) => Init(key, startTime, isGhost);
+
+    private RawRain(Key key, long startTime, bool isGhost) => Init(key, startTime, isGhost);
 
     private void Init(Key key, long startTime, bool isGhost) {
         Key = key;

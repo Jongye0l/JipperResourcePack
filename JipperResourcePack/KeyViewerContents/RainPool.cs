@@ -2,17 +2,13 @@
 
 namespace JipperResourcePack.KeyViewerContents;
 
-public class RainPool {
-    public readonly RectTransform Transform;
+public class RainPool(RectTransform transform) {
+    public readonly RectTransform Transform = transform;
     private Rain[] _pool = new Rain[16];
     private int _poolCount;
     private Rain[] _ghostPool = new Rain[16];
     private int _ghostPoolCount;
 
-    public RainPool(RectTransform transform) {
-        Transform = transform;
-    }
-    
     public void AddPool(Rain rain, bool isGhost) {
         rain.GameObject.SetActive(false);
         ref int count = ref isGhost ? ref _ghostPoolCount : ref _poolCount;

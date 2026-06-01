@@ -7,10 +7,10 @@ namespace JipperResourcePack.KeyViewerContents;
 
 public partial class KeyViewer {
     private readonly bool[] _keyState = new bool[GhostOutIndex];
-    public Queue<long> PressTimes;
-    public int KpsCount;
-    public int LastKpsCount;
-    public int LastTotalCount;
+    private Queue<long> _pressTimes;
+    private int _kpsCount;
+    private int _lastKpsCount;
+    private int _lastTotalCount;
     private long _lastUpdateMillis;
     
     private void ListenKey() {
@@ -55,7 +55,7 @@ public partial class KeyViewer {
             if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
             key.Value.Text = (++countData.Count[i]).ToString();
             countData.TotalCount++;
-            PressTimes.Enqueue(currentMillis);
+            _pressTimes.Enqueue(currentMillis);
             if(settings.useRain) {
                 RawRain rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
                 RainManager.RawRainQueue.Enqueue(rawRain);
@@ -71,7 +71,7 @@ public partial class KeyViewer {
             _keyState[index] = current;
             UpdateKey(index, current);
             if(!current) continue;
-            PressTimes.Enqueue(currentMillis);
+            _pressTimes.Enqueue(currentMillis);
             countData.Count[index]++;
             countData.TotalCount++;
             _save = true;
@@ -93,12 +93,12 @@ public partial class KeyViewer {
                 }
             }
         }
-        while(PressTimes.TryPeek(out long result)) {
+        while(_pressTimes.TryPeek(out long result)) {
             if(currentMillis - result > 1000)
-                PressTimes.Dequeue();
+                _pressTimes.Dequeue();
             else break;
         }
-        KpsCount = PressTimes.Count;
+        _kpsCount = _pressTimes.Count;
         if(skipSave || !_save || !Enabled) return;
         KeyCountData.Instance.Save();
         _save = false;
@@ -115,14 +115,14 @@ public partial class KeyViewer {
 
     public class KeyViewerUpdater : MonoBehaviour {
         private void Update() {
-            int kpsCount = Instance.KpsCount;
-            if(kpsCount != Instance.LastKpsCount) {
-                Instance.LastKpsCount = kpsCount;
+            int kpsCount = Instance._kpsCount;
+            if(kpsCount != Instance._lastKpsCount) {
+                Instance._lastKpsCount = kpsCount;
                 Instance.Kps.Value.TMP.text = kpsCount.ToString();
             }
             int totalCount = KeyCountData.Instance.TotalCount;
-            if(totalCount != Instance.LastTotalCount) {
-                Instance.LastTotalCount = totalCount;
+            if(totalCount != Instance._lastTotalCount) {
+                Instance._lastTotalCount = totalCount;
                 Instance.Total.Value.TMP.text = totalCount.ToString();
             }
             long currentMillis = Stopwatch.ElapsedMilliseconds;

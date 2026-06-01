@@ -524,7 +524,7 @@
         <Compile Include="KeyViewerContents\RainManager.cs" />
         <Compile Include="KeyViewerContents\RainPool.cs" />
         <Compile Include="OverlayContents\Attempt.cs" />
-        <Compile Include="OverlayContents\BPM.cs" />
+        <Compile Include="OverlayContents\Bpm.cs" />
         <Compile Include="OverlayContents\Combo.cs" />
         <Compile Include="OverlayContents\IOverlayTextManager.cs" />
         <Compile Include="OverlayContents\Judgement.cs" />

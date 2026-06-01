@@ -30,6 +30,7 @@ public class Judgement : Feature {
         settingGUI.AddSettingToggle(ref Settings.LocationUp, localization["judgement.locationUp"], Overlay.Instance.SetupLocationJudgement);
     }
 
+    // ReSharper disable once UnusedMember.Local
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
     [JAPatch(typeof(scrMistakesManager), "Reset", PatchType.Postfix, false, MaxVersion = 140)]

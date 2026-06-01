@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace JipperResourcePack.Jongyeol;
 
-public class Jbpm : OverlayContents.BPM {
+public class Jbpm : OverlayContents.Bpm {
     public static new JbpmSettings Settings;
 
     public Jbpm() : base(typeof(JbpmSettings)) {
@@ -15,7 +15,7 @@ public class Jbpm : OverlayContents.BPM {
         base.OnGUI();
     }
 
-    public class JbpmSettings(JAMod mod, JObject jsonObject = null) : BPMSettings(mod, jsonObject) {
+    public class JbpmSettings(JAMod mod, JObject jsonObject = null) : BpmSettings(mod, jsonObject) {
         public bool CheckPseudo = true;
     }
 }

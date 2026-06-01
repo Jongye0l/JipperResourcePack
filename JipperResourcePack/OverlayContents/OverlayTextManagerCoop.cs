@@ -4,7 +4,7 @@ using UnityEngine;
 namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerCoop : IOverlayTextManager {
-    public PlayerData[] PlayerDatas;
+    public readonly PlayerData[] PlayerDatas;
     public float MaxProgress;
     public float CurBest = -1;
     public int CurCheck;
@@ -113,13 +113,13 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     
     public float GetProgress() => MaxProgress;
 
-    public virtual void UpdateBestText(Overlay overlay) {
+    protected virtual void UpdateBestText(Overlay overlay) {
         float best = CurBest > MaxProgress || overlay.AutoOnceEnabled ? CurBest : MaxProgress;
         overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
-    public static string ColorToString(in Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>";
+    protected static string ColorToString(in Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>";
     
     public struct PlayerData {
         public float Progress = 0;

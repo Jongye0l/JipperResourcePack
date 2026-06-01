@@ -26,17 +26,13 @@ public static class AdofaiTweaksAPI {
             SetTweakRunner();
             IsExist = true;
             Main.Instance.Log("AdofaiTweaksAPI is loaded.");
-        } catch (FileNotFoundException) {
-            Main.Instance.Log("AdofaiTweaksAPI is not loaded.");
-        } catch (TypeLoadException) {
-            Main.Instance.Log("AdofaiTweaksAPI is not loaded.");
         } catch (Exception e) {
             Main.Instance.Log("AdofaiTweaksAPI is not loaded.");
             Main.Instance.LogException(e);
         }
     }
 
-    public static void SetTweakRunner() {
+    private static void SetTweakRunner() {
         IList tweakRunners = typeof(AdofaiTweaks.AdofaiTweaks).GetValue<IList>("tweakRunners");
         foreach(object tweakRunner in tweakRunners) {
             TweakSettings settings = tweakRunner.Invoke<TweakSettings>("get_Settings");

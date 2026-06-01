@@ -10,23 +10,21 @@ using JALib.Tools.ByteTool;
 
 namespace JipperResourcePack.OverlayContents;
 
-public class PlayCount {
-
-    public static Dictionary<Hash, PlayData> Datas;
+public static class PlayCount {
+    private static Dictionary<Hash, PlayData> _datas;
     private static string FilePath => Path.Combine(Main.Instance.Path, "Plays.dat");
-
-    public static float Multiplier => (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
+    private static float Multiplier => (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
 
     public static void Load() {
         string path = FilePath;
-        Datas = new Dictionary<Hash, PlayData>();
+        _datas = new Dictionary<Hash, PlayData>();
         if(File.Exists(path)) {
             try {
                 LoadFile(path);
                 return;
             } catch (Exception e) {
                 Main.Instance.LogException("Error On Load File", e);
-                Datas.Clear();
+                _datas.Clear();
             }
         }
         path += ".bak";
@@ -44,12 +42,12 @@ public class PlayCount {
         int count = fileStream.ReadInt();
         for(int i = 0; i < count; i++) {
             Hash key = fileStream.ReadBytes(16);
-            (Datas[key] = new PlayData()).Read(fileStream, version);
+            (_datas[key] = new PlayData()).Read(fileStream, version);
         }
     }
 
     public static void Dispose() {
-        Datas = null;
+        _datas = null;
     }
 
     public static void AddAttempts(Hash hash, float progress) => GetData(hash).AddAttempts(progress, Multiplier);
@@ -70,10 +68,10 @@ public class PlayCount {
             using FileStream fileStream = File.OpenWrite(path);
             using MemoryStream memoryStream = new();
             memoryStream.WriteByte(1);
-            memoryStream.WriteInt(Datas.Count);
-            foreach(KeyValuePair<Hash, PlayData> pair in Datas) {
+            memoryStream.WriteInt(_datas.Count);
+            foreach(KeyValuePair<Hash, PlayData> pair in _datas) {
                 if(pair.Value == null) continue;
-                memoryStream.Write(pair.Key.data);
+                memoryStream.Write(pair.Key.Data);
                 pair.Value.Write(memoryStream);
             }
             memoryStream.WriteTo(fileStream);
@@ -83,47 +81,47 @@ public class PlayCount {
     }
 
     public static PlayData GetData(Hash hash) {
-        if(!Datas.ContainsKey(hash)) Datas[hash] = new PlayData();
-        return Datas[hash];
+        if(!_datas.ContainsKey(hash)) _datas[hash] = new PlayData();
+        return _datas[hash];
     }
 
     public class PlayData {
-        public int totalAttempts;
-        public Dictionary<(float, float), int> attempts = new();
-        public Dictionary<(float, float), float> best = new();
+        private int _totalAttempts;
+        private readonly Dictionary<(float, float), int> _attempts = new();
+        private readonly Dictionary<(float, float), float> _best = new();
 
         public void AddAttempts(float progress, float multiplier) {
-            if(!attempts.TryAdd((progress, multiplier), 1)) attempts[(progress, multiplier)]++;
-            totalAttempts++;
+            if(!_attempts.TryAdd((progress, multiplier), 1)) _attempts[(progress, multiplier)]++;
+            _totalAttempts++;
             Save();
         }
 
         public void RemoveAttempts(float progress, float multiplier) {
-            if(!attempts.TryGetValue((progress, multiplier), out int value)) return;
-            if(value == 1) attempts.Remove((progress, multiplier));
-            else attempts[(progress, multiplier)]--;
-            totalAttempts--;
+            if(!_attempts.TryGetValue((progress, multiplier), out int value)) return;
+            if(value == 1) _attempts.Remove((progress, multiplier));
+            else _attempts[(progress, multiplier)]--;
+            _totalAttempts--;
             Save();
         }
 
         public void SetBest(float start, float cur, float multiplier) {
             (float, float) key = (start, multiplier);
-            if(best.TryAdd(key, cur)) return;
-            if(!(best[key] < cur)) return;
-            best[key] = cur;
+            if(_best.TryAdd(key, cur)) return;
+            if(!(_best[key] < cur)) return;
+            _best[key] = cur;
             Save();
         }
 
         public void Write(Stream stream) {
-            stream.WriteInt(totalAttempts);
-            stream.WriteInt(attempts.Count);
-            foreach(KeyValuePair<(float, float), int> pair in attempts) {
+            stream.WriteInt(_totalAttempts);
+            stream.WriteInt(_attempts.Count);
+            foreach(KeyValuePair<(float, float), int> pair in _attempts) {
                 stream.WriteFloat(pair.Key.Item1);
                 stream.WriteFloat(pair.Key.Item2);
                 stream.WriteInt(pair.Value);
             }
-            stream.WriteInt(best.Count);
-            foreach(KeyValuePair<(float, float), float> pair in best) {
+            stream.WriteInt(_best.Count);
+            foreach(KeyValuePair<(float, float), float> pair in _best) {
                 stream.WriteFloat(pair.Key.Item1);
                 stream.WriteFloat(pair.Key.Item2);
                 stream.WriteFloat(pair.Value);
@@ -131,28 +129,28 @@ public class PlayCount {
         }
 
         public void Read(Stream stream, int version) {
-            totalAttempts = stream.ReadInt();
+            _totalAttempts = stream.ReadInt();
             int size = stream.ReadInt();
-            attempts.EnsureCapacity(size);
+            _attempts.EnsureCapacity(size);
             for(int i = 0; i < size; i++) {
                 if(version == 0) stream.ReadByte();
-                attempts[(stream.ReadFloat(), stream.ReadFloat())] = stream.ReadInt();
+                _attempts[(stream.ReadFloat(), stream.ReadFloat())] = stream.ReadInt();
             }
             size = stream.ReadInt();
-            best.EnsureCapacity(size);
+            _best.EnsureCapacity(size);
             for(int i = 0; i < size; i++) {
                 if(version == 0) stream.ReadByte();
-                best[(stream.ReadFloat(), stream.ReadFloat())] = stream.ReadFloat();
+                _best[(stream.ReadFloat(), stream.ReadFloat())] = stream.ReadFloat();
             }
         }
 
-        public float GetBest(float start, float multiplier) => best.GetValueOrDefault((start, multiplier), 0);
+        public float GetBest(float start, float multiplier) => _best.GetValueOrDefault((start, multiplier), 0);
 
-        public int GetAttempts(float progress) => attempts.GetValueOrDefault((progress, Multiplier), 0);
+        public int GetAttempts(float progress) => _attempts.GetValueOrDefault((progress, Multiplier), 0);
         
-        public int GetAttempts() => attempts.Values.Sum();
+        public int GetAttempts() => _attempts.Values.Sum();
 
-        public static implicit operator int(PlayData data) => data.totalAttempts;
+        public static implicit operator int(PlayData data) => data._totalAttempts;
     }
 
     #region BetterCalibration Hash Algorithm
@@ -220,24 +218,24 @@ public class PlayCount {
     }
 
     public readonly struct Hash(byte[] data) : IEquatable<Hash> {
-        public readonly byte[] data = data;
+        public readonly byte[] Data = data;
 
         public override bool Equals(object obj) => obj is Hash hash ? Equals(hash) : obj is byte[] bytes && Equals(bytes);
-        public bool Equals(Hash other) => Equals(other.data);
+        public bool Equals(Hash other) => Equals(other.Data);
         public bool Equals(byte[] hash) {
-            if(data == hash) return true;
-            if(data == null || hash == null || data.Length != hash.Length) return false;
-            return data.Length == hash.Length && !data.Where((t, i) => t != hash[i]).Any();
+            if(Data == hash) return true;
+            if(Data == null || hash == null || Data.Length != hash.Length) return false;
+            return Data.Length == hash.Length && !Data.Where((t, i) => t != hash[i]).Any();
         }
-        public override int GetHashCode() => data != null ? ToString().GetHashCode() : 0;
+        public override int GetHashCode() => Data != null ? ToString().GetHashCode() : 0;
 
         public static bool operator ==(Hash left, Hash right) => left.Equals(right);
         public static bool operator !=(Hash left, Hash right) => !(left == right);
 
         public static implicit operator Hash(byte[] hash) => new(hash);
-        public static implicit operator byte[](Hash hash) => hash.data;
+        public static implicit operator byte[](Hash hash) => hash.Data;
 
-        public override string ToString() => data.Join(b => b.ToString("x2"), "");
+        public override string ToString() => Data.Join(b => b.ToString("x2"), "");
     }
 
     #endregion

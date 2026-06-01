@@ -159,7 +159,7 @@ public class JOverlay : Overlay {
         _fpsTime %= 0.01f;
     }
 
-    public void UpdateAuthor() {
+    private void UpdateAuthor() {
         if(!JStatus.Settings.ShowAuthor || !GameObject.activeSelf) return;
         AuthorText.text = $"Author | {LevelData?.author ?? ""}";
     }
@@ -200,7 +200,7 @@ public class JOverlay : Overlay {
         }
     }
 
-    public void UpdateDeath() {
+    private void UpdateDeath() {
         if(!JStatus.Settings.ShowDeath || !GameObject.activeSelf) return;
         if(_lastDeath != (_deathCount = Hit[8] + Hit[9])) {
             DeathText.text = $"<color=white>Death |</color> {_deathCount}";
@@ -210,7 +210,7 @@ public class JOverlay : Overlay {
         DeathText.color = GetColor(1 - Math.Min(_deathCount, max) / max);
     }
 
-    public void UpdateStart() {
+    private void UpdateStart() {
         if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || StartTile != scrController.instance.currentSeqID) return;
         StartText.text = $"Start | {StartTile} ({Math.Round(OverlayTextManager.GetProgress() * 100, 5)}%)";
     }
@@ -222,7 +222,7 @@ public class JOverlay : Overlay {
         TimingText.color = GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
     }
 
-    public override void UpdateBPM() {
+    public override void UpdateBpm() {
         if(!GameObject.activeSelf) return;
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
         if(floor.seqID <= _pseudoFloor) return;
@@ -235,11 +235,13 @@ public class JOverlay : Overlay {
         if(!isPesudo) cbpm = floor.nextfloor ? (float) (60.0 / (floor.nextfloor.entryTime - floor.entryTime) * conductor.song.pitch) : bpm;
         float kps = cbpm / 60;
         if(isPesudo) kps *= count;
+        // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm && _lastCurKps == kps) return;
-        BPMText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
+        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
                        $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
                        $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
-        if(LastCurBpm != cbpm) BPMText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
+        if(LastCurBpm != cbpm) BpmText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
+        // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;
         LastCurBpm = cbpm;
         _lastCurKps = kps;

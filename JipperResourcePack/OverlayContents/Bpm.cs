@@ -9,16 +9,16 @@ using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
 
-public class BPM : Feature {
+public class Bpm : Feature {
     public static GameObject BpmObject;
-    public static BPMSettings Settings;
+    public static BpmSettings Settings;
     private string _bpmColorMaxString;
-    public static BPM Instance;
+    public static Bpm Instance;
 
-    public BPM() : this(typeof(BPMSettings)) {
+    public Bpm() : this(typeof(BpmSettings)) {
     }
 
-    public BPM(Type settingType) : base(Main.Instance, nameof(BPM), true, typeof(BPM), settingType) {
+    public Bpm(Type settingType) : base(Main.Instance, "BPM", true, typeof(Bpm), settingType) {
         Instance = this;
     }
 
@@ -33,23 +33,26 @@ public class BPM : Feature {
     protected override void OnGUI() {
         SettingGUI settingGUI = Main.SettingGUI;
         settingGUI.AddSettingFloat(ref Settings.BpmColorMax, 8000, ref _bpmColorMaxString, Main.Instance.Localization["bpm.bpmColorMax"], 0);
-        if(Settings.BpmColor.SettingGUI(settingGUI, Main.Instance.Localization["bpm.bpmColor"])) Overlay.Instance.UpdateBPM();
+        if(Settings.BpmColor.SettingGUI(settingGUI, Main.Instance.Localization["bpm.bpmColor"])) Overlay.Instance.UpdateBpm();
     }
 
     [JAPatch(typeof(scrController), "Hit", PatchType.Postfix, true, MaxVersion = 140)]
     [JAPatch(nameof(scrPlayer), nameof(scrPlayer.Hit), PatchType.Postfix, true, MinVersion = 141)]
+    // ReSharper disable once UnusedMember.Local
     private static void OnHit() {
-        Overlay.Instance.UpdateBPM();
+        Overlay.Instance.UpdateBpm();
     }
 
-    public class BPMSettings : JASetting {
+    public class BpmSettings : JASetting {
+        // ReSharper disable FieldCanBeMadeReadOnly.Global
         public float BpmColorMax = 8000;
         public ColorPerDictionary BpmColor = new([
             (0f, Color.white),
             (1f, Color.magenta)
         ]);
+        // ReSharper restore FieldCanBeMadeReadOnly.Global
 
-        public BPMSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
+        public BpmSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;
         }
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -15,7 +15,6 @@ public static class VersionSafe {
         JAPatcher patcher = new(Main.Instance);
         if(VersionControl.releaseNumber < 141) {
             patcher.AddPatch(ColorLogoR136, new JAPatchAttribute(ColorLogoSafe, PatchType.Transpiler, false));
-            patcher.AddPatch(GetMistakesManagerR136, new JAPatchAttribute(GetMistakesManagerSafe, PatchType.Transpiler, false));
             patcher.AddPatch(CalculatePercentAccR136, new JAPatchAttribute(CalculatePercentAcc, PatchType.Transpiler, false));
             patcher.AddPatch(GetHitMarginsCountR136, new JAPatchAttribute(GetHitMarginsCount, PatchType.Transpiler, false));
             patcher.AddPatch(GetPlanetSpeedR136, new JAPatchAttribute(GetPlanetSpeed, PatchType.Transpiler, false));
@@ -25,7 +24,6 @@ public static class VersionSafe {
             patcher.AddPatch(IsCoopModeR136, new JAPatchAttribute(IsCoopMode, PatchType.Replace, false));
         } else {
             patcher.AddPatch(ColorLogoR141, new JAPatchAttribute(ColorLogoSafe, PatchType.Replace, false));
-            patcher.AddPatch(GetMistakesManagerR141, new JAPatchAttribute(GetMistakesManagerSafe, PatchType.Replace, false));
             patcher.AddPatch(CalculatePercentAccR141, new JAPatchAttribute(CalculatePercentAcc, PatchType.Replace, false));
             patcher.AddPatch(GetHitMarginsCountR141, new JAPatchAttribute(GetHitMarginsCount, PatchType.Replace, false));
             patcher.AddPatch(GetPlanetSpeedR141, new JAPatchAttribute(GetPlanetSpeed, PatchType.Replace, false));
@@ -38,7 +36,6 @@ public static class VersionSafe {
     }
 
     public static void ColorLogoSafe(this scrLogoText text, Color color, bool isFire) => throw new NotSupportedException("This functionality is not implemented");
-    public static scrMistakesManager GetMistakesManagerSafe(this scrController controller) => throw new NotSupportedException("This functionality is not implemented");
     public static void CalculatePercentAcc() => throw new NotSupportedException("This functionality is not implemented");
     public static int[] GetHitMarginsCount() => throw new NotSupportedException("This functionality is not implemented");
     public static double GetPlanetSpeed(scrController controller) => throw new NotSupportedException("This functionality is not implemented");
@@ -54,12 +51,6 @@ public static class VersionSafe {
         new(OpCodes.Ldarg_1),
         new(OpCodes.Ldarg_2),
         new(OpCodes.Call, typeof(scrLogoText).GetMethod("ColorLogo", BindingFlags.Public | BindingFlags.Instance)),
-        new(OpCodes.Ret)
-    ];
-
-    private static IEnumerable<CodeInstruction> GetMistakesManagerR136(IEnumerable<CodeInstruction> instructions) => [
-        new(OpCodes.Ldarg_0),
-        new(OpCodes.Ldfld, typeof(scrController).GetField("mistakesManager", BindingFlags.Public | BindingFlags.Instance)),
         new(OpCodes.Ret)
     ];
 
@@ -108,7 +99,6 @@ public static class VersionSafe {
     #region R141
 
     private static void ColorLogoR141(scrLogoText text, Color color, bool isFire) => text.ColorLogo(color, isFire);
-    private static scrMistakesManager GetMistakesManagerR141() => scrPlayerManager.instance.mistakesManager;
     private static void CalculatePercentAccR141() {
         foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
     }

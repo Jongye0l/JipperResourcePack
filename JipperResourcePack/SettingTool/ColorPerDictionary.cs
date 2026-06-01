@@ -6,19 +6,18 @@ using UnityEngine;
 namespace JipperResourcePack.SettingTool;
 
 public class ColorPerDictionary {
+    // ReSharper disable FieldCanBeMadeReadOnly.Global
     public ColorCache PerfectColor;
     public ProgressList List = [];
-    [JsonIgnore] public bool Expanded;
-    [JsonIgnore] public ProgressColorCache ExpandedCache;
-
-    public ColorPerDictionary() {
-    }
+    // ReSharper restore FieldCanBeMadeReadOnly.Global
+    [JsonIgnore] private bool _expanded;
+    [JsonIgnore] private ProgressColorCache _expandedCache;
 
     public ColorPerDictionary(IEnumerable<(float, Color)> collection) {
         foreach((float, Color) item in collection) Add(item);
     }
 
-    public ColorPerDictionary(ColorCache perfectColor) : this() {
+    public ColorPerDictionary(ColorCache perfectColor) {
         PerfectColor = perfectColor;
     }
 
@@ -38,11 +37,13 @@ public class ColorPerDictionary {
     public Color GetColor(float key) {
         if(key < 0) key = 0;
         if(key > 1) key = 1;
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(PerfectColor != null && key == 1) return PerfectColor;
         if(List.Count == 0) return PerfectColor ?? Color.white;
         int index = List.BinarySearch(key);
         if(index == 0) return List[0];
         if(index == List.Count) return List[^1];
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(List[index].Progress == key) return List[index];
         float start = List[index - 1].Progress;
         float end = List[index].Progress;
@@ -52,16 +53,16 @@ public class ColorPerDictionary {
 
     public bool SettingGUI(SettingGUI settingGUI, string text) {
         GUILayout.BeginHorizontal();
-        Expanded = GUILayout.Toggle(Expanded, Expanded ? "◢" : "▶", new GUIStyle {
+        _expanded = GUILayout.Toggle(_expanded, _expanded ? "◢" : "▶", new GUIStyle {
             fixedWidth = 10f,
             normal = new GUIStyleState { textColor = Color.white },
             fontSize = 15,
             margin = new RectOffset(4, 2, 6, 6)
         });
-        if(GUILayout.Button(text, GUI.skin.label)) Expanded = !Expanded;
+        if(GUILayout.Button(text, GUI.skin.label)) _expanded = !_expanded;
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
-        if(!Expanded) return false;
+        if(!_expanded) return false;
         bool changed = false;
         GUILayout.BeginHorizontal();
         GUILayout.Space(18f);
@@ -72,7 +73,7 @@ public class ColorPerDictionary {
         }
         foreach(ProgressColorCache cache in List) {
             GUILayout.BeginHorizontal();
-            bool expanded = ExpandedCache == cache;
+            bool expanded = _expandedCache == cache;
             expanded = GUILayout.Toggle(expanded, expanded ? "◢" : "▶", new GUIStyle {
                 fixedWidth = 10f,
                 normal = new GUIStyleState { textColor = Color.white },
@@ -80,7 +81,7 @@ public class ColorPerDictionary {
                 margin = new RectOffset(4, 2, 6, 6)
             });
             if(GUILayout.Button(cache.Progress * 100 + "%", GUI.skin.label)) expanded = !expanded;
-            if(ExpandedCache == cache != expanded) ExpandedCache = expanded ? cache : null;
+            if(_expandedCache == cache != expanded) _expandedCache = expanded ? cache : null;
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             if(!expanded) continue;
@@ -151,6 +152,7 @@ public class ColorPerDictionary {
             int end = Count - 1;
             while(start <= end) {
                 int i = (start + end) / 2;
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if(this[i].Progress == value) return i;
                 if(this[i].Progress < value) start = i + 1;
                 else end = i - 1;

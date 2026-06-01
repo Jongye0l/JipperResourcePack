@@ -24,17 +24,13 @@ public static class KeyboardChatterBlockerAPI {
             SetSetting();
             IsExist = true;
             Main.Instance.Log("KeyboardChatterBlockerAPI is loaded.");
-        } catch (FileNotFoundException) {
-            Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
-        } catch (TypeLoadException) {
-            Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
         } catch (Exception e) {
             Main.Instance.Log("KeyboardChatterBlockerAPI is not loaded.");
             Main.Instance.LogException(e);
         }
     }
 
-    public static void SetSetting() {
+    private static void SetSetting() {
         _setting = KeyboardChatterBlocker.Main.setting;
         if(_setting is not Setting) throw new InstanceNotFoundException("KeyboardChatterBlocker setting not found.");
     }

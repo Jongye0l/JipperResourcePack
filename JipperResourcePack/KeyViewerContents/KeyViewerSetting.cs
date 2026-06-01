@@ -13,6 +13,7 @@ public class KeyViewerSetting : JASetting {
     public FootKeyviewerStyle FootKeyViewerStyle = FootKeyviewerStyle.Key4;
 
     // ReSharper disable InconsistentNaming
+    // ReSharper disable FieldCanBeMadeReadOnly.Global
     public KeyCode[] key10 = [
         KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
         KeyCode.Space, KeyCode.Comma
@@ -69,6 +70,7 @@ public class KeyViewerSetting : JASetting {
     public ColorCache RainColor = new(KeyViewer.RainColor);
     public ColorCache RainColor2 = new(KeyViewer.RainColor2);
     public ColorCache RainColor3 = new(KeyViewer.RainColor3);
+    // ReSharper restore FieldCanBeMadeReadOnly.Global
 
     public KeyViewerSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
         KeyViewer.Settings = this;
