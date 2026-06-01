@@ -13,6 +13,10 @@ public class ColorPerDictionary {
     [JsonIgnore] private bool _expanded;
     [JsonIgnore] private ProgressColorCache _expandedCache;
 
+    // ReSharper disable once UnusedMember.Global - Used for JSON deserialization
+    public ColorPerDictionary() {
+    }
+
     public ColorPerDictionary(IEnumerable<(float, Color)> collection) {
         foreach((float, Color) item in collection) Add(item);
     }
