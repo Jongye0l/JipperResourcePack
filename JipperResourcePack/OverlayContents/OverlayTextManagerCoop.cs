@@ -5,14 +5,14 @@ using UnityEngine;
 namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerCoop : IOverlayTextManager {
-    public readonly PlayerData[] PlayerDatas;
+    public readonly PlayerData[] PlayerArray;
     public float MaxProgress;
     public float CurBest = -1;
     public int CurCheck;
     public int LastCheckpoint = -1;
 
     public OverlayTextManagerCoop(Overlay overlay) {
-        PlayerDatas = new PlayerData[scrPlayerManager.playerCount];
+        PlayerArray = new PlayerData[scrPlayerManager.playerCount];
         overlay.ProgressText.color = Color.white;
         overlay.AccuracyText.color = Color.white;
         overlay.XAccuracyText.color = Color.white;
@@ -23,10 +23,10 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     public void CacheProgress(scrPlanet planet) {
         if((object) planet == null) {
             float count = ADOBase.lm.listFloors.Count;
-            for(int i = 0; i < PlayerDatas.Length; i++) 
-                SetProgress(ref PlayerDatas[i], (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID + 1) / count);
+            for(int i = 0; i < PlayerArray.Length; i++) 
+                SetProgress(ref PlayerArray[i], (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID + 1) / count);
         } else {
-            SetProgress(ref PlayerDatas[planet.player.playerID], (planet.currfloor.seqID + 1) / (float) ADOBase.lm.listFloors.Count);
+            SetProgress(ref PlayerArray[planet.player.playerID], (planet.currfloor.seqID + 1) / (float) ADOBase.lm.listFloors.Count);
         }
     }
 
@@ -39,26 +39,26 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     public void UpdateAccuracy(Overlay overlay, int index) {
         if(Status.Settings.ShowAccuracy) {
             if(index == -1)
-                for(int i = 0; i < PlayerDatas.Length; i++)
-                    SetAccuracy(ref PlayerDatas[i], overlay.NoCheckStartTile, index);
-            else SetAccuracy(ref PlayerDatas[index], overlay.NoCheckStartTile, index);
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    SetAccuracy(ref PlayerArray[i], overlay.NoCheckStartTile, index);
+            else SetAccuracy(ref PlayerArray[index], overlay.NoCheckStartTile, index);
             
-            string[] strings = new string[PlayerDatas.Length + 1];
+            string[] strings = new string[PlayerArray.Length + 1];
             strings[0] = "Accuracy";
-            for(int i = 0; i < PlayerDatas.Length; i++) 
-                strings[i + 1] = PlayerDatas[i].AccuracyString;
+            for(int i = 0; i < PlayerArray.Length; i++) 
+                strings[i + 1] = PlayerArray[i].AccuracyString;
             overlay.AccuracyText.text = string.Concat(strings);
         }
         if(Status.Settings.ShowXAccuracy) {
             if(index == -1)
-                for(int i = 0; i < PlayerDatas.Length; i++)
-                    SetXAccuracy(ref PlayerDatas[i], index);
-            else SetXAccuracy(ref PlayerDatas[index], index);
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    SetXAccuracy(ref PlayerArray[i], index);
+            else SetXAccuracy(ref PlayerArray[index], index);
             
-            string[] strings = new string[PlayerDatas.Length + 1];
+            string[] strings = new string[PlayerArray.Length + 1];
             strings[0] = "XAccuracy";
-            for(int i = 0; i < PlayerDatas.Length; i++) 
-                strings[i + 1] = PlayerDatas[i].XAccuracyString;
+            for(int i = 0; i < PlayerArray.Length; i++) 
+                strings[i + 1] = PlayerArray[i].XAccuracyString;
             overlay.XAccuracyText.text = string.Concat(strings);
         }
     }
@@ -78,10 +78,10 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     }
 
     public void UpdateProgress(Overlay overlay) {
-        string[] strings = new string[PlayerDatas.Length + 1];
+        string[] strings = new string[PlayerArray.Length + 1];
         strings[0] = "Progress";
-        for(int i = 0; i < PlayerDatas.Length; i++) 
-            strings[i + 1] = PlayerDatas[i].ProgressString;
+        for(int i = 0; i < PlayerArray.Length; i++) 
+            strings[i + 1] = PlayerArray[i].ProgressString;
         overlay.ProgressText.text = string.Concat(strings);
     }
     
@@ -129,24 +129,22 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     public void UpdateJudgement(Overlay overlay, int index) {
         if(index == 1) {
-            for(int i = 0; i < PlayerDatas.Length; i++) 
-                PlayerDatas[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
-        } else PlayerDatas[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
+            for(int i = 0; i < PlayerArray.Length; i++) 
+                PlayerArray[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
+        } else PlayerArray[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
         
-        StringBuilder sb = new(128 * PlayerDatas.Length);
-        for(int i = 0; i < PlayerDatas.Length; i++) sb.Append(PlayerDatas[i].JudgementText).Append('\n');
+        StringBuilder sb = new(128 * PlayerArray.Length);
+        for(int i = 0; i < PlayerArray.Length; i++) sb.Append(PlayerArray[i].JudgementText).Append('\n');
         sb.Length -= 1;
         overlay.JudgementText.text = sb.ToString();
     }
     
     public struct PlayerData {
-        public float Progress = 0;
+        public float Progress;
         public string ProgressString;
         public string AccuracyString;
         public string XAccuracyString;
         public string JudgementText;
-        public PlayerData() {
-        }
 
         public void SetJudgement(int i, int[] hits) {
             JudgementText = scrPlayerManager.instance.allPlayers[i].alive ? 

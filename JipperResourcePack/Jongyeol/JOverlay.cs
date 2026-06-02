@@ -19,9 +19,7 @@ public class JOverlay : Overlay {
     public TextMeshProUGUI TimingText;
 
     private List<float> _timings;
-    private bool _purePerfect;
-    private int _deathCount;
-    private int _lastDeath = -1;
+    public bool PurePerfect;
     private int _pseudoFloor = -1;
     private float _lastCurKps = -1;
     private static LevelData LevelData => scnGame.instance ? scnGame.instance.levelData : null;
@@ -71,8 +69,8 @@ public class JOverlay : Overlay {
         VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
         UpdateAuthor();
-        UpdateState();
         UpdateDeath();
+        UpdateState();
         UpdateStart();
         if(_timings != null) return;
         _timings = [];
@@ -82,10 +80,10 @@ public class JOverlay : Overlay {
 
     public override void UpdateProgress(scrPlanet planet = null) {
         if(!GameObject.activeSelf) return;
-        if(_purePerfect) CheckPurePerfect();
+        if(PurePerfect) CheckPurePerfect();
         base.UpdateProgress(planet);
-        UpdateState();
-        UpdateDeath();
+        UpdateDeath(planet);
+        UpdateState(planet);
     }
 
     public override void UpdateTime() {
@@ -141,13 +139,13 @@ public class JOverlay : Overlay {
     }
 
     public override Color UpdateComboColor(int combo) {
-        if(_purePerfect) return PurePerfectColor;
+        if(PurePerfect) return PurePerfectColor;
         float value = (float) combo / (scrController.instance.currentSeqID - StartTile + Hit[0][0] + Hit[0][6] + 1) * 2;
         if(value > 1) value = 1;
         return GetColor(value, 0.2f, false);
     }
 
-    private Color GetColor(float value, float middle = 0.5f, bool ppColor = true) {
+    public Color GetColor(float value, float middle = 0.5f, bool ppColor = true) {
         return value < middle         ? new Color(1 - value / middle * 0.0117647058823529f,value / middle, value / middle * 0.3019607843137255f) :
                value < 1f || !ppColor ? new Color(0.9882352941176471f - (value - middle) / (1 - middle) * 0.6156862745098039f, 1, 0.3019607843137255f + (value - middle) / (1 - middle) * 0.01f) :
                                         PurePerfectColor;
@@ -164,51 +162,26 @@ public class JOverlay : Overlay {
         AuthorText.text = $"Author | {LevelData?.author ?? ""}";
     }
 
-    public void UpdateState() {
+    public void UpdateState(scrPlanet planet = null) {
         if(!JStatus.Settings.ShowState || !GameObject.activeSelf) return;
-        string s;
-        StateText.color = Color.white;
-        if(scrController.instance.currentSeqID == StartTile) s = "대기";
-        else if(scrController.instance.currFloor && scrController.instance.currFloor.nextfloor && scrController.instance.currFloor.nextfloor.auto) {
-            s = "자동 플레이 타일";
-            StateText.color = new Color(1, 0.5f, 0);
-        } else if(RDC.auto) {
-            s = "자동 플레이";
-            StateText.color = new Color(0.1058823529411765f, 1, 0);
-        } else if(_purePerfect) {
-            s = "완벽한 플레이";
-            StateText.color = PurePerfectColor;
-        } else {
-            int[] hits = Hit[0];
-            if(_deathCount != 0) s = "완주";
-            else if(hits[0] != 0) s = "클리어";
-            else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
-            else s = "완벽주의";
-        }
-        if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) s += " 중";
-        if(StartTile != 0) s += "(중간에서 시작)";
-        StateText.text = $"<color=white>State |</color> {s}";
+        OverlayTextManager.UpdateState(this, planet);
     }
 
     private void CheckPurePerfect() {
         for(int i = 0; i < 10; i++) {
             if(i is 3 or 7) i++;
             if(Hit[0][i] != 0) {
-                _purePerfect = false;
+                PurePerfect = false;
                 return;
             }
         }
     }
 
-    private void UpdateDeath() {
+    private void UpdateDeath(scrPlanet planet = null) {
         if(!JStatus.Settings.ShowDeath || !GameObject.activeSelf) return;
-        if(_lastDeath != (_deathCount = Hit[0][8] + Hit[0][9])) {
-            DeathText.text = $"<color=white>Death |</color> {_deathCount}";
-            _lastDeath = _deathCount;
-        }
-        float max = (scrController.instance.currentSeqID - StartTile) * 0.05f;
-        DeathText.color = GetColor(1 - Math.Min(_deathCount, max) / max);
+        OverlayTextManager.UpdateDeath(this, planet);
     }
+
 
     private void UpdateStart() {
         if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || StartTile != scrController.instance.currentSeqID) return;
@@ -326,7 +299,7 @@ public class JOverlay : Overlay {
 
     public override void Show(int floor) {
         _perToCom = false;
-        _purePerfect = true;
+        PurePerfect = true;
         _pseudoFloor = -1;
         if(scrController.checkpointsUsed == 0) ComboTitle.text = "Perfect";
         _timings?.Clear();

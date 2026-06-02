@@ -36,7 +36,7 @@ public class Overlay {
     private readonly Shader _shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
     private int _lastTime = -1;
     private int _lastMapTime = -1;
-    protected int StartTile;
+    public int StartTile;
     public int NoCheckStartTile;
     public int[] Checkpoints;
     protected float LastTileBpm = -1;
