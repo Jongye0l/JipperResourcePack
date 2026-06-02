@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -57,8 +57,12 @@ public partial class KeyViewer {
             countData.TotalCount++;
             _pressTimes.Enqueue(currentMillis);
             if(settings.useRain) {
-                RawRain rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
-                RainManager.RawRainQueue.Enqueue(rawRain);
+                RawRain rawRain;
+                lock(key) {
+                    if(key.LastRain?.FinishSize == false) rawRain = null;
+                    else rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
+                }
+                if(rawRain != null) RainManager.RawRainQueue.Enqueue(rawRain);
             }
             _save = true;
         }
@@ -88,8 +92,12 @@ public partial class KeyViewer {
                 if(!current) {
                     key.LastGhostRain?.Finish(currentMillis);
                 } else {
-                    RawRain rawRain = key.LastGhostRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
-                    RainManager.RawRainQueue.Enqueue(rawRain);
+                    RawRain rawRain;
+                    lock(key) {
+                        if(key.LastRain?.FinishSize == false) rawRain = null;
+                        else rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
+                    }
+                    if(rawRain != null) RainManager.RawRainQueue.Enqueue(rawRain);
                 }
             }
         }
