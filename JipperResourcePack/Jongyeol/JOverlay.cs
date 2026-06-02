@@ -112,7 +112,7 @@ public class JOverlay : Overlay {
             }
         }
         if(JStatus.Settings.ShowMapTime || requireMusicToMap) {
-            float time = (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
+            float time = scrController.instance.state == States.Start ? 0 : (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
             float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
