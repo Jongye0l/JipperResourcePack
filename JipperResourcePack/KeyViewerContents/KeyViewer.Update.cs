@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -134,7 +134,9 @@ public partial class KeyViewer {
                 Instance.Total.Value.TMP.text = totalCount.ToString();
             }
             long currentMillis = Stopwatch.ElapsedMilliseconds;
-            if(currentMillis - 4 <= Instance._lastUpdateMillis) return;
+            int delay = (int) (Instance._lastUpdateMillis - currentMillis);
+            if(delay < 5) return;
+            Main.Instance.Log("Key Listen Work in MainThread (delay:" + delay + "ms)");
             Instance._lastUpdateMillis = currentMillis;
             Instance.Work(currentMillis, true);
         }
