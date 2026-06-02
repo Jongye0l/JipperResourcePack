@@ -9,4 +9,6 @@ public interface IOverlayTextManager {
     void UpdateCheckpoint(Overlay overlay);
     void UpdateBest(Overlay overlay);
     float GetProgress();
+    void SetupUnderTextLocation(Overlay overlay);
+    void UpdateJudgement(Overlay overlay, int index);
 }

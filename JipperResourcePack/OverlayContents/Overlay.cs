@@ -32,7 +32,7 @@ public class Overlay {
     public TextMeshProUGUI TimingScaleText;
     public ProgressBar ProgressBar;
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
-    public int[] Hit;
+    public int[][] Hit;
     private readonly Shader _shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
     private int _lastTime = -1;
     private int _lastMapTime = -1;
@@ -66,10 +66,10 @@ public class Overlay {
         GameObject.SetActive(false);
         InitializeStatus();
         InitializeBpm();
+        InitializeTimingScale();
         InitializeJudgement();
         InitializeCombo();
         InitializeProgressBar();
-        InitializeTimingScale();
         InitializeAttempt();
         UpdateSize();
         Object.DontDestroyOnLoad(GameObject);
@@ -141,10 +141,6 @@ public class Overlay {
         y -= 35;
     }
 
-    public void SetupLocationJudgement() {
-        JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 85 : 5);
-    }
-
     private void InitializeBpm() {
         GameObject gameObject = new("BPM");
         RectTransform transform = gameObject.AddComponent<RectTransform>();
@@ -169,7 +165,6 @@ public class Overlay {
         transform.anchorMin = transform.anchorMax = transform.pivot = new Vector2(0.5f, 0);
         transform.sizeDelta = new Vector2(1000, 30);
         JudgementText = gameObject.AddComponent<TextMeshProUGUI>();
-        SetupLocationJudgement();
         JudgementText.font = BundleLoader.FontAsset;
         JudgementText.fontSize = 25;
         JudgementText.alignment = TextAlignmentOptions.Bottom;
@@ -268,13 +263,13 @@ public class Overlay {
         float size = Main.Settings.Size;
         Vector3 scale = new(size, size, 1);
         for(int i = 0; i < count; i++) transform.GetChild(i).localScale = scale;
-        TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * size);
         RectTransform txtLevelName = ADOBase.controller?.txtLevelName?.GetComponent<RectTransform>();
         if(txtLevelName) {
             txtLevelName.anchoredPosition = new Vector2(0, -20 - 7 * size);
             txtLevelName.localScale = new Vector3(0.5f * size, 0.5f * size);
         }
         Combo.ComboTransform.anchoredPosition = new Vector2(0, -43 - 14 * size);
+        OverlayTextManager.SetupUnderTextLocation(this);
     }
 
     private void SetupShadow(TextMeshProUGUI text) => Shadow(text, 0.5f);
@@ -343,10 +338,9 @@ public class Overlay {
         };
     }
 
-    public void UpdateJudgement() {
+    public void UpdateJudgement(int index = -1) {
         if(!GameObject.activeSelf) return;
-        int[] hits = Hit;
-        JudgementText.text = $"{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}";
+        OverlayTextManager.UpdateJudgement(this, index);
     }
     
     public virtual void UpdateTime() {

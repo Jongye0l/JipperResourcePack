@@ -1,4 +1,4 @@
-﻿using JALib.Core;
+using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
 using JALib.Tools;
@@ -27,15 +27,29 @@ public class Judgement : Feature {
     protected override void OnGUI() {
         SettingGUI settingGUI = Main.SettingGUI;
         JALocalization localization = Main.Instance.Localization;
-        settingGUI.AddSettingToggle(ref Settings.LocationUp, localization["judgement.locationUp"], Overlay.Instance.SetupLocationJudgement);
+        settingGUI.AddSettingToggle(ref Settings.LocationUp, localization["judgement.locationUp"], () => Overlay.Instance.OverlayTextManager.SetupUnderTextLocation(Overlay.Instance));
     }
 
-    // ReSharper disable once UnusedMember.Local
+    // ReSharper disable UnusedMember.Local
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
-    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
     [JAPatch(typeof(scrMistakesManager), "Reset", PatchType.Postfix, false, MaxVersion = 140)]
-    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.Reset), PatchType.Postfix, false, MinVersion = 141)]
     private static void OnHit() => Overlay.Instance.UpdateJudgement();
+
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.Reset), PatchType.Postfix, false, MinVersion = 141)]
+    private static void OnHit(object __instance) {
+        int index = 0;
+        if(scrController.coopMode) {
+            scrMarginTracker marginTracker = __instance.AsUnsafe<scrMarginTracker>();
+            for(int i = 0; i < scrPlayerManager.playerCount; i++) {
+                if(scrMistakesManager.marginTrackers[i] != marginTracker) continue;
+                index = i;
+                break;
+            }
+        }
+        Overlay.Instance.UpdateJudgement(index);
+    }
+    // ReSharper restore UnusedMember.Local
 
     public class JudgementSettings : JASetting {
         public bool LocationUp;

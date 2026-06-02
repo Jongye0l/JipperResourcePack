@@ -142,7 +142,7 @@ public class JOverlay : Overlay {
 
     public override Color UpdateComboColor(int combo) {
         if(_purePerfect) return PurePerfectColor;
-        float value = (float) combo / (scrController.instance.currentSeqID - StartTile + Hit[0] + Hit[6] + 1) * 2;
+        float value = (float) combo / (scrController.instance.currentSeqID - StartTile + Hit[0][0] + Hit[0][6] + 1) * 2;
         if(value > 1) value = 1;
         return GetColor(value, 0.2f, false);
     }
@@ -179,7 +179,7 @@ public class JOverlay : Overlay {
             s = "완벽한 플레이";
             StateText.color = PurePerfectColor;
         } else {
-            int[] hits = Hit;
+            int[] hits = Hit[0];
             if(_deathCount != 0) s = "완주";
             else if(hits[0] != 0) s = "클리어";
             else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
@@ -193,7 +193,7 @@ public class JOverlay : Overlay {
     private void CheckPurePerfect() {
         for(int i = 0; i < 10; i++) {
             if(i is 3 or 7) i++;
-            if(Hit[i] != 0) {
+            if(Hit[0][i] != 0) {
                 _purePerfect = false;
                 return;
             }
@@ -202,7 +202,7 @@ public class JOverlay : Overlay {
 
     private void UpdateDeath() {
         if(!JStatus.Settings.ShowDeath || !GameObject.activeSelf) return;
-        if(_lastDeath != (_deathCount = Hit[8] + Hit[9])) {
+        if(_lastDeath != (_deathCount = Hit[0][8] + Hit[0][9])) {
             DeathText.text = $"<color=white>Death |</color> {_deathCount}";
             _lastDeath = _deathCount;
         }

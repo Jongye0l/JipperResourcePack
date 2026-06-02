@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
 
@@ -68,5 +69,15 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
         overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
+    }
+    
+    public void SetupUnderTextLocation(Overlay overlay) {
+        overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 85 : 5);
+        overlay.TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * Main.Settings.Size);
+    }
+
+    public void UpdateJudgement(Overlay overlay, int index) {
+        int[] hits = overlay.Hit[0];
+        overlay.JudgementText.text = $"{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}";
     }
 }

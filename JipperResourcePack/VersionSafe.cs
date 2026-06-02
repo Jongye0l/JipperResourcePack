@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -22,6 +22,7 @@ public static class VersionSafe {
             patcher.AddPatch(GetPercentAccR136, new JAPatchAttribute(GetPercentAcc, PatchType.Transpiler, false));
             patcher.AddPatch(GetPercentXAccR136, new JAPatchAttribute(GetPercentXAcc, PatchType.Transpiler, false));
             patcher.AddPatch(IsCoopModeR136, new JAPatchAttribute(IsCoopMode, PatchType.Replace, false));
+            patcher.AddPatch(GetPlayerCountR136, new JAPatchAttribute(GetPlayerCount, PatchType.Replace, false));
         } else {
             patcher.AddPatch(ColorLogoR141, new JAPatchAttribute(ColorLogoSafe, PatchType.Replace, false));
             patcher.AddPatch(CalculatePercentAccR141, new JAPatchAttribute(CalculatePercentAcc, PatchType.Replace, false));
@@ -31,18 +32,21 @@ public static class VersionSafe {
             patcher.AddPatch(GetPercentAccR141, new JAPatchAttribute(GetPercentAcc, PatchType.Replace, false));
             patcher.AddPatch(GetPercentXAccR141, new JAPatchAttribute(GetPercentXAcc, PatchType.Replace, false));
             patcher.AddPatch(IsCoopModeR141, new JAPatchAttribute(IsCoopMode, PatchType.Replace, false));
+            patcher.AddPatch(GetPlayerCountR141, new JAPatchAttribute(GetPlayerCount, PatchType.Replace, false));
         }
         patcher.Patch();
     }
 
     public static void ColorLogoSafe(this scrLogoText text, Color color, bool isFire) => throw new NotSupportedException("This functionality is not implemented");
     public static void CalculatePercentAcc() => throw new NotSupportedException("This functionality is not implemented");
-    public static int[] GetHitMarginsCount() => throw new NotSupportedException("This functionality is not implemented");
+    public static int[][] GetHitMarginsCount() => throw new NotSupportedException("This functionality is not implemented");
     public static double GetPlanetSpeed(scrController controller) => throw new NotSupportedException("This functionality is not implemented");
     public static void LoadScene(string name) => throw new NotSupportedException("This functionality is not implemented");
     public static float GetPercentAcc() => throw new NotSupportedException("This functionality is not implemented");
     public static float GetPercentXAcc() => throw new NotSupportedException("This functionality is not implemented");
     public static bool IsCoopMode() => throw new NotSupportedException("This functionality is not implemented");
+    public static int GetPlayerCount() => throw new NotSupportedException("This functionality is not implemented");
+    public static int GetMaxPlayerCount() => VersionControl.releaseNumber < 141 ? 1 : 4;
 
     #region R136
 
@@ -93,6 +97,7 @@ public static class VersionSafe {
     ];
 
     private static bool IsCoopModeR136() => false;
+    private static int GetPlayerCountR136() => 1;
 
     #endregion
 
@@ -102,12 +107,19 @@ public static class VersionSafe {
     private static void CalculatePercentAccR141() {
         foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
     }
-    private static int[] GetHitMarginsCountR141() => scrMistakesManager.marginTrackers[0].hitMarginsCount;
+    
+    private static int[][] GetHitMarginsCountR141() {
+        int[][] array = new int[][scrPlayerManager.playerCount];
+        for(int i = 0; i < scrPlayerManager.playerCount; i++) array[i] = scrMistakesManager.marginTrackers[i].hitMarginsCount;
+        return array;
+    }
+    
     private static double GetPlanetSpeedR141(scrController controller) => controller.playerOne.planetarySystem.speed;
     private static void LoadSceneR141(string name) => ADOBase.loader.LoadScene(name);
     private static float GetPercentAccR141() => scrPlayerManager.instance.mistakesManager.percentAcc;
     private static float GetPercentXAccR141() => scrPlayerManager.instance.mistakesManager.percentXAcc;
     private static bool IsCoopModeR141() => scrPlayerManager.playerCount > 1;
+    private static int GetPlayerCountR141() => scrPlayerManager.playerCount;
 
     #endregion
 }

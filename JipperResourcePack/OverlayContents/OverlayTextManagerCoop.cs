@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
@@ -9,7 +10,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     public float CurBest = -1;
     public int CurCheck;
     public int LastCheckpoint = -1;
-    
+
     public OverlayTextManagerCoop(Overlay overlay) {
         PlayerDatas = new PlayerData[scrPlayerManager.playerCount];
         overlay.ProgressText.color = Color.white;
@@ -121,12 +122,36 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     protected static string ColorToString(in Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>";
     
+    public void SetupUnderTextLocation(Overlay overlay) {
+        overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, 85);
+        overlay.TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * Main.Settings.Size + 35 * scrPlayerManager.playerCount);
+    }
+
+    public void UpdateJudgement(Overlay overlay, int index) {
+        if(index == 1) {
+            for(int i = 0; i < PlayerDatas.Length; i++) 
+                PlayerDatas[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
+        } else PlayerDatas[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
+        
+        StringBuilder sb = new(128 * PlayerDatas.Length);
+        for(int i = 0; i < PlayerDatas.Length; i++) sb.Append(PlayerDatas[i].JudgementText).Append('\n');
+        sb.Length -= 1;
+        overlay.JudgementText.text = sb.ToString();
+    }
+    
     public struct PlayerData {
         public float Progress = 0;
         public string ProgressString;
         public string AccuracyString;
         public string XAccuracyString;
+        public string JudgementText;
         public PlayerData() {
+        }
+
+        public void SetJudgement(int i, int[] hits) {
+            JudgementText = scrPlayerManager.instance.allPlayers[i].alive ? 
+                $"{ColorToString(scrPlayerManager.playerColors[i].ToRealColor())}P{i + 1} |</color> {hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}    " :
+                $"<color=grey>P{i + 1} | {hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[10]} {hits[4]} {hits[5]} {hits[6]} {hits[8]}    </color>";
         }
     }
 }
