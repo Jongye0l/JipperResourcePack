@@ -38,7 +38,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     
     public void UpdateDeath(JOverlay overlay, scrPlanet _) {
         int deathCount;
-        if(_death != (deathCount = overlay.Hit[0][8] + overlay.Hit[0][9])) {
+        if(_death != (deathCount = overlay.Hit[8] + overlay.Hit[9])) {
             overlay.DeathText.text = $"<color=white>Death |</color> {deathCount}";
             _death = deathCount;
         }
@@ -46,7 +46,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
         overlay.DeathText.color = overlay.GetColor(1 - Math.Min(deathCount, max) / max);
     }
 
-    public void UpdateState(JOverlay overlay, scrPlanet planet) {
+    public void UpdateState(JOverlay overlay, scrPlanet _) {
         string s;
         overlay.StateText.color = Color.white;
         if(scrController.instance.currentSeqID == overlay.StartTile) s = "대기";
@@ -60,7 +60,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
             s = "완벽한 플레이";
             overlay.StateText.color = overlay.PurePerfectColor;
         } else {
-            int[] hits = overlay.Hit[0];
+            int[] hits = overlay.Hit;
             if(_death > 0) s = "완주";
             else if(hits[0] != 0) s = "클리어";
             else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
@@ -69,5 +69,20 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
         if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) s += " 중";
         if(overlay.StartTile != 0) s += "(중간에서 시작)";
         overlay.StateText.text = $"<color=white>State |</color> {s}";
+    }
+    
+    public void CheckPurePerfect(JOverlay overlay, scrPlanet _) {
+        int[] hit = overlay.Hit;
+        for(int i = 0; i < 10; i++) {
+            if(i is 3 or 7) i++;
+            if(hit[i] != 0) {
+                overlay.PurePerfect = false;
+                return;
+            }
+        }
+    }
+    
+    public int GetTooJudgement(JOverlay overlay) {
+        return overlay.Hit[0] + overlay.Hit[6];
     }
 }

@@ -80,7 +80,7 @@ public class JOverlay : Overlay {
 
     public override void UpdateProgress(scrPlanet planet = null) {
         if(!GameObject.activeSelf) return;
-        if(PurePerfect) CheckPurePerfect();
+        if(PurePerfect) OverlayTextManager.CheckPurePerfect(this, planet);
         base.UpdateProgress(planet);
         UpdateDeath(planet);
         UpdateState(planet);
@@ -140,7 +140,7 @@ public class JOverlay : Overlay {
 
     public override Color UpdateComboColor(int combo) {
         if(PurePerfect) return PurePerfectColor;
-        float value = (float) combo / (scrController.instance.currentSeqID - StartTile + Hit[0][0] + Hit[0][6] + 1) * 2;
+        float value = (float) combo / (scrController.instance.currentSeqID - StartTile + OverlayTextManager.GetTooJudgement(this) + 1) * 2;
         if(value > 1) value = 1;
         return GetColor(value, 0.2f, false);
     }
@@ -165,16 +165,6 @@ public class JOverlay : Overlay {
     public void UpdateState(scrPlanet planet = null) {
         if(!JStatus.Settings.ShowState || !GameObject.activeSelf) return;
         OverlayTextManager.UpdateState(this, planet);
-    }
-
-    private void CheckPurePerfect() {
-        for(int i = 0; i < 10; i++) {
-            if(i is 3 or 7) i++;
-            if(Hit[0][i] != 0) {
-                PurePerfect = false;
-                return;
-            }
-        }
     }
 
     private void UpdateDeath(scrPlanet planet = null) {

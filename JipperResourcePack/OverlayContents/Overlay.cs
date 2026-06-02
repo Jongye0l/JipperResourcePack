@@ -32,7 +32,7 @@ public class Overlay {
     public TextMeshProUGUI TimingScaleText;
     public ProgressBar ProgressBar;
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
-    public int[][] Hit;
+    public int[] Hit;
     private readonly Shader _shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
     private int _lastTime = -1;
     private int _lastMapTime = -1;
@@ -79,6 +79,7 @@ public class Overlay {
     public void OnChangePlayers() {
         Hit = VersionSafe.GetHitMarginsCount();
         SetupTextManager();
+        if(MainThread.IsMainThread() && TimingScaleText) OverlayTextManager.SetupUnderTextLocation(this);
     }
 
     protected virtual void SetupTextManager() {

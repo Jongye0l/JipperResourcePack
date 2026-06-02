@@ -39,7 +39,7 @@ public static class VersionSafe {
 
     public static void ColorLogoSafe(this scrLogoText text, Color color, bool isFire) => throw new NotSupportedException("This functionality is not implemented");
     public static void CalculatePercentAcc() => throw new NotSupportedException("This functionality is not implemented");
-    public static int[][] GetHitMarginsCount() => throw new NotSupportedException("This functionality is not implemented");
+    public static int[] GetHitMarginsCount() => throw new NotSupportedException("This functionality is not implemented");
     public static double GetPlanetSpeed(scrController controller) => throw new NotSupportedException("This functionality is not implemented");
     public static void LoadScene(string name) => throw new NotSupportedException("This functionality is not implemented");
     public static float GetPercentAcc() => throw new NotSupportedException("This functionality is not implemented");
@@ -108,10 +108,8 @@ public static class VersionSafe {
         foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
     }
     
-    private static int[][] GetHitMarginsCountR141() {
-        int[][] array = new int[scrPlayerManager.playerCount][];
-        for(int i = 0; i < scrPlayerManager.playerCount; i++) array[i] = scrMistakesManager.marginTrackers[i].hitMarginsCount;
-        return array;
+    private static int[] GetHitMarginsCountR141() {
+        return scrMistakesManager.marginTrackers[0].hitMarginsCount;
     }
     
     private static double GetPlanetSpeedR141(scrController controller) => controller.playerOne.planetarySystem.speed;

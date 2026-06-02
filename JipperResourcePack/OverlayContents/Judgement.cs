@@ -49,6 +49,11 @@ public class Judgement : Feature {
         }
         Overlay.Instance.UpdateJudgement(index);
     }
+
+    [JAPatch(nameof(scrPlayer), nameof(scrPlayer.Die), PatchType.Postfix, false, MinVersion = 141)]
+    private static void OnDie(int ___playerID) {
+        Overlay.Instance.UpdateJudgement(___playerID);
+    }
     // ReSharper restore UnusedMember.Local
 
     public class JudgementSettings : JASetting {

@@ -48,6 +48,11 @@ public class JStatus : OverlayContents.Status {
         float timing = angle / 180 / bpmTimesSpeed / conductorPitch * 60000;
         JOverlay.Instance.UpdateTiming(timing);
     }
+
+    [JAPatch(nameof(scrPlayer), nameof(scrPlayer.Die), PatchType.Postfix, false, MinVersion = 141)]
+    private static void OnDie(PlanetarySystem ___planetarySystem) {
+        JOverlay.Instance.UpdateProgress(___planetarySystem.chosenPlanet);
+    }
     // ReSharper restore UnusedMember.Local
 
     public class JProgressSetting : ProgressSetting {

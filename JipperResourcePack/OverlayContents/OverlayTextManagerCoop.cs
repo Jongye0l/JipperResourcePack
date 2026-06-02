@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using UnityEngine;
 
@@ -124,15 +124,15 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     
     public void SetupUnderTextLocation(Overlay overlay) {
         overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, 85);
-        overlay.TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * Main.Settings.Size + 35 * scrPlayerManager.playerCount);
+        overlay.TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 50 + 40 * Main.Settings.Size + 35 * scrPlayerManager.playerCount);
     }
 
     public void UpdateJudgement(Overlay overlay, int index) {
-        if(index == 1) {
+        if(index == -1) {
             for(int i = 0; i < PlayerArray.Length; i++) 
                 PlayerArray[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else PlayerArray[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
-        
+
         StringBuilder sb = new(128 * PlayerArray.Length);
         for(int i = 0; i < PlayerArray.Length; i++) sb.Append(PlayerArray[i].JudgementText).Append('\n');
         sb.Length -= 1;
@@ -148,8 +148,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
         public void SetJudgement(int i, int[] hits) {
             JudgementText = scrPlayerManager.instance.allPlayers[i].alive ? 
-                $"{ColorToString(scrPlayerManager.playerColors[i].ToRealColor())}P{i + 1} |</color> {hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}    " :
-                $"<color=grey>P{i + 1} | {hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[10]} {hits[4]} {hits[5]} {hits[6]} {hits[8]}    </color>";
+                $"{ColorToString(scrPlayerManager.playerColors[i].ToRealColor())}P{i + 1} |</color> {hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}<color=#00000000>P{i + 1} | </color>" :
+                $"<color=grey>P{i + 1} | {hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[10]} {hits[4]} {hits[5]} {hits[6]} {hits[8]}</color><color=#00000000>P{i + 1} | </color>";
         }
     }
 }
