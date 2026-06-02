@@ -94,8 +94,8 @@ public partial class KeyViewer {
                 } else {
                     RawRain rawRain;
                     lock(key) {
-                        if(key.LastRain?.FinishSize == false) rawRain = null;
-                        else rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
+                        if(key.LastGhostRain?.FinishSize == false) rawRain = null;
+                        else rawRain = key.LastGhostRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
                     }
                     if(rawRain != null) RainManager.RawRainQueue.Enqueue(rawRain);
                 }
