@@ -109,7 +109,7 @@ public static class VersionSafe {
     }
     
     private static int[][] GetHitMarginsCountR141() {
-        int[][] array = new int[][scrPlayerManager.playerCount];
+        int[][] array = new int[scrPlayerManager.playerCount][];
         for(int i = 0; i < scrPlayerManager.playerCount; i++) array[i] = scrMistakesManager.marginTrackers[i].hitMarginsCount;
         return array;
     }
