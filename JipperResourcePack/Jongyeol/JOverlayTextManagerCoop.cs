@@ -111,7 +111,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         public void SetState(JOverlay overlay, int index, int[] hit) {
             StringBuilder sb = new(" | ");
             bool color = false;
-            if(scrController.instance.currentSeqID == overlay.StartTile) sb.Append("대기");
+            if(scrController.instance.state is States.Start or States.Countdown) sb.Append("대기");
             else if(!RDC.auto && scrPlayerManager.instance.players[index].auto) {
                 sb.Append("<color=red>리스폰 대기");
                 color = true;

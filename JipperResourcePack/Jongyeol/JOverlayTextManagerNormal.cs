@@ -49,7 +49,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     public void UpdateState(JOverlay overlay, scrPlanet _) {
         string s;
         overlay.StateText.color = Color.white;
-        if(scrController.instance.currentSeqID == overlay.StartTile) s = "대기";
+        if(scrController.instance.state is States.Start or States.Countdown) s = "대기";
         else if(scrController.instance.currFloor && scrController.instance.currFloor.nextfloor && scrController.instance.currFloor.nextfloor.auto) {
             s = "자동 플레이 타일";
             overlay.StateText.color = new Color(1, 0.5f, 0);
