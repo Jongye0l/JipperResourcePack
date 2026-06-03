@@ -49,7 +49,12 @@ public partial class KeyViewer {
             _keyState[i] = current;
             UpdateKey(i, current);
             if(!current) {
-                key.LastRain?.Finish(currentMillis);
+                if(key.LastRain != null) {
+                    lock(key) {
+                        key.LastRain.Finish(currentMillis);
+                        key.LastRain = null;
+                    }
+                }
                 continue;
             }
             if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
@@ -90,7 +95,12 @@ public partial class KeyViewer {
                 if(current == _keyState[index]) continue;
                 _keyState[index] = current;
                 if(!current) {
-                    key.LastGhostRain?.Finish(currentMillis);
+                    if(key.LastGhostRain != null) {
+                        lock(key) {
+                            key.LastGhostRain.Finish(currentMillis);
+                            key.LastGhostRain = null;
+                        }
+                    }
                 } else {
                     RawRain rawRain;
                     lock(key) {
