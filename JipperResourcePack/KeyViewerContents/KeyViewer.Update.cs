@@ -47,7 +47,7 @@ public partial class KeyViewer {
             Key key = Keys[i];
             if(key == null || current == _keyState[i]) continue;
             _keyState[i] = current;
-            UpdateKey(i, current);
+            key.UpdateKey(current);
             if(!current) {
                 if(key.LastRain != null) {
                     lock(key) {
@@ -78,7 +78,7 @@ public partial class KeyViewer {
             Key key = Keys[index];
             if(key == null || current == _keyState[index]) continue;
             _keyState[index] = current;
-            UpdateKey(index, current);
+            key.UpdateKey(current);
             if(!current) continue;
             _pressTimes.Enqueue(currentMillis);
             countData.Count[index]++;
@@ -120,15 +120,6 @@ public partial class KeyViewer {
         if(skipSave || !_save || !Enabled) return;
         KeyCountData.Instance.Save();
         _save = false;
-    }
-
-    private void UpdateKey(int i, bool enabled) {
-        Key key = Keys[i];
-        KeyViewerSetting settings = Settings;
-        key.Background.Color = enabled ? settings.BackgroundClicked : settings.Background;
-        key.Outline.Color = enabled ? settings.OutlineClicked : settings.Outline;
-        key.Text.Color = enabled ? settings.TextClicked : settings.Text;
-        key.Value?.Color = key.Text.Color;
     }
 
     public class KeyViewerUpdater : MonoBehaviour {

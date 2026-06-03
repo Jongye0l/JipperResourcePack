@@ -322,8 +322,8 @@ public partial class KeyViewer : Feature {
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
                 if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
-                    for(int i2 = 0; i2 < keyCodes.Length; i2++) UpdateKey(i2, CheckKey(keyCodes[i2]));
-                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) UpdateKey(i2 + HandOutIndex, CheckKey(footKeyCodes[i2]));
+                    for(int i2 = 0; i2 < keyCodes.Length; i2++) Keys[i2].UpdateKey(CheckKey(keyCodes[i2]));
+                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) Keys[i2 + HandOutIndex].UpdateKey(CheckKey(footKeyCodes[i2]));
                     Kps.Background.Image.color = Total.Background.Image.color = settings.Background;
                     Kps.Outline.Image.color = Total.Outline.Image.color = settings.Outline;
                     Kps.Text.TMP.color = Kps.Value.TMP.color = Total.Text.TMP.color = Total.Value.TMP.color = settings.Text;
