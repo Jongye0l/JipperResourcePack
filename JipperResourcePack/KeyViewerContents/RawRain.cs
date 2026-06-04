@@ -1,8 +1,10 @@
-﻿namespace JipperResourcePack.KeyViewerContents;
+﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+
+namespace JipperResourcePack.KeyViewerContents;
 
 public class RawRain {
-    private static RawRain[] _pool = new RawRain[32];
-    private static int _poolCount;
+    private static ConcurrentBag<RawRain> _pool = [];
     public Key Key;
     public long StartTime;
     public float XSize;
@@ -35,18 +37,11 @@ public class RawRain {
         FinishSize = true;
     }
     
-    public static void AddPool(RawRain rain) {
-        if(_poolCount == _pool.Length) {
-            RawRain[] newRainPool = new RawRain[_pool.Length * 2];
-            _pool.CopyTo(newRainPool, 0);
-            _pool = newRainPool;
-        }
-        _pool[_poolCount++] = rain;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void AddPool(RawRain rain) => _pool.Add(rain);
 
     public static RawRain GetOrNewRawRain(Key key, long startTime, bool isGhost) {
-        if(_poolCount <= 0) return new RawRain(key, startTime, isGhost);
-        RawRain rain = _pool[--_poolCount];
+        if(!_pool.TryTake(out RawRain rain)) return new RawRain(key, startTime, isGhost);
         rain.Init(key, startTime, isGhost);
         rain.Reset();
         return rain;
