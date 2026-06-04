@@ -513,7 +513,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Async\AsyncImage.cs" />
         <Compile Include="Async\AsyncText.cs" />
         <Compile Include="Jongyeol\IJOverlayTextManager.cs" />
         <Compile Include="Jongyeol\JOverlayTextManagerCoop.cs" />

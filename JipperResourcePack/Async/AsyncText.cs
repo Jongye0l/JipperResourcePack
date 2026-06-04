@@ -8,7 +8,6 @@ namespace JipperResourcePack.Async;
 public class AsyncText(TextMeshProUGUI tmp) {
     public readonly TextMeshProUGUI TMP = tmp;
     private string _text;
-    public Color Color;
     private int _textChangeRequested;
 
     public string Text {

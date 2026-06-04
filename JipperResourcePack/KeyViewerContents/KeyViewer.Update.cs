@@ -47,7 +47,7 @@ public partial class KeyViewer {
             Key key = Keys[i];
             if(key == null || current == _keyState[i]) continue;
             _keyState[i] = current;
-            key.UpdateKey(current);
+            key.UpdateRequestKey(current);
             if(!current) {
                 key.LastRain?.Finish(currentMillis);
                 continue;
@@ -69,7 +69,7 @@ public partial class KeyViewer {
             Key key = Keys[index];
             if(key == null || current == _keyState[index]) continue;
             _keyState[index] = current;
-            key.UpdateKey(current);
+            key.UpdateRequestKey(current);
             if(!current) continue;
             _pressTimes.Enqueue(currentMillis);
             countData.Count[index]++;

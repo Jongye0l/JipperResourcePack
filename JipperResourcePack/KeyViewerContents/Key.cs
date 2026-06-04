@@ -2,14 +2,15 @@
 using JALib.Tools;
 using JipperResourcePack.Async;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace JipperResourcePack.KeyViewerContents;
 
 public class Key(GameObject gameObject) {
     public readonly GameObject GameObject = gameObject;
     public AsyncText Text;
-    public AsyncImage Background;
-    public AsyncImage Outline;
+    public Image Background;
+    public Image Outline;
     public AsyncText Value;
     public int Color;
     public int SiblingIndex;
@@ -17,19 +18,27 @@ public class Key(GameObject gameObject) {
     public RawRain LastRain;
     public RawRain LastGhostRain;
     private int _updateRequested;
+    private bool _requestEnabled;
+    private bool _currentEnabled;
 
-    public void UpdateKey(bool enabled) {
-        KeyViewerSetting settings = KeyViewer.Settings;
-        Background.Color = enabled ? settings.BackgroundClicked : settings.Background;
-        Outline.Color = enabled ? settings.OutlineClicked : settings.Outline;
-        Value?.Color = Text.Color = enabled ? settings.TextClicked : settings.Text;
-        if(Interlocked.Increment(ref _updateRequested) == 1) MainThread.Run(Main.Instance, UpdateColors);
+    public void UpdateRequestKey(bool enabled) {
+        _requestEnabled = enabled;
+        if(Interlocked.Increment(ref _updateRequested) == 1) MainThread.Run(Main.Instance, () => UpdateKey());
     }
 
-    private void UpdateColors() {
-        Background.Image.color = Background.Color;
-        Outline.Image.color = Outline.Color;
-        Text.TMP.color = Text.Color;
-        Value?.TMP.color = Value.Color;
+    public void UpdateKey(bool force = false) {
+        int current;
+        do {
+            current = Volatile.Read(ref _updateRequested);
+            if(current == 0) return;
+            bool request = _requestEnabled;
+            if(force || request != _currentEnabled) {
+                KeyViewerSetting settings = KeyViewer.Settings;
+                Background.color = request ? settings.BackgroundClicked : settings.Background;
+                Outline.color = request ? settings.OutlineClicked : settings.Outline;
+                Value?.TMP.color = Text.TMP.color = request ? settings.TextClicked : settings.Text;
+                _currentEnabled = request;
+            }
+        } while(Interlocked.CompareExchange(ref _updateRequested, 0, current) != current);
     }
 }
