@@ -49,12 +49,7 @@ public partial class KeyViewer {
             _keyState[i] = current;
             key.UpdateKey(current);
             if(!current) {
-                if(key.LastRain != null) {
-                    lock(key) {
-                        key.LastRain.Finish(currentMillis);
-                        key.LastRain = null;
-                    }
-                }
+                key.LastRain?.Finish(currentMillis);
                 continue;
             }
             if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
@@ -62,12 +57,8 @@ public partial class KeyViewer {
             countData.TotalCount++;
             _pressTimes.Enqueue(currentMillis);
             if(settings.useRain) {
-                RawRain rawRain;
-                lock(key) {
-                    if(key.LastRain?.FinishSize == false) rawRain = null;
-                    else rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
-                }
-                if(rawRain != null) RainManager.RawRainQueue.Enqueue(rawRain);
+                RawRain rawRain = key.LastRain = RawRain.GetOrNewRawRain(key, currentMillis, false);
+                RainManager.RawRainQueue.Enqueue(rawRain);
             }
             _save = true;
         }
@@ -95,19 +86,10 @@ public partial class KeyViewer {
                 if(current == _keyState[index]) continue;
                 _keyState[index] = current;
                 if(!current) {
-                    if(key.LastGhostRain != null) {
-                        lock(key) {
-                            key.LastGhostRain.Finish(currentMillis);
-                            key.LastGhostRain = null;
-                        }
-                    }
+                    key.LastGhostRain?.Finish(currentMillis);
                 } else {
-                    RawRain rawRain;
-                    lock(key) {
-                        if(key.LastGhostRain?.FinishSize == false) rawRain = null;
-                        else rawRain = key.LastGhostRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
-                    }
-                    if(rawRain != null) RainManager.RawRainQueue.Enqueue(rawRain);
+                    RawRain rawRain = key.LastGhostRain = RawRain.GetOrNewRawRain(key, currentMillis, true);
+                    RainManager.RawRainQueue.Enqueue(rawRain);
                 }
             }
         }
@@ -134,12 +116,6 @@ public partial class KeyViewer {
                 Instance._lastTotalCount = totalCount;
                 Instance.Total.Value.TMP.text = totalCount.ToString();
             }
-            long currentMillis = Stopwatch.ElapsedMilliseconds;
-            int delay = (int) (Instance._lastUpdateMillis - currentMillis);
-            if(delay < 5) return;
-            Main.Instance.Log("Key Listen Work in MainThread (delay:" + delay + "ms)");
-            Instance._lastUpdateMillis = currentMillis;
-            Instance.Work(currentMillis, true);
         }
     }
 }
