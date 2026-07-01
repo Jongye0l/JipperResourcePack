@@ -195,6 +195,10 @@ public class SelectLocationScreen : Screen {
         Assembly assembly = Assembly.Load(File.ReadAllBytes(dllPath));
         Type type = assembly.GetType("GCNS");
         FieldInfo fieldInfo = type.GetField("releaseNumber", BindingFlags.Public | BindingFlags.Static);
+        if((object) fieldInfo == null) {
+            type = assembly.GetType("Releases");
+            fieldInfo = type.GetField("releaseNumber", BindingFlags.Public | BindingFlags.Static);
+        }
         return (int) fieldInfo!.GetRawConstantValue();
     }
 
