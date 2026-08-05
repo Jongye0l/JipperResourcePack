@@ -8,3 +8,6 @@ obj/
 
 # Library
 packages/
+
+# User Settings
+Directory.Build.props.user

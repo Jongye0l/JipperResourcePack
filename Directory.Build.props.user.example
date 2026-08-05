@@ -1,0 +1,7 @@
+<Project>
+    <PropertyGroup>
+        <GameManagedPath>D:/SteamLibrary/steamapps/common/A Dance of Fire and Ice/A Dance of Fire and Ice_Data/Managed</GameManagedPath>
+        <ModPath>D:/SteamLibrary/steamapps/common/A Dance of Fire and Ice/Mods</ModPath>
+        <ReleasePath></ReleasePath>
+    </PropertyGroup>
+</Project>

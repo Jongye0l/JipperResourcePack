@@ -1,0 +1,7 @@
+<Project>
+    <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')"/>
+
+    <PropertyGroup>
+        <GameManagedPath Condition="'$(GameManagedPath)' == ''">C:/Program Files (x86)/Steam/steamapps/common/A Dance of Fire and Ice/A Dance of Fire and Ice_Data/Managed</GameManagedPath>
+    </PropertyGroup>
+</Project>
