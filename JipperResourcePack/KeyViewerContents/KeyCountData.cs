@@ -33,8 +33,11 @@ public class KeyCountData {
 
     private static bool ReadExactly(FileStream fs, byte[] buffer) {
         int offset = 0;
-        while(offset < buffer.Length) 
-            offset += fs.Read(buffer, offset, buffer.Length - offset);
+        while(offset < buffer.Length) {
+            int count = fs.Read(buffer, offset, buffer.Length - offset);
+            if(count == 0) return false;
+            offset += count;
+        }
         return true;
     }
 
