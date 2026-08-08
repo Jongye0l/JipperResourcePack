@@ -57,8 +57,9 @@ public class KeyCountData {
                 byte[] data = new byte[KeyViewer.FootOutIndex * 4 + 8];
                 Unsafe.WriteUnaligned(ref data[4], TotalCount);
                 MemoryMarshal.AsBytes(Count.AsSpan()).CopyTo(data.AsSpan(8));
-                await using FileStream fs = new(path, FileMode.CreateNew);
-                fs.Write(data, 0, data.Length);
+                await using(FileStream fs = new(path, FileMode.CreateNew)) {
+                    fs.Write(data, 0, data.Length);
+                }
                 await Task.Delay(1000);
             } while(Interlocked.CompareExchange(ref _saveDirtyVersion, 0, 1) != 1);
         } catch (Exception e) {
