@@ -273,6 +273,22 @@ public class Overlay {
         OverlayTextManager.SetupUnderTextLocation(this);
     }
 
+    public virtual void UpdateFont() {
+        ProgressText.font = BundleLoader.FontAsset;
+        AccuracyText.font = BundleLoader.FontAsset;
+        XAccuracyText.font = BundleLoader.FontAsset;
+        TimeText.font = BundleLoader.FontAsset;
+        MapTimeText.font = BundleLoader.FontAsset;
+        CheckpointText.font = BundleLoader.FontAsset;
+        BestText.font = BundleLoader.FontAsset;
+        BpmText.font = BundleLoader.FontAsset;
+        JudgementText.font = BundleLoader.FontAsset;
+        ComboTitle.font = BundleLoader.FontAsset;
+        ComboText.font = BundleLoader.FontAsset;
+        TimingScaleText.font = BundleLoader.FontAsset;
+        AttemptText.font = BundleLoader.FontAsset;
+    }
+
     private void SetupShadow(TextMeshProUGUI text) => Shadow(text, 0.5f);
 
     private void SetupDarkShadow(TextMeshProUGUI text) => Shadow(text, 0.7f);

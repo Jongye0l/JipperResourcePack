@@ -731,7 +731,7 @@ public partial class KeyViewer : Feature {
         ResetKeyViewer();
     }
 
-    private void ResetKeyViewer() {
+    public void ResetKeyViewer() {
         _selectedKey = -1;
         for(int i = 0; i < HandOutIndex; i++) {
             Key key = Keys[i];
@@ -766,7 +766,7 @@ public partial class KeyViewer : Feature {
         }
     }
 
-    private void ResetFootKeyViewer() {
+    public void ResetFootKeyViewer() {
         for(int i = HandOutIndex; i < FootOutIndex; i++) {
             Key key = Keys[i];
             if(key?.GameObject) Object.Destroy(key.GameObject);

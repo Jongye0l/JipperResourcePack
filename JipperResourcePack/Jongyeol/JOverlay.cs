@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using ADOFAI;
@@ -76,6 +76,16 @@ public class JOverlay : Overlay {
         _timings = [];
         UpdateTiming(0);
         _timings.Clear();
+    }
+
+    public override void UpdateFont() {
+        base.UpdateFont();
+        FPSText.font = BundleLoader.FontAsset;
+        AuthorText.font = BundleLoader.FontAsset;
+        StateText.font = BundleLoader.FontAsset;
+        DeathText.font = BundleLoader.FontAsset;
+        StartText.font = BundleLoader.FontAsset;
+        TimingText.font = BundleLoader.FontAsset;
     }
 
     public override void UpdateProgress(scrPlanet planet = null) {
