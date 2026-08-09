@@ -465,9 +465,9 @@ public class Overlay {
         float kps = cbpm / 60;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm) return;
-        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
-                       $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
-                       $"<color=white>KPS |</color> {Math.Round(kps, 2)}";
+        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax))}>{Math.Round(bpm, Bpm.Settings.DecimalPlaces)}</color>\n" +
+                       $"CBPM |</color> {Math.Round(cbpm, Bpm.Settings.DecimalPlaces)}\n" +
+                       $"<color=white>KPS |</color> {Math.Round(kps, Bpm.Settings.DecimalPlaces)}";
         if(LastCurBpm != cbpm) BpmText.color = Bpm.Settings.BpmColor.GetColor(cbpm / Bpm.Settings.BpmColorMax);
         // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;

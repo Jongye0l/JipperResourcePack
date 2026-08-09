@@ -210,9 +210,9 @@ public class JOverlay : Overlay {
         if(isPesudo) kps *= count;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm && _lastCurKps == kps) return;
-        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
-                       $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
-                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
+        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, Jbpm.Settings.DecimalPlaces)}</color>\n" +
+                       $"CBPM |</color> {Math.Round(cbpm, Jbpm.Settings.DecimalPlaces)}\n" +
+                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, Jbpm.Settings.DecimalPlaces)}{(isPesudo ? "</color>" : "")}";
         if(LastCurBpm != cbpm) BpmText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
         // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;

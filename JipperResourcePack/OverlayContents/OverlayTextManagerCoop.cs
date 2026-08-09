@@ -30,9 +30,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         }
     }
 
-    protected virtual void SetProgress(ref PlayerData pData, float progress) {
-        pData.Progress = progress;
-        pData.ProgressString = $" | {ColorToString(Status.Settings.ProgressColor.GetColor(progress))}{Math.Round(progress * 100, 2)}%</color>";
+    private void SetProgress(ref PlayerData pData, float progress) {
+        pData.ProgressString = $" | {ColorToString(Status.Settings.ProgressColor.GetColor(progress))}{Math.Round(progress * 100, Status.Settings.ProgressDecimalPlaces)}%</color>";
         if(MaxProgress < progress) MaxProgress = progress;
     }
     
@@ -63,18 +62,18 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         }
     }
 
-    protected virtual void SetAccuracy(ref PlayerData pData, int noCheckStartTile, int i) {
+    private void SetAccuracy(ref PlayerData pData, int noCheckStartTile, int i) {
         float acc = scrMistakesManager.marginTrackers[i].percentAcc;
         float maxAcc = 1 + (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID - noCheckStartTile + 1) * 0.0001f;
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        pData.AccuracyString = $" | {ColorToString(Status.Settings.AccuracyColor.GetColor(scrMistakesManager.marginTrackers[i].percentXAcc.SetIfNaN(1) == 1 ? 1 : acc / maxAcc))}{Math.Round(acc * 100, 2)}%</color>";
+        pData.AccuracyString = $" | {ColorToString(Status.Settings.AccuracyColor.GetColor(scrMistakesManager.marginTrackers[i].percentXAcc.SetIfNaN(1) == 1 ? 1 : acc / maxAcc))}{Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces)}%</color>";
     }
     
-    protected virtual void SetXAccuracy(ref PlayerData pData, int i) {
+    private void SetXAccuracy(ref PlayerData pData, int i) {
         float xacc = scrMistakesManager.marginTrackers[i].percentXAcc;
         if(float.IsNaN(xacc)) xacc = 1;
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        pData.XAccuracyString = $" | {ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc))}{Math.Round(xacc * 100, 2)}%</color>";
+        pData.XAccuracyString = $" | {ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc))}{Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces)}%</color>";
     }
 
     public void UpdateProgress(Overlay overlay) {
@@ -114,9 +113,9 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     
     public float GetProgress() => MaxProgress;
 
-    protected virtual void UpdateBestText(Overlay overlay) {
+    protected void UpdateBestText(Overlay overlay) {
         float best = CurBest > MaxProgress || overlay.AutoOnceEnabled ? CurBest : MaxProgress;
-        overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
+        overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, Status.Settings.BestDecimalPlaces)}%";
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
@@ -140,7 +139,6 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     }
     
     public struct PlayerData {
-        public float Progress;
         public string ProgressString;
         public string AccuracyString;
         public string XAccuracyString;

@@ -15,6 +15,10 @@ public class Status : Feature {
     public static GameObject ProgressObject;
     public static GameObject ProgressBarObject;
     public static Status Instance;
+    private string _progressDecimalPlacesString;
+    private string _accuracyDecimalPlacesString;
+    private string _xAccuracyDecimalPlacesString;
+    private string _bestDecimalPlacesString;
     
     public Status() : this(typeof(ProgressSetting)) {
     }
@@ -39,14 +43,26 @@ public class Status : Feature {
         SettingGUI settingGUI = Main.SettingGUI;
         JALocalization localization = Main.Instance.Localization;
         settingGUI.AddSettingToggle(ref Settings.ShowProgress, localization["progress.showProgress"], Overlay.Instance.SetupLocationMain);
-        if(Settings.ShowProgress && Settings.ProgressColor.SettingGUI(settingGUI, localization["progress.progressColor"]))
-            Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
+        if(Settings.ShowProgress) {
+            if(Settings.ProgressColor.SettingGUI(settingGUI, localization["progress.progressColor"]))
+                Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
+            settingGUI.AddSettingSliderInt(ref Settings.ProgressDecimalPlaces, 2, ref _progressDecimalPlacesString, localization["progress.progressDecimalPlaces"], 0, 4,
+                () => Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance));
+        }
         settingGUI.AddSettingToggle(ref Settings.ShowAccuracy, localization["progress.showAccuracy"], Overlay.Instance.SetupLocationMain);
-        if(Settings.ShowAccuracy && Settings.AccuracyColor.SettingGUI(settingGUI, localization["progress.accuracyColor"]))
-            Overlay.Instance.UpdateAccuracy();
+        if(Settings.ShowAccuracy) {
+            if(Settings.AccuracyColor.SettingGUI(settingGUI, localization["progress.accuracyColor"]))
+                Overlay.Instance.UpdateAccuracy();
+            settingGUI.AddSettingSliderInt(ref Settings.AccuracyDecimalPlaces, 2, ref _accuracyDecimalPlacesString, localization["progress.accuracyDecimalPlaces"], 0, 4,
+                () => Overlay.Instance.UpdateAccuracy());
+        }
         settingGUI.AddSettingToggle(ref Settings.ShowXAccuracy, localization["progress.showXAccuracy"], Overlay.Instance.SetupLocationMain);
-        if(Settings.ShowXAccuracy && Settings.XAccuracyColor.SettingGUI(settingGUI, localization["progress.xAccuracyColor"]))
-            Overlay.Instance.UpdateAccuracy();
+        if(Settings.ShowXAccuracy) {
+            if(Settings.XAccuracyColor.SettingGUI(settingGUI, localization["progress.xAccuracyColor"]))
+                Overlay.Instance.UpdateAccuracy();
+            settingGUI.AddSettingSliderInt(ref Settings.XAccuracyDecimalPlaces, 2, ref _xAccuracyDecimalPlacesString, localization["progress.xAccuracyDecimalPlaces"], 0, 4,
+                () => Overlay.Instance.UpdateAccuracy());
+        }
         settingGUI.AddSettingToggle(ref Settings.ShowMusicTime, localization["progress.showMusicTime"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowMusicTime && Settings.MusicTimeColor.SettingGUI(settingGUI, localization["progress.musicTimeColor"]))
             Overlay.Instance.UpdateTime();
@@ -57,8 +73,12 @@ public class Status : Feature {
         settingGUI.AddSettingEnum(ref Settings.TimeTextType, localization["progress.timeTextType"], Overlay.Instance.UpdateTime);
         settingGUI.AddSettingToggle(ref Settings.ShowCheckpoint, localization["progress.showCheckpoint"], Overlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowBest, localization["progress.showBest"], Overlay.Instance.SetupLocationMain);
-        if(Settings.ShowBest && Settings.BestColor.SettingGUI(settingGUI, localization["progress.bestColor"]))
-            Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance);
+        if(Settings.ShowBest) {
+            if(Settings.BestColor.SettingGUI(settingGUI, localization["progress.bestColor"]))
+                Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance);
+            settingGUI.AddSettingSliderInt(ref Settings.BestDecimalPlaces, 2, ref _bestDecimalPlacesString, localization["progress.bestDecimalPlaces"], 0, 4,
+                () => Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance));
+        }
         settingGUI.AddSettingToggle(ref Settings.ShowProgressBar, localization["progress.showProgressBar"], () => {
             ProgressBarObject?.SetActive(Settings.ShowProgressBar);
         });
@@ -76,16 +96,19 @@ public class Status : Feature {
             (0f, Color.white),
             (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
         ]);
+        public int ProgressDecimalPlaces = 2;
         public bool ShowAccuracy;
         public ColorPerDictionary AccuracyColor = new([
             (0.98f, Color.magenta),
             (1f, Color.white)
         ], new Color(1, 0.8549019607843137f, 0));
+        public int AccuracyDecimalPlaces = 2;
         public bool ShowXAccuracy = true;
         public ColorPerDictionary XAccuracyColor = new([
             (0.98f, Color.magenta),
             (1f, Color.white)
         ], new Color(1, 0.8549019607843137f, 0)) ;
+        public int XAccuracyDecimalPlaces = 2;
         public bool ShowMusicTime = true;
         public ColorPerDictionary MusicTimeColor = new([ (1f, Color.white) ]);
         public bool ShowMapTime;
@@ -98,6 +121,7 @@ public class Status : Feature {
             (0f, Color.white),
             (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
         ]);
+        public int BestDecimalPlaces = 2;
         public bool ShowProgressBar = true;
         public ColorPerDictionary ProgressBarColor = new([(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
         public ColorPerDictionary ProgressBarBackgroundColor = new([(1f, Color.white)]);

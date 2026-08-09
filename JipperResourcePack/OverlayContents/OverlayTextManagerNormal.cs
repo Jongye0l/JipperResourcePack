@@ -21,18 +21,18 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         if(Status.Settings.ShowAccuracy) {
             float acc = VersionSafe.GetPercentAcc();
             float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile + 1) * 0.0001f;
-            overlay.AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, 2)}%";
+            overlay.AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces)}%";
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             overlay.AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
         if(Status.Settings.ShowXAccuracy) {
-            overlay.XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, 2)}%";
+            overlay.XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces)}%";
             overlay.XAccuracyText.color = Status.Settings.XAccuracyColor.GetColor(xacc);
         }
     }
 
     public virtual void UpdateProgress(Overlay overlay) {
-        overlay.ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, 2)}%";
+        overlay.ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, Status.Settings.ProgressDecimalPlaces)}%";
         overlay.ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
     }
     
@@ -60,17 +60,14 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(CurBest == -1) CurBest = PlayCount.GetData(overlay.LastHash)?.GetBest(overlay.StartProgress, overlay.LastMultiplier) ?? 0;
         else if(CurBest > Progress || overlay.AutoOnceEnabled) return;
-        UpdateBestText(overlay);
+        
+        float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
+        overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, Status.Settings.BestDecimalPlaces)}%";
+        overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
     
     public float GetProgress() => Progress;
 
-    protected virtual void UpdateBestText(Overlay overlay) {
-        float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
-        overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, 2)}%";
-        overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
-    }
-    
     public void SetupUnderTextLocation(Overlay overlay) {
         overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, Judgement.Settings.LocationUp ? 85 : 5);
         overlay.TimingScaleText.rectTransform.anchoredPosition = new Vector2(0, 90 + 40 * Main.Settings.Size);

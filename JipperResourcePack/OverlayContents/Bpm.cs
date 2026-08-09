@@ -13,6 +13,7 @@ public class Bpm : Feature {
     public static GameObject BpmObject;
     public static BpmSettings Settings;
     private string _bpmColorMaxString;
+    private string _decimalPlacesString;
     public static Bpm Instance;
 
     public Bpm() : this(typeof(BpmSettings)) {
@@ -34,6 +35,7 @@ public class Bpm : Feature {
         SettingGUI settingGUI = Main.SettingGUI;
         settingGUI.AddSettingFloat(ref Settings.BpmColorMax, 8000, ref _bpmColorMaxString, Main.Instance.Localization["bpm.bpmColorMax"], 0);
         if(Settings.BpmColor.SettingGUI(settingGUI, Main.Instance.Localization["bpm.bpmColor"])) Overlay.Instance.UpdateBpm();
+        settingGUI.AddSettingSliderInt(ref Settings.DecimalPlaces, 2, ref _decimalPlacesString, Main.Instance.Localization["bpm.decimalPlaces"], 0, 4, Overlay.Instance.UpdateBpm);
     }
 
     [JAPatch(typeof(scrController), "Hit", PatchType.Postfix, true, MaxVersion = 140)]
@@ -46,6 +48,7 @@ public class Bpm : Feature {
     public class BpmSettings : JASetting {
         // ReSharper disable FieldCanBeMadeReadOnly.Global
         public float BpmColorMax = 8000;
+        public int DecimalPlaces = 2;
         public ColorPerDictionary BpmColor = new([
             (0f, Color.white),
             (1f, Color.magenta)
