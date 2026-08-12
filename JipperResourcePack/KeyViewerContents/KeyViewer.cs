@@ -322,11 +322,7 @@ public partial class KeyViewer : Feature {
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
                 if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
-                    for(int i2 = 0; i2 < keyCodes.Length; i2++) Keys[i2].UpdateKey(true);
-                    if(footKeyCodes != null) for(int i2 = 0; i2 < footKeyCodes.Length; i2++) Keys[i2 + HandOutIndex].UpdateKey(true);
-                    Kps.Background.color = Total.Background.color = settings.Background;
-                    Kps.Outline.color = Total.Outline.color = settings.Outline;
-                    Kps.Text.TMP.color = Kps.Value.TMP.color = Total.Text.TMP.color = Total.Value.TMP.color = settings.Text;
+                    RefreshColors();
                     Main.Instance.SaveSetting();
                 }
                 GUILayout.EndVertical();
@@ -764,6 +760,13 @@ public partial class KeyViewer : Feature {
                 Initialize3KeyViewer();
                 break;
         }
+    }
+
+    public void RefreshColors() {
+        foreach(Key key in Keys) key?.UpdateKey(true);
+        Kps.Background.color = Total.Background.color = Settings.Background;
+        Kps.Outline.color = Total.Outline.color = Settings.Outline;
+        Kps.Text.TMP.color = Kps.Value.TMP.color = Total.Text.TMP.color = Total.Value.TMP.color = Settings.Text;
     }
 
     public void ResetFootKeyViewer() {

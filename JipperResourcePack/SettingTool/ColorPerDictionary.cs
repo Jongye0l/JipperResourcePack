@@ -55,6 +55,26 @@ public class ColorPerDictionary {
         return Color.Lerp(List[index - 1], List[index], progress);
     }
 
+    public Color GetPreviewColor(float key, Color baseColor) {
+        if(key < 0) key = 0;
+        if(key > 1) key = 1;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(PerfectColor != null && key == 1) return PerfectColor;
+        if(List.Count == 0) return PerfectColor ?? Color.white;
+
+        int index = List.BinarySearch(key);
+        if(index == 0) return List[0].ApplyHuePreview(baseColor);
+        if(index == List.Count) return List[^1].ApplyHuePreview(baseColor);
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(List[index].Progress == key) return List[index].ApplyHuePreview(baseColor);
+
+        float start = List[index - 1].Progress;
+        float end = List[index].Progress;
+        float progress = (key - start) / (end - start);
+        return Color.Lerp(List[index - 1].ApplyHuePreview(baseColor), List[index].ApplyHuePreview(baseColor), progress);
+    }
+
     public bool SettingGUI(SettingGUI settingGUI, string text) {
         GUILayout.BeginHorizontal();
         _expanded = GUILayout.Toggle(_expanded, _expanded ? "◢" : "▶", new GUIStyle {
@@ -121,6 +141,10 @@ public class ColorPerDictionary {
 
     public void Add((float, Color) item) {
         List.Add(item.Item1, item.Item2);
+    }
+
+    public void ApplyBaseColor(Color baseColor) {
+        foreach(ProgressColorCache cache in List) cache.ApplyHue(baseColor);
     }
 
     public void Reload(ProgressColorCache item) {

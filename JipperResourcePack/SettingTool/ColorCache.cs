@@ -94,6 +94,30 @@ public class ColorCache(Color color) {
         color.a = a;
     }
 
+    public void ApplyHue(Color baseColor) {
+        Color newColor = ApplyHuePreview(baseColor);
+        r = newColor.r;
+        g = newColor.g;
+        b = newColor.b;
+    }
+
+    public Color ApplyHuePreview(Color baseColor) {
+        Color.RGBToHSV(this, out _, out float s, out float v);
+        Color.RGBToHSV(baseColor, out float h, out _, out _);
+        Color newColor = Color.HSVToRGB(h, s, v);
+        newColor.a = a;
+        return newColor;
+    }
+
+    public void SetPreset(Color color) {
+        r = color.r;
+        g = color.g;
+        b = color.b;
+        a = color.a;
+        _rString = _gString = _bString = _aString = null;
+        _oldHexString = _hexString = GetHexString();
+    }
+
     public static implicit operator Color(ColorCache cache) {
         Unsafe.SkipInit(out Color color);
         cache.SetColor(ref color);

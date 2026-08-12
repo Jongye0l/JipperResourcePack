@@ -41,7 +41,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     private void AddFeature() {
-        AddFeature(new Status(), new Bpm(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
+        AddFeature(new AllColor(), new Status(), new Bpm(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
     }
 
     public void FeatureReset(bool jongyeolMode) {
