@@ -325,7 +325,7 @@ public partial class KeyViewer : Feature {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
-                if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI, typeof(KeyViewer).GetValue<Color>(names[i]))) {
+                if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI)) {
                     RefreshColors();
                     Main.Instance.SaveSetting();
                 }

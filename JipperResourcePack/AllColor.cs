@@ -16,7 +16,7 @@ public class AllColor : Feature {
 	}
 
 	protected override void OnGUI() {
-		Settings.BaseColor.SettingGUI(Main.SettingGUI, Color.white);
+		Settings.BaseColor.SettingGUI(Main.SettingGUI, false);
 		JALocalization localization = Main.Instance.Localization;
 
 		GUILayout.BeginHorizontal();
@@ -33,6 +33,7 @@ public class AllColor : Feature {
 		DrawBaseColorPreview(Settings.BaseColor);
 
 		if(GUILayout.Button(localization["allColor.apply"])) ApplyBaseColor();
+		if(GUILayout.Button(localization["allColor.resetAll"])) ResetAllColors();
 	}
 
 	private void ApplyBaseColor() {
@@ -59,6 +60,43 @@ public class AllColor : Feature {
 		KeyViewer.Settings.RainColor.ApplyHue(baseColor);
 		KeyViewer.Settings.RainColor2.ApplyHue(baseColor);
 		KeyViewer.Settings.RainColor3.ApplyHue(baseColor);
+
+		Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
+		Overlay.Instance.UpdateAccuracy();
+		Overlay.Instance.UpdateTime();
+		Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance);
+		Overlay.Instance.UpdateProgressBar();
+		Overlay.Instance.UpdateBpm();
+		Overlay.Instance.UpdateComboColor(Combo.ComboCount);
+
+		if(KeyViewer.Instance.Enabled) KeyViewer.Instance.RefreshColors();
+
+		Main.Instance.SaveSetting();
+	}
+
+	private void ResetAllColors() {
+		Status.Settings.ProgressColor.Reset();
+		Status.Settings.AccuracyColor.Reset();
+		Status.Settings.XAccuracyColor.Reset();
+		Status.Settings.MusicTimeColor.Reset();
+		Status.Settings.MapTimeColor.Reset();
+		Status.Settings.BestColor.Reset();
+		Status.Settings.ProgressBarColor.Reset();
+		Status.Settings.ProgressBarBackgroundColor.Reset();
+		Status.Settings.ProgressBarBorderColor.Reset();
+
+		Bpm.Settings.BpmColor.Reset();
+		Combo.Settings.ComboColor.Reset();
+
+		KeyViewer.Settings.Background.SetPreset(KeyViewer.Background);
+		KeyViewer.Settings.BackgroundClicked.SetPreset(KeyViewer.BackgroundClicked);
+		KeyViewer.Settings.Outline.SetPreset(KeyViewer.Outline);
+		KeyViewer.Settings.OutlineClicked.SetPreset(KeyViewer.OutlineClicked);
+		KeyViewer.Settings.Text.SetPreset(KeyViewer.Text);
+		KeyViewer.Settings.TextClicked.SetPreset(KeyViewer.TextClicked);
+		KeyViewer.Settings.RainColor.SetPreset(KeyViewer.RainColor);
+		KeyViewer.Settings.RainColor2.SetPreset(KeyViewer.RainColor2);
+		KeyViewer.Settings.RainColor3.SetPreset(KeyViewer.RainColor3);
 
 		Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
 		Overlay.Instance.UpdateAccuracy();
@@ -136,6 +174,6 @@ public class AllColor : Feature {
 	private static string FormatTime(float seconds) => $"{(int) (seconds / 60):00}:{(int) (seconds % 60):00}";
 
 	public class AllColorSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
-		public ColorCache BaseColor = new(Color.white);
+		public ColorCache BaseColor = new(Color.purple);
 	}
 }

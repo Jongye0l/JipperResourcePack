@@ -10,6 +10,7 @@ public class ColorPerDictionary {
     public ColorCache PerfectColor;
     public ProgressList List = [];
     // ReSharper restore FieldCanBeMadeReadOnly.Global
+    [JsonIgnore] private ProgressList _original;
     [JsonIgnore] private bool _expanded;
     [JsonIgnore] private ProgressColorCache _expandedCache;
 
@@ -17,8 +18,10 @@ public class ColorPerDictionary {
     public ColorPerDictionary() {
     }
 
-    public ColorPerDictionary(IEnumerable<(float, Color)> collection) {
+    public ColorPerDictionary((float, Color)[] collection) {
+        List.Capacity = collection.Length;
         foreach((float, Color) item in collection) Add(item);
+        _original = List.Clone();
     }
 
     public ColorPerDictionary(ColorCache perfectColor) {
@@ -28,14 +31,18 @@ public class ColorPerDictionary {
     public ColorPerDictionary(Color color) : this(new ColorCache(color)) {
     }
 
-    public ColorPerDictionary(IEnumerable<(float, Color)> collection, Color color) {
+    public ColorPerDictionary((float, Color)[] collection, Color color) {
+        List.Capacity = collection.Length;
         foreach((float, Color) item in collection) Add(item);
         PerfectColor = new ColorCache(color);
+        _original = List.Clone();
     }
 
-    public ColorPerDictionary(IEnumerable<(float, Color)> collection, ColorCache color) {
+    public ColorPerDictionary((float, Color)[] collection, ColorCache color) {
+        List.Capacity = collection.Length;
         foreach((float, Color) item in collection) Add(item);
         PerfectColor = color;
+        _original = List.Clone();
     }
 
     public Color GetColor(float key) {
@@ -76,6 +83,7 @@ public class ColorPerDictionary {
     }
 
     public bool SettingGUI(SettingGUI settingGUI, string text) {
+        bool changed = false;
         GUILayout.BeginHorizontal();
         _expanded = GUILayout.Toggle(_expanded, _expanded ? "◢" : "▶", new GUIStyle {
             fixedWidth = 10f,
@@ -85,9 +93,13 @@ public class ColorPerDictionary {
         });
         if(GUILayout.Button(text, GUI.skin.label)) _expanded = !_expanded;
         GUILayout.FlexibleSpace();
+        if(GUILayout.Button(Main.Instance.Localization["Color.Reset"])) {
+            Reset();
+            Main.Instance.SaveSetting();
+            changed = true;
+        }
         GUILayout.EndHorizontal();
-        if(!_expanded) return false;
-        bool changed = false;
+        if(!_expanded) return changed;
         GUILayout.BeginHorizontal();
         GUILayout.Space(18f);
         GUILayout.BeginVertical();
@@ -119,7 +131,7 @@ public class ColorPerDictionary {
                 Main.Instance.SaveSetting();
                 br = true;
             }
-            if(cache.SettingGUI(settingGUI, cache)) {
+            if(cache.SettingGUI(settingGUI)) {
                 changed = true;
                 Main.Instance.SaveSetting();
             }
@@ -145,6 +157,11 @@ public class ColorPerDictionary {
 
     public void ApplyBaseColor(Color baseColor) {
         foreach(ProgressColorCache cache in List) cache.ApplyHue(baseColor);
+    }
+
+    public void Reset() {
+        List = _original?.Clone() ?? [];
+        PerfectColor?.Reset();
     }
 
     public void Reload(ProgressColorCache item) {
@@ -186,6 +203,10 @@ public class ColorPerDictionary {
                 else end = i - 1;
             }
             return start;
+        }
+
+        public ProgressList Clone() {
+            return [..this];
         }
     }
 }
