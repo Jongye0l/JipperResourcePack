@@ -112,11 +112,11 @@ public class AllColor : Feature {
 	}
 
 	private void DrawBaseColorPreview(Color baseColor) {
-		float t20 = Time.time % 20f / 20f;
-		float t10 = Time.time % 10f / 10f;
-		bool pressed = Time.time % 1f >= 0.5f;
+		float t20 = Time.unscaledTime % 20f / 20f;
+		bool pressed = Time.unscaledTime % 1f >= 0.5f;
 
 		if(Status.Instance.Enabled) {
+			float t10 = Time.unscaledTime % 10f / 10f;
 			Status.ProgressSetting statusSettings = Status.Settings;
 			if(statusSettings.ShowProgress)
 				AddColorPreviewLine("Progress", statusSettings.ProgressColor.GetColor(t20), statusSettings.ProgressColor.GetPreviewColor(t20, baseColor), $"{t20 * 100:F1}%");
@@ -167,8 +167,8 @@ public class AllColor : Feature {
 	}
 
 	private static void AddColorPreviewLine(string label, Color oldColor, Color newColor, string value = null) {
-		value ??= label;
-		GUILayout.Label($"{label}: <color=#{ColorUtility.ToHtmlStringRGB(oldColor)}>{value}</color> -> <color=#{ColorUtility.ToHtmlStringRGB(newColor)}>{value}</color>");
+		if(value == null) (value, label) = (label, null);
+		GUILayout.Label($"{(label == null ? null : label + ": ")}<color=#{ColorUtility.ToHtmlStringRGB(oldColor)}>{value}</color> -> <color=#{ColorUtility.ToHtmlStringRGB(newColor)}>{value}</color>");
 	}
 
 	private static string FormatTime(float seconds) => $"{(int) (seconds / 60):00}:{(int) (seconds % 60):00}";
