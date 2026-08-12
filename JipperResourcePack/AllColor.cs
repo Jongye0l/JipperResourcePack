@@ -88,15 +88,15 @@ public class AllColor : Feature {
 		Bpm.Settings.BpmColor.Reset();
 		Combo.Settings.ComboColor.Reset();
 
-		KeyViewer.Settings.Background.SetPreset(KeyViewer.Background);
-		KeyViewer.Settings.BackgroundClicked.SetPreset(KeyViewer.BackgroundClicked);
-		KeyViewer.Settings.Outline.SetPreset(KeyViewer.Outline);
-		KeyViewer.Settings.OutlineClicked.SetPreset(KeyViewer.OutlineClicked);
-		KeyViewer.Settings.Text.SetPreset(KeyViewer.Text);
-		KeyViewer.Settings.TextClicked.SetPreset(KeyViewer.TextClicked);
-		KeyViewer.Settings.RainColor.SetPreset(KeyViewer.RainColor);
-		KeyViewer.Settings.RainColor2.SetPreset(KeyViewer.RainColor2);
-		KeyViewer.Settings.RainColor3.SetPreset(KeyViewer.RainColor3);
+		KeyViewer.Settings.Background.Reset();
+		KeyViewer.Settings.BackgroundClicked.Reset();
+		KeyViewer.Settings.Outline.Reset();
+		KeyViewer.Settings.OutlineClicked.Reset();
+		KeyViewer.Settings.Text.Reset();
+		KeyViewer.Settings.TextClicked.Reset();
+		KeyViewer.Settings.RainColor.Reset();
+		KeyViewer.Settings.RainColor2.Reset();
+		KeyViewer.Settings.RainColor3.Reset();
 
 		Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
 		Overlay.Instance.UpdateAccuracy();

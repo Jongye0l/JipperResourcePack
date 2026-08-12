@@ -62,24 +62,36 @@ public class KeyViewerSetting : JASetting {
     public float rainHeight = 200;
     // ReSharper restore InconsistentNaming
 
-    public ColorCache Background = new(KeyViewer.Background);
-    public ColorCache BackgroundClicked = new(KeyViewer.BackgroundClicked);
-    public ColorCache Outline = new(KeyViewer.Outline);
-    public ColorCache OutlineClicked = new(KeyViewer.OutlineClicked);
-    public ColorCache Text = new(KeyViewer.Text);
-    public ColorCache TextClicked = new(KeyViewer.TextClicked);
-    public ColorCache RainColor = new(KeyViewer.RainColor);
-    public ColorCache RainColor2 = new(KeyViewer.RainColor2);
-    public ColorCache RainColor3 = new(KeyViewer.RainColor3);
+    public ColorCache Background;
+    public ColorCache BackgroundClicked;
+    public ColorCache Outline;
+    public ColorCache OutlineClicked;
+    public ColorCache Text;
+    public ColorCache TextClicked;
+    public ColorCache RainColor;
+    public ColorCache RainColor2;
+    public ColorCache RainColor3;
     // ReSharper restore FieldCanBeMadeReadOnly.Global
 
     public KeyViewerSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
         KeyViewer.Settings = this;
+
+        ColorCache.Setup(ref Background, KeyViewer.Background);
+        ColorCache.Setup(ref BackgroundClicked, KeyViewer.BackgroundClicked);
+        ColorCache.Setup(ref Outline, KeyViewer.Outline);
+        ColorCache.Setup(ref OutlineClicked, KeyViewer.OutlineClicked);
+        ColorCache.Setup(ref Text, KeyViewer.Text);
+        ColorCache.Setup(ref TextClicked, KeyViewer.TextClicked);
+        ColorCache.Setup(ref RainColor, KeyViewer.RainColor);
+        ColorCache.Setup(ref RainColor2, KeyViewer.RainColor2);
+        ColorCache.Setup(ref RainColor3, KeyViewer.RainColor3);
+
         if(jsonObject == null) return;
         if(jsonObject.TryGetValue("DownLocation", out JToken value)) {
             jsonObject.Remove("DownLocation");
             YLocation = value.Value<bool>() ? 0 : 200;
         }
+
         if(jsonObject.TryGetValue("Count", out JToken count)) {
             jsonObject.Remove("Count");
             JArray countArray = (JArray) count;
@@ -91,11 +103,13 @@ public class KeyViewerSetting : JASetting {
                 for(int i = 16; i < 24; i++) KeyCountData.Instance.Count[i + 4] = countArray[i].Value<int>();
             }
         }
+
         if(jsonObject.TryGetValue("TotalCount", out JToken totalCount)) {
             jsonObject.Remove("TotalCount");
             KeyCountData.Instance ??= new KeyCountData();
             KeyCountData.Instance.TotalCount = totalCount.Value<int>();
         }
+
         if(KeyCountData.Instance != null) {
             KeyCountData.Instance.Save();
             Task.Yield().OnCompleted(Main.Instance.SaveSetting);

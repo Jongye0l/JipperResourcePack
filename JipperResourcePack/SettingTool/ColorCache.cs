@@ -130,4 +130,9 @@ public class ColorCache(Color color) {
         cache.SetColor(ref color);
         return color;
     }
+
+    public static void Setup(ref ColorCache cache, Color color) {
+        if(cache == null) cache = new ColorCache(color);
+        else cache._originalColor = color;
+    }
 }

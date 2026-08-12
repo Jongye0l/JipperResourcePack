@@ -89,44 +89,61 @@ public class Status : Feature {
             Overlay.Instance.UpdateProgressBar();
     }
 
-    public class ProgressSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
+    public class ProgressSetting: JASetting {
         // ReSharper disable FieldCanBeMadeReadOnly.Global
         public bool ShowProgress = true;
-        public ColorPerDictionary ProgressColor = new([
-            (0f, Color.white),
-            (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
-        ]);
+        public ColorPerDictionary ProgressColor;
         public int ProgressDecimalPlaces = 2;
         public bool ShowAccuracy;
-        public ColorPerDictionary AccuracyColor = new([
-            (0.98f, Color.magenta),
-            (1f, Color.white)
-        ], new Color(1, 0.8549019607843137f, 0));
+        public ColorPerDictionary AccuracyColor;
         public int AccuracyDecimalPlaces = 2;
         public bool ShowXAccuracy = true;
-        public ColorPerDictionary XAccuracyColor = new([
-            (0.98f, Color.magenta),
-            (1f, Color.white)
-        ], new Color(1, 0.8549019607843137f, 0)) ;
+        public ColorPerDictionary XAccuracyColor;
         public int XAccuracyDecimalPlaces = 2;
         public bool ShowMusicTime = true;
-        public ColorPerDictionary MusicTimeColor = new([ (1f, Color.white) ]);
+        public ColorPerDictionary MusicTimeColor;
         public bool ShowMapTime;
-        public ColorPerDictionary MapTimeColor = new([(1f, Color.white)]);
+        public ColorPerDictionary MapTimeColor;
         public bool ShowMapTimeIfNotMusic = true;
         public TimeTextType TimeTextType = TimeTextType.Korean;
         public bool ShowCheckpoint;
         public bool ShowBest;
-        public ColorPerDictionary BestColor = new([
-            (0f, Color.white),
-            (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
-        ]);
+        public ColorPerDictionary BestColor;
         public int BestDecimalPlaces = 2;
         public bool ShowProgressBar = true;
-        public ColorPerDictionary ProgressBarColor = new([(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
-        public ColorPerDictionary ProgressBarBackgroundColor = new([(1f, Color.white)]);
-        public ColorPerDictionary ProgressBarBorderColor = new([(1f, Color.black)]);
+        public ColorPerDictionary ProgressBarColor;
+        public ColorPerDictionary ProgressBarBackgroundColor;
+        public ColorPerDictionary ProgressBarBorderColor;
         // ReSharper restore FieldCanBeMadeReadOnly.Global
+        
+        public ProgressSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
+            ColorPerDictionary.Setup(ref ProgressColor, [
+                (0f, Color.white),
+                (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
+            ]);
+            
+            ColorPerDictionary.Setup(ref AccuracyColor, [
+                (0.98f, Color.magenta),
+                (1f, Color.white)
+            ], new Color(1, 0.8549019607843137f, 0));
+            
+            ColorPerDictionary.Setup(ref XAccuracyColor, [
+                (0.98f, Color.white),
+                (1f, Color.white)
+            ], new Color(1, 0.8549019607843137f, 0));
+            
+            ColorPerDictionary.Setup(ref MusicTimeColor, [(1f, Color.white)]);
+            ColorPerDictionary.Setup(ref MapTimeColor, [(1f, Color.white)]);
+            
+            ColorPerDictionary.Setup(ref BestColor, [
+                (0f, Color.white),
+                (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
+            ]);
+            
+            ColorPerDictionary.Setup(ref ProgressBarColor, [(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
+            ColorPerDictionary.Setup(ref ProgressBarBackgroundColor, [(1f, Color.white)]);
+            ColorPerDictionary.Setup(ref ProgressBarBorderColor, [(1f, Color.black)]);
+        }
     }
 
     // ReSharper disable UnusedMember.Local

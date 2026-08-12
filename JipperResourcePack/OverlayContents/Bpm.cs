@@ -49,14 +49,15 @@ public class Bpm : Feature {
         // ReSharper disable FieldCanBeMadeReadOnly.Global
         public float BpmColorMax = 8000;
         public int DecimalPlaces = 2;
-        public ColorPerDictionary BpmColor = new([
-            (0f, Color.white),
-            (1f, Color.magenta)
-        ]);
+        public ColorPerDictionary BpmColor;
         // ReSharper restore FieldCanBeMadeReadOnly.Global
 
         public BpmSettings(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             Settings = this;
+            ColorPerDictionary.Setup(ref BpmColor, [
+                (0f, Color.white),
+                (1f, Color.magenta)
+            ]);
         }
     }
 }

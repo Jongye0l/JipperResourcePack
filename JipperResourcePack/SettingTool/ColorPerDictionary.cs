@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using JALib.Tools;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -31,11 +32,7 @@ public class ColorPerDictionary {
     public ColorPerDictionary(Color color) : this(new ColorCache(color)) {
     }
 
-    public ColorPerDictionary((float, Color)[] collection, Color color) {
-        List.Capacity = collection.Length;
-        foreach((float, Color) item in collection) Add(item);
-        PerfectColor = new ColorCache(color);
-        _original = List.Clone();
+    public ColorPerDictionary((float, Color)[] collection, Color color) : this(collection, new ColorCache(color)) {
     }
 
     public ColorPerDictionary((float, Color)[] collection, ColorCache color) {
@@ -171,6 +168,19 @@ public class ColorPerDictionary {
 
     public void Add(ProgressColorCache item) {
         if(item != null) List.Add(item);
+    }
+
+    public static void Setup(ref ColorPerDictionary cache, (float, Color)[] collection) {
+        if(cache == null) cache = new ColorPerDictionary(collection);
+        else cache.List = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
+    }
+    
+    public static void Setup(ref ColorPerDictionary cache, (float, Color)[] collection, Color color) {
+        if(cache == null) cache = new ColorPerDictionary(collection, color);
+        else {
+            cache.List = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
+            cache.PerfectColor = new ColorCache(color);
+        }
     }
 
     public class ProgressList : List<ProgressColorCache> {
