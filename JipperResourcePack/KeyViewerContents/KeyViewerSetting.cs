@@ -57,6 +57,7 @@ public class KeyViewerSetting : JASetting {
     public float Size = 1;
     public bool useRain = true;
     public bool useGhostRain;
+    public bool ShowTotalKpsKey16 = true;
     public float rainSpeed = 100;
     public float rainHeight = 200;
     // ReSharper restore InconsistentNaming

@@ -45,6 +45,7 @@ public partial class KeyViewer : Feature {
     public static RainManager RainManager;
     public GameObject KeyViewerObject;
     public GameObject KeyViewerSizeObject;
+    public KeyViewerUpdater Updater;
     public Key[] Keys;
     public Thread KeyInputListener;
     public Key Kps;
@@ -81,7 +82,7 @@ public partial class KeyViewer : Feature {
     protected override void OnEnable() {
         KeyCountData.Load();
         KeyViewerObject = new GameObject("JipperResourcePack KeyViewer");
-        KeyViewerObject.AddComponent<KeyViewerUpdater>();
+        Updater = KeyViewerObject.AddComponent<KeyViewerUpdater>();
         RainManager = KeyViewerObject.AddComponent<RainManager>();
         if(!Settings.useRain) RainManager.enabled = false;
         Canvas canvas = KeyViewerObject.AddComponent<Canvas>();
@@ -154,6 +155,8 @@ public partial class KeyViewer : Feature {
             settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
+        if(settings.KeyViewerStyle == KeyviewerStyle.Key16)
+            settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey16, localization["keyViewer.showTotalKps"], ResetKeyViewer);
         settingGUI.AddSettingSliderFloat(ref settings.Size, 1, ref _sizeString, localization["size"], 0, 2, () => {
             KeyViewerSizeObject.transform.localScale = new Vector3(settings.Size, settings.Size, 1);
         });
@@ -338,7 +341,7 @@ public partial class KeyViewer : Feature {
             GUILayout.Label("<color=red>" + localization["keyViewer.resetCountConfirmText"] + "</color>");
             if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
                 _confirmResetCount = false;
-                Total.Value.TMP.text = "0";
+                if(Total != null) Total.Value.TMP.text = "0";
                 foreach(Key key in Keys) key?.Value.SetTextForce("0");
                 for(int i = 0; i < KeyCountData.Instance.Count.Length; i++) KeyCountData.Instance.Count[i] = 0;
                 KeyCountData.Instance.TotalCount = 0;
@@ -734,17 +737,18 @@ public partial class KeyViewer : Feature {
             if(key?.GameObject) Object.Destroy(key.GameObject);
             Keys[i] = null;
         }
-        Object.Destroy(Total.GameObject);
-        Object.Destroy(Kps.GameObject);
+        if(Total?.GameObject) Object.Destroy(Total.GameObject);
+        if(Kps?.GameObject) Object.Destroy(Kps.GameObject);
         InitializeKeyViewer();
         UpdateKeyLimit();
     }
 
     private void InitializeKeyViewer() {
+        _lastYLocation = Settings.YLocation;
         _currentKeyMaxY = Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
-            _ => 940
+            _ => Settings.ShowTotalKpsKey16 ? 940 : 970
         };
         switch(Settings.KeyViewerStyle) {
             case KeyviewerStyle.Key12:
@@ -764,9 +768,16 @@ public partial class KeyViewer : Feature {
 
     public void RefreshColors() {
         foreach(Key key in Keys) key?.UpdateKey(true);
-        Kps.Background.color = Total.Background.color = Settings.Background;
-        Kps.Outline.color = Total.Outline.color = Settings.Outline;
-        Kps.Text.TMP.color = Kps.Value.TMP.color = Total.Text.TMP.color = Total.Value.TMP.color = Settings.Text;
+        if(Kps != null) {
+            Kps.Background.color = Settings.Background;
+            Kps.Outline.color = Settings.Outline;
+            Kps.Text.TMP.color = Kps.Value.TMP.color = Settings.Text;
+        }
+        if(Total != null) {
+            Total.Background.color = Settings.Background;
+            Total.Outline.color = Settings.Outline;
+            Total.Text.TMP.color = Total.Value.TMP.color = Settings.Text;
+        }
     }
 
     public void ResetFootKeyViewer() {
@@ -825,18 +836,26 @@ public partial class KeyViewer : Feature {
         }
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
+        Updater.enabled = true;
     }
 
     private void Initialize1KeyViewer() {
-        float y = Settings.YLocation;
+        float y = Settings.YLocation - (Settings.ShowTotalKpsKey16 ? 0 : 30);
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 115 + y, 50, 0);
         for(int i = 0; i < 8; i++) {
             int j = BackSequence16[i];
             Keys[j] = CreateKey(j, 54 * i, 61 + y, 50, 1);
             Keys[j].RainPool = Keys[i].RainPool;
         }
-        Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
-        Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
+        if(Settings.ShowTotalKpsKey16) {
+            Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
+            Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
+            Updater.enabled = true;
+        } else {
+            Kps = null;
+            Total = null;
+            Updater.enabled = false;
+        }
     }
 
     private void Initialize2KeyViewer() {
@@ -853,6 +872,7 @@ public partial class KeyViewer : Feature {
         Keys[19] = CreateKey(19, 54 * 4 + 81, 25 + y, 50, 3);
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
+        Updater.enabled = true;
     }
 
     private void Initialize3KeyViewer() {
@@ -864,6 +884,7 @@ public partial class KeyViewer : Feature {
         Keys[9].RainPool = Keys[4].RainPool;
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
+        Updater.enabled = true;
     }
 
     private void InitializeFootKeyViewer(int size) {
