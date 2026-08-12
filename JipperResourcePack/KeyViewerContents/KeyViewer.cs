@@ -69,6 +69,7 @@ public partial class KeyViewer : Feature {
     private string _rainHeightString;
     private string _sizeString;
     private string _yLocationString;
+    private float _lastYLocation;
 
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSetting)) {
         Instance = this;
@@ -135,13 +136,13 @@ public partial class KeyViewer : Feature {
         KeyViewerSetting settings = Settings;
         settingGUI.AddSettingToggle(ref _keyShare, localization["keyViewer.keyShare"]);
         GUILayout.BeginHorizontal();
-        settingGUI.AddSettingSliderFloat(ref settings.YLocation, 200, ref _yLocationString, localization["keyViewer.yLocation"], 0, _currentKeyMaxY, ResetKeyViewer);
+        settingGUI.AddSettingSliderFloat(ref settings.YLocation, 200, ref _yLocationString, localization["keyViewer.yLocation"], 0, _currentKeyMaxY, UpdateYLocation);
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(settings.YLocation != 200 && GUILayout.Button(localization["keyViewer.resetYLocation"])) {
             settings.YLocation = 200;
             _yLocationString = null;
             Main.Instance.SaveSetting();
-            ResetKeyViewer();
+            UpdateYLocation();
         }
         GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
@@ -778,6 +779,23 @@ public partial class KeyViewer : Feature {
             Total.Outline.color = Settings.Outline;
             Total.Text.TMP.color = Total.Value.TMP.color = Settings.Text;
         }
+    }
+
+    private void UpdateYLocation() {
+        float delta = Settings.YLocation - _lastYLocation;
+        _lastYLocation = Settings.YLocation;
+        if(delta == 0) return;
+        for(int i = 0; i < HandOutIndex; i++) MoveKeyY(Keys[i], delta);
+        MoveKeyY(Kps, delta);
+        MoveKeyY(Total, delta);
+    }
+
+    private static void MoveKeyY(Key key, float delta) {
+        if(key == null) return;
+        RectTransform rectTransform = (RectTransform) key.GameObject.transform;
+        Vector2 position = rectTransform.anchoredPosition;
+        position.y += delta;
+        rectTransform.anchoredPosition = position;
     }
 
     public void ResetFootKeyViewer() {
