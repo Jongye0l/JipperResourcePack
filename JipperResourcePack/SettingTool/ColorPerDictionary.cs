@@ -172,14 +172,14 @@ public class ColorPerDictionary {
 
     public static void Setup(ref ColorPerDictionary cache, (float, Color)[] collection) {
         if(cache == null) cache = new ColorPerDictionary(collection);
-        else cache.List = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
+        else cache._original = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
     }
     
     public static void Setup(ref ColorPerDictionary cache, (float, Color)[] collection, Color color) {
         if(cache == null) cache = new ColorPerDictionary(collection, color);
         else {
-            cache.List = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
-            cache.PerfectColor = new ColorCache(color);
+            cache._original = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
+            ColorCache.Setup(ref cache.PerfectColor, color);
         }
     }
 
