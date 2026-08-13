@@ -30,7 +30,7 @@ public class Key(GameObject gameObject) {
         int current;
         do {
             current = Volatile.Read(ref _updateRequested);
-            if(current == 0) return;
+            if(current == 0 && !force) return;
             bool request = _requestEnabled;
             if(force || request != _currentEnabled) {
                 KeyViewerSetting settings = KeyViewer.Settings;
