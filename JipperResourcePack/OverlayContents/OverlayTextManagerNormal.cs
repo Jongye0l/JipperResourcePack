@@ -75,6 +75,6 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
 
     public void UpdateJudgement(Overlay overlay, int _) {
         int[] hits = overlay.Hit;
-        overlay.JudgementText.text = $"{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}";
+        overlay.JudgementText.text = VersionSafe.WriteHitMarginText(hits, null, null);
     }
 }

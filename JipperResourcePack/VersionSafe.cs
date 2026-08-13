@@ -13,6 +13,7 @@ public static class VersionSafe {
     public static void Setup() {
         Main.Instance.Log("Version Safe Setup");
         JAPatcher patcher = new(Main.Instance);
+
         if(VersionControl.releaseNumber < 141) {
             patcher.AddPatch(ColorLogoR136, new JAPatchAttribute(ColorLogoSafe, PatchType.Transpiler, false));
             patcher.AddPatch(CalculatePercentAccR136, new JAPatchAttribute(CalculatePercentAcc, PatchType.Transpiler, false));
@@ -34,6 +35,16 @@ public static class VersionSafe {
             patcher.AddPatch(IsCoopModeR141, new JAPatchAttribute(IsCoopMode, PatchType.Replace, false));
             patcher.AddPatch(GetPlayerCountR141, new JAPatchAttribute(GetPlayerCount, PatchType.Replace, false));
         }
+
+        if(VersionControl.releaseNumber < 148) {
+            patcher.AddPatch(IsEnableCompetitiveModeR147, new JAPatchAttribute(IsEnableCompetitiveMode, PatchType.Replace, false));
+            patcher.AddPatch(WriteHitMarginTextR147, new JAPatchAttribute(WriteHitMarginText, PatchType.Replace, false));
+            patcher.AddPatch(WriteHitMarginTextWithoutColorR147, new JAPatchAttribute(WriteHitMarginTextWithoutColor, PatchType.Replace, false));
+        } else {
+            patcher.AddPatch(IsEnableCompetitiveModeR148, new JAPatchAttribute(IsEnableCompetitiveMode, PatchType.Replace, false));
+            patcher.AddPatch(WriteHitMarginTextR148, new JAPatchAttribute(WriteHitMarginText, PatchType.Replace, false));
+            patcher.AddPatch(WriteHitMarginTextWithoutColorR148, new JAPatchAttribute(WriteHitMarginTextWithoutColor, PatchType.Replace, false));
+        }
         patcher.Patch();
     }
 
@@ -46,7 +57,9 @@ public static class VersionSafe {
     public static float GetPercentXAcc() => throw new NotSupportedException("This functionality is not implemented");
     public static bool IsCoopMode() => throw new NotSupportedException("This functionality is not implemented");
     public static int GetPlayerCount() => throw new NotSupportedException("This functionality is not implemented");
-    public static int GetMaxPlayerCount() => VersionControl.releaseNumber < 141 ? 1 : 4;
+    public static bool IsEnableCompetitiveMode() => throw new NotSupportedException("This functionality is not implemented");
+    public static string WriteHitMarginText(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
+    public static string WriteHitMarginTextWithoutColor(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
 
     #region R136
 
@@ -120,4 +133,35 @@ public static class VersionSafe {
     private static int GetPlayerCountR141() => scrPlayerManager.playerCount;
 
     #endregion
+
+    #region R147
+
+    private static bool IsEnableCompetitiveModeR147() => false;
+    private static string WriteHitMarginTextR147(int[] hits, string prefix, string postfix) {
+        return $"{prefix}{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}{postfix}";
+    }
+
+    private static string WriteHitMarginTextWithoutColorR147(int[] hits, string prefix, string postfix) {
+        return $"{prefix}{hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[10]} {hits[4]} {hits[5]} {hits[6]} {hits[8]}{postfix}";
+    }
+
+    #endregion
+
+    #region R148
+
+    private static bool IsEnableCompetitiveModeR148() => Persistence.enableCompetitiveMode;
+    private static string WriteHitMarginTextR148(int[] hits, string prefix, string postfix) {
+        return Persistence.enableCompetitiveMode ? 
+                   $"{prefix}{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3]} <color=#FFF>{hits[4] + hits[12]}</color> {hits[5]}</color> {hits[6]}</color> {hits[7]}</color> {hits[8]}</color> {hits[10]}{postfix}" : 
+                   $"{prefix}{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[4] + hits[5] + hits[12]}</color> {hits[6]}</color> {hits[7]}</color> {hits[8]}</color> {hits[10]}{postfix}";
+    }
+
+    private static string WriteHitMarginTextWithoutColorR148(int[] hits, string prefix, string postfix) {
+        return Persistence.enableCompetitiveMode ? 
+                   $"{prefix}{hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3]} {hits[4] + hits[12]} {hits[5]} {hits[6]} {hits[7]} {hits[8]} {hits[10]}{postfix}" :
+                   $"{prefix}{hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[4] + hits[5] + hits[12]} {hits[6]} {hits[7]} {hits[8]} {hits[10]}{postfix}";
+    }
+
+    #endregion
+
 }
