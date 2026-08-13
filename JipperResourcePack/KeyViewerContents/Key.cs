@@ -36,7 +36,9 @@ public class Key(GameObject gameObject) {
                 KeyViewerSetting settings = KeyViewer.Settings;
                 Background.color = request ? settings.BackgroundClicked : settings.Background;
                 Outline.color = request ? settings.OutlineClicked : settings.Outline;
-                Value?.TMP.color = Text.TMP.color = request ? settings.TextClicked : settings.Text;
+                Color color = request ? settings.TextClicked : settings.Text;
+                Text.TMP.color = color;
+                Value?.TMP.color = color;
                 _currentEnabled = request;
             }
         } while(Interlocked.CompareExchange(ref _updateRequested, 0, current) != current);
