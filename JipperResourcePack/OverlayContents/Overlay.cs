@@ -51,6 +51,7 @@ public class Overlay {
     public PlayCount.Hash LastHash;
     private float _lastSavedStartProgress = -1;
     public float LastMultiplier = 1f;
+    private ComboTier _current;
 
     public Overlay() {
         Instance = this;
@@ -481,12 +482,23 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         TimingScaleText.text = $"Timing Scale - {Math.Round(scrController.instance.currFloor.marginScale * 100, 2)}%";
     }
+
+    public void ChangeComboText(ComboTier tier) {
+        if(_current >= tier) return;
+        ComboTitle.text = tier == ComboTier.Green ? "Perfect" : "Combo";
+        _current = tier;
+    }
     
     public virtual void Show(int floor) {
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(_lastSavedStartProgress != -1) {
             if(!AutoOnceEnabled) PlayCount.SetBest(LastHash, _lastSavedStartProgress, OverlayTextManager.GetProgress(), LastMultiplier);
             _lastSavedStartProgress = -1;
+        }
+
+        if(scrController.checkpointsUsed == 0) {
+            _current = ComboTier.White;
+            ComboTitle.text = "X-Perfect";
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();

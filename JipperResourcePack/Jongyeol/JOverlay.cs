@@ -24,7 +24,6 @@ public class JOverlay : Overlay {
     private float _lastCurKps = -1;
     private static LevelData LevelData => scnGame.instance ? scnGame.instance.levelData : null;
     private float _fpsTime;
-    private bool _perToCom;
 
     public JOverlay() {
         Instance = this;
@@ -220,12 +219,6 @@ public class JOverlay : Overlay {
         _lastCurKps = kps;
     }
 
-    public void PerfectToCombo() {
-        if(_perToCom) return;
-        ComboTitle.text = "Combo";
-        _perToCom = true;
-    }
-
     private bool CheckPseudo(scrFloor curFloor, float bpm, out float cbpm, out int count) {
         if(bpm < 200 || !scnGame.instance) {
             cbpm = count = 0;
@@ -298,10 +291,8 @@ public class JOverlay : Overlay {
     }
 
     public override void Show(int floor) {
-        _perToCom = false;
         PurePerfect = true;
         _pseudoFloor = -1;
-        if(scrController.checkpointsUsed == 0) ComboTitle.text = "Perfect";
         _timings?.Clear();
         base.Show(floor);
     }
