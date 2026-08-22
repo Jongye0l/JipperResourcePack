@@ -210,6 +210,9 @@
         <Reference Include="System.Xml.Linq">
             <HintPath>$(GameManagedPath)/System.Xml.Linq.dll</HintPath>
         </Reference>
+        <Reference Include="UniTask">
+            <HintPath>$(GameManagedPath)/UniTask.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.Addressables">
             <HintPath>$(GameManagedPath)/Unity.Addressables.dll</HintPath>
         </Reference>

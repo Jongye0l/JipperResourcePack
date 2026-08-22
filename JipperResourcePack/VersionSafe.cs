@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HarmonyLib;
 using JALib.Core.Patch;
 using JALib.Tools;
@@ -36,6 +38,12 @@ public static class VersionSafe {
             patcher.AddPatch(GetPlayerCountR141, new JAPatchAttribute(GetPlayerCount, PatchType.Replace, false));
         }
 
+        if(VersionControl.releaseNumber < 146) {
+            patcher.AddPatch(RunAfterR145, new JAPatchAttribute(RunAfter, PatchType.Replace, false));
+        } else {
+            patcher.AddPatch(RunAfterR146, new JAPatchAttribute(RunAfter, PatchType.Replace, false));
+        }
+
         if(VersionControl.releaseNumber < 148) {
             patcher.AddPatch(IsEnableCompetitiveModeR147, new JAPatchAttribute(IsEnableCompetitiveMode, PatchType.Replace, false));
             patcher.AddPatch(WriteHitMarginTextR147, new JAPatchAttribute(WriteHitMarginText, PatchType.Replace, false));
@@ -57,6 +65,7 @@ public static class VersionSafe {
     public static float GetPercentXAcc() => throw new NotSupportedException("This functionality is not implemented");
     public static bool IsCoopMode() => throw new NotSupportedException("This functionality is not implemented");
     public static int GetPlayerCount() => throw new NotSupportedException("This functionality is not implemented");
+    public static void RunAfter(Action action) => throw new NotSupportedException("This functionality is not implemented");
     public static bool IsEnableCompetitiveMode() => throw new NotSupportedException("This functionality is not implemented");
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
     public static string WriteHitMarginTextWithoutColor(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
@@ -131,6 +140,18 @@ public static class VersionSafe {
     private static float GetPercentXAccR141() => scrPlayerManager.instance.mistakesManager.percentXAcc;
     private static bool IsCoopModeR141() => scrPlayerManager.playerCount > 1;
     private static int GetPlayerCountR141() => scrPlayerManager.playerCount;
+
+    #endregion
+
+    #region R145
+
+    private static void RunAfterR145(Action action) => Task.Yield().OnCompleted(action);
+
+    #endregion
+
+    #region R146
+
+    private static void RunAfterR146(Action action) => UniTask.Yield(PlayerLoopTiming.LastUpdate).GetAwaiter().OnCompleted(action);
 
     #endregion
 
