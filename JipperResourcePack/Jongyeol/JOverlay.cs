@@ -55,6 +55,7 @@ public class JOverlay : Overlay {
         SetupLocationMainText(ProgressText, JStatus.Settings.ShowProgress, ref y);
         SetupLocationMainText(AccuracyText, checkAuto && JStatus.Settings.ShowAccuracy, ref y);
         SetupLocationMainText(XAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy, ref y);
+        SetupLocationMainText(XScoreText, checkAuto && JStatus.Settings.ShowXScore && Status.XScoreSupported, ref y);
         SetupLocationMainText(TimeText, JStatus.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, JStatus.Settings.ShowMapTime, ref y);
         Checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();

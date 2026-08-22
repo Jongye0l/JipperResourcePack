@@ -63,6 +63,18 @@ public class Status : Feature {
             settingGUI.AddSettingSliderInt(ref Settings.XAccuracyDecimalPlaces, 2, ref _xAccuracyDecimalPlacesString, localization["progress.xAccuracyDecimalPlaces"], 0, 4,
                 () => Overlay.Instance.UpdateAccuracy());
         }
+        if(!XScoreSupported) GUI.enabled = false;
+        settingGUI.AddSettingToggle(ref Settings.ShowXScore, localization["progress.showXScore"], Overlay.Instance.SetupLocationMain);
+        if(XScoreSupported) {
+            if(Settings.ShowXScore) {
+                if(Settings.XScoreColor.SettingGUI(settingGUI, localization["progress.xScoreColor"]))
+                    Overlay.Instance.UpdateAccuracy();
+                settingGUI.AddSettingEnum(ref Settings.XScoreTextType, localization["progress.xScoreTextType"], () => Overlay.Instance.UpdateAccuracy());
+            }
+        } else {
+            GUI.enabled = true;
+            GUILayout.Label(localization["progress.xScoreRequireR148"]);
+        }
         settingGUI.AddSettingToggle(ref Settings.ShowMusicTime, localization["progress.showMusicTime"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowMusicTime && Settings.MusicTimeColor.SettingGUI(settingGUI, localization["progress.musicTimeColor"]))
             Overlay.Instance.UpdateTime();
@@ -89,6 +101,14 @@ public class Status : Feature {
             Overlay.Instance.UpdateProgressBar();
     }
 
+    public static bool XScoreSupported => VersionControl.releaseNumber >= 148;
+
+    public static string GetXScoreText(int xScore, int maxXScore) => Settings.XScoreTextType switch {
+        XScoreTextType.WithMax => $"{xScore}/{maxXScore}",
+        XScoreTextType.MaxMinus => $"{xScore} (MAX-{maxXScore - xScore})",
+        _ => xScore.ToString()
+    };
+
     public class ProgressSetting: JASetting {
         // ReSharper disable FieldCanBeMadeReadOnly.Global
         public bool ShowProgress = true;
@@ -100,6 +120,9 @@ public class Status : Feature {
         public bool ShowXAccuracy = true;
         public ColorPerDictionary XAccuracyColor;
         public int XAccuracyDecimalPlaces = 2;
+        public bool ShowXScore;
+        public ColorPerDictionary XScoreColor;
+        public XScoreTextType XScoreTextType = XScoreTextType.WithMax;
         public bool ShowMusicTime = true;
         public ColorPerDictionary MusicTimeColor;
         public bool ShowMapTime;
@@ -132,6 +155,11 @@ public class Status : Feature {
                 (1f, Color.white)
             ], new Color(1, 0.8549019607843137f, 0));
             
+            ColorPerDictionary.Setup(ref XScoreColor, [
+                (0.98f, Color.white),
+                (1f, Color.white)
+            ], new Color(1, 0.8549019607843137f, 0));
+
             ColorPerDictionary.Setup(ref MusicTimeColor, [(1f, Color.white)]);
             ColorPerDictionary.Setup(ref MapTimeColor, [(1f, Color.white)]);
             
@@ -149,7 +177,7 @@ public class Status : Feature {
     // ReSharper disable UnusedMember.Local
     [JAPatch(typeof(scrMistakesManager), "CalculatePercentAcc", PatchType.Postfix, false, MaxVersion = 140)]
     private static void OnAccuracyChange() {
-        Overlay.Instance.UpdateAccuracy();
+        VersionSafe.RunAfter(() => Overlay.Instance.UpdateAccuracy());
     }
     
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.CalculatePercentAcc), PatchType.Postfix, false, MinVersion = 141)]
@@ -163,7 +191,7 @@ public class Status : Feature {
                 break;
             }
         }
-        Overlay.Instance.UpdateAccuracy(index);
+        VersionSafe.RunAfter(() => Overlay.Instance.UpdateAccuracy(index));
     }
 
     [JAPatch(typeof(scrPlanet), "MoveToNextFloor", PatchType.Postfix, false)]
@@ -173,7 +201,7 @@ public class Status : Feature {
     
     [JAPatch(typeof(scrShowIfDebug), "Awake", PatchType.Postfix, false, TryingCatch = false)]
     private static void OnShowIfDebugAwake(scrShowIfDebug __instance) {
-        Task.Yield().OnCompleted(() => {
+        VersionSafe.RunAfter(() => {
             try {
                 if(__instance) {
                     RectTransform transform = __instance.GetComponent<RectTransform>();

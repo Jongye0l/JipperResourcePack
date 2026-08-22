@@ -18,6 +18,7 @@ public class Overlay {
     public TextMeshProUGUI ProgressText;
     public TextMeshProUGUI AccuracyText;
     public TextMeshProUGUI XAccuracyText;
+    public TextMeshProUGUI XScoreText;
     public TextMeshProUGUI TimeText;
     public TextMeshProUGUI MapTimeText;
     public TextMeshProUGUI CheckpointText;
@@ -101,6 +102,7 @@ public class Overlay {
         SetupMainText("Progress", ref ProgressText);
         SetupMainText("Accuracy", ref AccuracyText);
         SetupMainText("XAccuracy", ref XAccuracyText);
+        SetupMainText("XScore", ref XScoreText);
         SetupMainText("MusicTime", ref TimeText);
         SetupMainText("MapTime", ref MapTimeText);
         SetupMainText("Checkpoint", ref CheckpointText);
@@ -124,6 +126,7 @@ public class Overlay {
         SetupLocationMainText(ProgressText, Status.Settings.ShowProgress, ref y);
         SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy, ref y);
         SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
+        SetupLocationMainText(XScoreText, Status.Settings.ShowXScore && Status.XScoreSupported, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(CheckpointText,
@@ -278,6 +281,7 @@ public class Overlay {
         ProgressText.font = BundleLoader.FontAsset;
         AccuracyText.font = BundleLoader.FontAsset;
         XAccuracyText.font = BundleLoader.FontAsset;
+        XScoreText.font = BundleLoader.FontAsset;
         TimeText.font = BundleLoader.FontAsset;
         MapTimeText.font = BundleLoader.FontAsset;
         CheckpointText.font = BundleLoader.FontAsset;

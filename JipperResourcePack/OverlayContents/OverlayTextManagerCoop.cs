@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         overlay.ProgressText.color = Color.white;
         overlay.AccuracyText.color = Color.white;
         overlay.XAccuracyText.color = Color.white;
+        overlay.XScoreText.color = Color.white;
     }
 
     public void SetBest(float best) => CurBest = best;
@@ -60,6 +62,25 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                 strings[i + 1] = PlayerArray[i].XAccuracyString;
             overlay.XAccuracyText.text = string.Concat(strings);
         }
+        if(Status.Settings.ShowXScore && Status.XScoreSupported) {
+            if(index == -1)
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    SetXScore(ref PlayerArray[i], i);
+            else SetXScore(ref PlayerArray[index], index);
+            
+            string[] strings = new string[PlayerArray.Length + 1];
+            strings[0] = "XScore";
+            for(int i = 0; i < PlayerArray.Length; i++) 
+                strings[i + 1] = PlayerArray[i].XScoreString;
+            overlay.XScoreText.text = string.Concat(strings);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void SetXScore(ref PlayerData pData, int i) {
+        int xScore = scrMistakesManager.marginTrackers[i].xScore;
+        int maxXScore = (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID - scrMistakesManager.marginTrackers[i].GetHits(HitMargin.Midspin)) * HitMargin.XPerfect.ToXScore();
+        pData.XScoreString = $" | {ColorToString(Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore))}{Status.GetXScoreText(xScore, maxXScore)}</color>";
     }
 
     private void SetAccuracy(ref PlayerData pData, int noCheckStartTile, int i) {
@@ -142,6 +163,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         public string ProgressString;
         public string AccuracyString;
         public string XAccuracyString;
+        public string XScoreString;
         public string JudgementText;
 
         public void SetJudgement(int i, int[] hits) {

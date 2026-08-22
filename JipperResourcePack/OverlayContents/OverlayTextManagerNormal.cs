@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
@@ -20,7 +21,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         if(float.IsNaN(xacc)) xacc = 1;
         if(Status.Settings.ShowAccuracy) {
             float acc = VersionSafe.GetPercentAcc();
-            float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile + 1) * 0.0001f;
+            float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile) * 0.0001f;
             overlay.AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces)}%";
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             overlay.AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
@@ -29,6 +30,15 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             overlay.XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces)}%";
             overlay.XAccuracyText.color = Status.Settings.XAccuracyColor.GetColor(xacc);
         }
+        if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void UpdateXScore(Overlay overlay) {
+        int xScore = scrMistakesManager.marginTrackers[0].xScore;
+        int maxXScore = (scrController.instance.currentSeqID - overlay.Hit[(int) HitMargin.Midspin]) * HitMargin.XPerfect.ToXScore();
+        overlay.XScoreText.text = $"<color=white>XScore |</color> {Status.GetXScoreText(xScore, maxXScore)}";
+        overlay.XScoreText.color = Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore);
     }
 
     public virtual void UpdateProgress(Overlay overlay) {
