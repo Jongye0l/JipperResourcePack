@@ -81,6 +81,7 @@ public class Combo : Feature {
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
                 break;
             case HitMargin.Auto:
+            case HitMargin.Midspin:
                 break;
             default:
                 Overlay.Instance.UpdateCombo(ComboCount = 0, false);
