@@ -43,9 +43,10 @@ public partial class KeyViewer {
         KeyCountData countData = KeyCountData.Instance;
         KeyCode[] keyCodes = GetKeyCode();
         for(int i = 0; i < keyCodes.Length; i++) {
-            bool current = CheckKey(keyCodes[i]);
             Key key = Keys[i];
-            if(key == null || current == _keyState[i]) continue;
+            if(key == null) continue;
+            bool current = CheckKey(keyCodes[i]);
+            if(current == _keyState[i]) continue;
             _keyState[i] = current;
             key.UpdateRequestKey(current);
             if(!current) {
@@ -64,10 +65,11 @@ public partial class KeyViewer {
         }
         keyCodes = GetFootKeyCode();
         for(int i = 0; i < keyCodes.Length; i++) {
-            bool current = CheckKey(keyCodes[i]);
             int index = i + HandOutIndex;
             Key key = Keys[index];
-            if(key == null || current == _keyState[index]) continue;
+            if(key == null) continue;
+            bool current = CheckKey(keyCodes[i]);
+            if(current == _keyState[index]) continue;
             _keyState[index] = current;
             key.UpdateRequestKey(current);
             if(!current) continue;
@@ -79,9 +81,9 @@ public partial class KeyViewer {
         if(settings.useRain && settings.useGhostRain) {
             keyCodes = GetGhostKeyCode();
             for(int i = 0; i < keyCodes.Length; i++) {
-                bool current = CheckKey(keyCodes[i]);
                 Key key = Keys[i];
                 if(key == null) continue;
+                bool current = CheckKey(keyCodes[i]);
                 int index = i + FootOutIndex;
                 if(current == _keyState[index]) continue;
                 _keyState[index] = current;

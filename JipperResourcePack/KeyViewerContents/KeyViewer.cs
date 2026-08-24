@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Threading;
 using JALib.Core;
 using JALib.Core.Patch;
@@ -836,10 +837,12 @@ public partial class KeyViewer : Feature {
         _selectedKey = -1;
     }
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", ExactSpelling = true)]
+    [SuppressUnmanagedCodeSecurity]
     private static extern short GetAsyncKeyState(int vKey);
 
     private static bool CheckKey(KeyCode keyCode) {
+        if(keyCode == KeyCode.None) return false;
         return (int) keyCode < 0x1000 ? Input.GetKey(keyCode) : GetAsyncKeyState((int) keyCode - 0x1000) != 0;
     }
 
