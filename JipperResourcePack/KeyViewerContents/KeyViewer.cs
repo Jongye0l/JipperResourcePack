@@ -77,7 +77,9 @@ public partial class KeyViewer : Feature {
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSetting)) {
         Instance = this;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
-        if(ADOBase.platform != Platform.Windows) return;
+
+        if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys);
+        else if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
         AdofaiTweaksAPI.Setup();
         KeyboardChatterBlockerAPI.Setup();
@@ -1189,4 +1191,28 @@ public partial class KeyViewer : Feature {
         KeyboardChatterBlockerAPI.Setup();
         UpdateKeyLimit();
     }
+
+    [JAPatch(typeof(SettingsMenu), nameof(SettingsMenu.UpdateSetting), PatchType.Prefix, false)]
+    private static bool UpdateSetting(PauseSettingButton setting, SettingsMenu.Interaction action) {
+        if(!Settings.AutoSetupKeyLimit || setting.name != "keyLimiter") return true;
+        switch(action) {
+            case SettingsMenu.Interaction.Activate:
+                setting.UpdateDescription();
+                break;
+            case SettingsMenu.Interaction.Refresh:
+                setting.valueLabel.text = Main.Instance.Localization["KeyViewer.AutoSetupKeyLimit.Label"];
+                break;
+        }
+        return false;
+    }
+
+    [JAPatch(typeof(PauseSettingButton), nameof(PauseSettingButton.GetDescriptionText), PatchType.Prefix, false)]
+    private static bool GetDescriptionText(PauseSettingButton __instance, ref string __result) {
+        if(!Settings.AutoSetupKeyLimit || __instance.name != "keyLimiter") return true;
+        __result = Main.Instance.Localization["KeyViewer.AutoSetupKeyLimit.Description"];
+        return false;
+    }
+    
+    [JAPatch(typeof(SettingsMenu), "StartEditingKeys", PatchType.Prefix, false, TryingCatch = false)]
+    private static bool StartEditingKeys() => !Settings.AutoSetupKeyLimit;
 }
