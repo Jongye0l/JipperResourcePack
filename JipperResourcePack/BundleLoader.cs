@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -19,32 +19,11 @@ public static class BundleLoader {
     public static Texture2D SideImage;
 
     public static void LoadBundle() {
-        string path;
-        switch(ADOBase.platform) {
-            case Platform.Windows:
-                path = Path.Combine(Main.Instance.Path, "jipperresourcepackbundle");
-                break;
-            case Platform.Linux:
-                path = Path.Combine(Main.Instance.Path, "Linux/jipperresourcepackbundle");
-                break;
-            case Platform.Mac:
-                path = Path.Combine(Main.Instance.Path, "Mac/jipperresourcepackbundle");
-                break;
-            default:
-                Main.Instance.Warning("Unsupported platform, defaulting to Windows path");
-                goto case Platform.Windows;
-        }
-
-        Main.Instance.Log("Unity Version: " + Application.unityVersion);
-        if(Application.unityVersion.StartsWith("2022")) path += "2022";
-
-        _bundle = AssetBundle.LoadFromFile(path);
+        RemoveLegacyBundle();
+        LoadDefaultFont();
+        _bundle = AssetBundle.LoadFromFile(Path.Combine(Main.Instance.Path, "jipperresourcepackbundle"));
         foreach(Object asset in _bundle.LoadAllAssets()) {
             switch(asset.name) {
-                case "MAPLESTORY_OTF_BOLD SDF":
-                    FontAsset = DefaultFontAsset = (TMP_FontAsset) asset;
-                    FontAsset.fallbackFontAssetTable.Add(RDConstants.data.chineseFontTMPro);
-                    break;
                 case "ProgressBar":
                     ProgressObject = (GameObject) asset;
                     break;
@@ -68,8 +47,42 @@ public static class BundleLoader {
         if(!string.IsNullOrEmpty(Main.Settings.FontName)) LoadCustomFont(Main.Settings.FontName);
     }
 
+    private static void RemoveLegacyBundle() {
+        try {
+            foreach(string name in new[] { "Linux", "Mac" }) {
+                string directory = Path.Combine(Main.Instance.Path, name);
+                if(!Directory.Exists(directory)) continue;
+                Directory.Delete(directory, true);
+                Main.Instance.Log("Removed legacy bundle directory: " + name);
+            }
+            string bundle = Path.Combine(Main.Instance.Path, "jipperresourcepackbundle2022");
+            if(!File.Exists(bundle)) return;
+            File.Delete(bundle);
+            Main.Instance.Log("Removed legacy bundle file: jipperresourcepackbundle2022");
+        } catch (Exception e) {
+            Main.Instance.Warning("Failed to remove legacy bundle\n" + e);
+        }
+    }
+
+    private static void LoadDefaultFont() {
+        string fontPath = Path.Combine(Main.Instance.Path, "Font/MAPLESTORY_OTF_BOLD.OTF");
+        TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(fontPath, 0, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+        if(!fontAsset) {
+            Main.Instance.Error("Failed to create font asset for default font: " + fontPath);
+            return;
+        }
+        try {
+            fontAsset.fallbackFontAssetTable.Add(RDConstants.data.chineseFontTMPro);
+        } catch (Exception e) {
+            Main.Instance.Warning("Failed to add fallback font asset for default font\n" + e);
+        }
+        FontAsset = DefaultFontAsset = fontAsset;
+    }
+
     public static void UnloadBundle() {
         UnloadCustomFont();
+        Object.Destroy(DefaultFontAsset);
+        DefaultFontAsset = null;
         _bundle.Unload(true);
     }
 
