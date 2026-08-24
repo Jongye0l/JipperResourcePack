@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -49,10 +49,12 @@ public static class VersionSafe {
             patcher.AddPatch(IsEnableCompetitiveModeR147, new JAPatchAttribute(IsEnableCompetitiveMode, PatchType.Replace, false));
             patcher.AddPatch(WriteHitMarginTextR147, new JAPatchAttribute(WriteHitMarginText, PatchType.Replace, false));
             patcher.AddPatch(WriteHitMarginTextWithoutColorR147, new JAPatchAttribute(WriteHitMarginTextWithoutColor, PatchType.Replace, false));
+            patcher.AddPatch(CalculateTrackerPercentAccR147, new JAPatchAttribute(CalculateTrackerPercentAcc, PatchType.Transpiler, false));
         } else {
             patcher.AddPatch(IsEnableCompetitiveModeR148, new JAPatchAttribute(IsEnableCompetitiveMode, PatchType.Replace, false));
             patcher.AddPatch(WriteHitMarginTextR148, new JAPatchAttribute(WriteHitMarginText, PatchType.Replace, false));
             patcher.AddPatch(WriteHitMarginTextWithoutColorR148, new JAPatchAttribute(WriteHitMarginTextWithoutColor, PatchType.Replace, false));
+            patcher.AddPatch(CalculateTrackerPercentAccR148, new JAPatchAttribute(CalculateTrackerPercentAcc, PatchType.Replace, false));
         }
         patcher.Patch();
     }
@@ -70,6 +72,7 @@ public static class VersionSafe {
     public static bool IsEnableCompetitiveMode() => throw new NotSupportedException("This functionality is not implemented");
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
     public static string WriteHitMarginTextWithoutColor(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
+    public static void CalculateTrackerPercentAcc(scrMarginTracker tracker) => throw new NotSupportedException("This functionality is not implemented");
 
     #region R136
 
@@ -128,7 +131,7 @@ public static class VersionSafe {
 
     private static void ColorLogoR141(scrLogoText text, Color color, bool isFire) => text.ColorLogo(color, isFire);
     private static void CalculatePercentAccR141() {
-        foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
+        foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) CalculateTrackerPercentAcc(tracker);
     }
     
     private static int[] GetHitMarginsCountR141() {
@@ -185,6 +188,12 @@ public static class VersionSafe {
             .Append(postfix).ToString();
     }
 
+    private static IEnumerable<CodeInstruction> CalculateTrackerPercentAccR147(IEnumerable<CodeInstruction> instructions) => [
+        new(OpCodes.Ldarg_0),
+        new(OpCodes.Call, typeof(scrMarginTracker).GetMethod("CalculatePercentAcc", BindingFlags.Public | BindingFlags.Instance)),
+        new(OpCodes.Ret)
+    ];
+
     #endregion
 
     #region R148
@@ -221,6 +230,8 @@ public static class VersionSafe {
             .Append(' ').Append(hits[10])
             .Append(postfix).ToString();
     }
+    
+    private static void CalculateTrackerPercentAccR148(scrMarginTracker tracker) => tracker.CalculatePercentAcc();
 
     #endregion
 
