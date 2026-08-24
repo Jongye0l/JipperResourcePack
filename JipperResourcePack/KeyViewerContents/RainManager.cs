@@ -40,7 +40,9 @@ public class RainManager : MonoBehaviour {
                 if(y > height) {
                     float sizeY = rawRain.FinalSizeY - y + height;
                     if(sizeY < 0) {
-                        RainList.RemoveAt(i--);
+                        int last = RainList.Count - 1;
+                        RainList[i--] = RainList[last];
+                        RainList.RemoveAt(last);
                         RawRain.AddPool(rawRain);
                         rain.RawRain = null;
                         rain.Pool.AddPool(rain, rain.IsGhost);
