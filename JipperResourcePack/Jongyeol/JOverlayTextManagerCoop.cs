@@ -80,7 +80,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
             Death = hit[8] + hit[9];
             float max = (currentTile - overlay.StartTile) * 0.05f;
             Color color = overlay.GetColor(1 - Math.Min(Death, max) / max);
-            DeathString = $" | <color={ColorUtility.ToHtmlStringRGB(color)}>{Death}</color>";
+            DeathString = " | <color=" + ColorUtility.ToHtmlStringRGB(color) + ">" + Death + "</color>";
         }
 
         public void SetState(JOverlay overlay, int index, int[] hit) {

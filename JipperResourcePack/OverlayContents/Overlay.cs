@@ -361,12 +361,12 @@ public class Overlay {
     public void UpdateAttempts() {
         string[] values = new string[2];
         int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0}";
-        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(LastHash)?.GetAttempts() ?? 0}";
+        if(Attempt.Settings.ShowAttempt) values[count++] = "Attempt " + (PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0);
+        if(Attempt.Settings.ShowFullAttempt) values[count++] = "Full Attempt " + (PlayCount.GetData(LastHash)?.GetAttempts() ?? 0);
         AttemptText.text = count switch {
             0 => "",
             1 => values[0],
-            _ => $"{values[0]}\n{values[1]}"
+            _ => values[0] + "\n" + values[1]
         };
     }
 
@@ -395,7 +395,7 @@ public class Overlay {
                     if(time > 0) SongPlaying = true;
                     timeStr = GetTimeString(time, hourNeed);
                 }
-                TimeText.text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {timeStr}~{MusicTimeCache}";
+                TimeText.text = "<color=white>" + (Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time") + " |</color> " + timeStr + "~" + MusicTimeCache;
                 _lastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
@@ -411,7 +411,7 @@ public class Overlay {
             MapTimeCache ??= GetTimeString(totalTime, hourNeed);
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
-            string text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {timeStr}~{MapTimeCache}";
+            string text = "<color=white>" + (Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time") + " |</color> " + timeStr + "~" + MapTimeCache;
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 _lastMapTime = (int) time;
@@ -433,7 +433,8 @@ public class Overlay {
 
     private static string GetTimeString(float time, bool hour) {
         int timeInt = (int) time;
-        return hour ? $"{timeInt / 3600}:{timeInt % 3600 / 60:00}:{timeInt % 60:00}" : $"{timeInt / 60}:{timeInt % 60:00}";
+        return hour ? (timeInt / 3600) + ":" + (timeInt % 3600 / 60).ToString("00") + ":" + (timeInt % 60).ToString("00") :
+                      (timeInt / 60) + ":" + (timeInt % 60).ToString("00");
     }
     
     public void UpdateCombo(int combo, bool bump) {
@@ -486,17 +487,34 @@ public class Overlay {
         float kps = cbpm / 60;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm) return;
-        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax))}>{Math.Round(bpm, Bpm.Settings.DecimalPlaces)}</color>\n" +
-                       $"CBPM |</color> {Math.Round(cbpm, Bpm.Settings.DecimalPlaces)}\n" +
-                       $"<color=white>KPS |</color> {Math.Round(kps, Bpm.Settings.DecimalPlaces)}";
+        BpmText.text = "<color=white>TBPM | <color=#" + ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax)) + ">" + Math.Round(bpm, Bpm.Settings.DecimalPlaces) +
+                       "</color>\nCBPM |</color> " + Math.Round(cbpm, Bpm.Settings.DecimalPlaces) +
+                       "\n<color=white>KPS |</color> " + Math.Round(kps, Bpm.Settings.DecimalPlaces);
         if(LastCurBpm != cbpm) BpmText.color = Bpm.Settings.BpmColor.GetColor(cbpm / Bpm.Settings.BpmColorMax);
         // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;
         LastCurBpm = cbpm;
     }
 
+    private const string HexDigits = "0123456789ABCDEF";
+
     // ReSharper disable once CompareOfFloatsByEqualityOperator
-    protected static string ColorToHex(Color color) => $"{Mathf.RoundToInt(color.r * 255):X2}{Mathf.RoundToInt(color.g * 255):X2}{Mathf.RoundToInt(color.b * 255):X2}{(color.a == 1 ? "" : Mathf.RoundToInt(color.a * 255).ToString("X2"))}";
+    protected static string ColorToHex(Color color) {
+        bool withAlpha = color.a != 1;
+        char[] chars = new char[withAlpha ? 8 : 6];
+        WriteHexByte(chars, 0, Mathf.RoundToInt(color.r * 255));
+        WriteHexByte(chars, 2, Mathf.RoundToInt(color.g * 255));
+        WriteHexByte(chars, 4, Mathf.RoundToInt(color.b * 255));
+        if(withAlpha) WriteHexByte(chars, 6, Mathf.RoundToInt(color.a * 255));
+        return new string(chars);
+    }
+
+    private static void WriteHexByte(char[] chars, int index, int value) {
+        if(value < 0) value = 0;
+        else if(value > 255) value = 255;
+        chars[index] = HexDigits[value >> 4];
+        chars[index + 1] = HexDigits[value & 0xF];
+    }
 
     public void UpdateTiming(float timing, int player = -1) {
         if(!Status.Settings.ShowTiming || !GameObject.activeSelf) return;
@@ -510,7 +528,7 @@ public class Overlay {
 
     public void UpdateTimingScale() {
         if(!GameObject.activeSelf) return;
-        TimingScaleText.text = $"Timing Scale - {Math.Round(scrController.instance.currFloor.marginScale * 100, 2)}%";
+        TimingScaleText.text = "Timing Scale - " + Math.Round(scrController.instance.currFloor.marginScale * 100, 2) + "%";
     }
 
     public void ChangeComboText(ComboTier tier) {

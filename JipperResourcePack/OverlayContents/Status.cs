@@ -136,8 +136,8 @@ public class Status : Feature {
     public static bool XScoreSupported => VersionControl.releaseNumber >= 148;
 
     public static string GetXScoreText(int xScore, int maxXScore) => Settings.XScoreTextType switch {
-        XScoreTextType.WithMax => $"{xScore}/{maxXScore}",
-        XScoreTextType.MaxMinus => $"{xScore} (MAX-{maxXScore - xScore})",
+        XScoreTextType.WithMax => xScore + "/" + maxXScore,
+        XScoreTextType.MaxMinus => xScore + " (MAX-" + (maxXScore - xScore) + ")",
         _ => xScore.ToString()
     };
 

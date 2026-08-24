@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HarmonyLib;
@@ -12,6 +13,13 @@ using UnityEngine;
 namespace JipperResourcePack;
 
 public static class VersionSafe {
+    private static readonly StringBuilder Builder = new(192);
+
+    private static StringBuilder ResetBuilder() {
+        Builder.Length = 0;
+        return Builder;
+    }
+
     public static void Setup() {
         Main.Instance.Log("Version Safe Setup");
         JAPatcher patcher = new(Main.Instance);
@@ -159,11 +167,29 @@ public static class VersionSafe {
 
     private static bool IsEnableCompetitiveModeR147() => false;
     private static string WriteHitMarginTextR147(int[] hits, string prefix, string postfix) {
-        return $"{prefix}{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[10]}</color> {hits[4]}</color> {hits[5]}</color> {hits[6]}</color> {hits[8]}{postfix}";
+        return ResetBuilder().Append(prefix).Append(hits[9])
+            .Append(" <color=red>").Append(hits[0])
+            .Append(" <color=#FF6F4E>").Append(hits[1])
+            .Append(" <color=#A0FF4E>").Append(hits[2])
+            .Append(" <color=#60FF4E>").Append(hits[3] + hits[10])
+            .Append("</color> ").Append(hits[4])
+            .Append("</color> ").Append(hits[5])
+            .Append("</color> ").Append(hits[6])
+            .Append("</color> ").Append(hits[8])
+            .Append(postfix).ToString();
     }
 
     private static string WriteHitMarginTextWithoutColorR147(int[] hits, string prefix, string postfix) {
-        return $"{prefix}{hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[10]} {hits[4]} {hits[5]} {hits[6]} {hits[8]}{postfix}";
+        return ResetBuilder().Append(prefix).Append(hits[9])
+            .Append(' ').Append(hits[0])
+            .Append(' ').Append(hits[1])
+            .Append(' ').Append(hits[2])
+            .Append(' ').Append(hits[3] + hits[10])
+            .Append(' ').Append(hits[4])
+            .Append(' ').Append(hits[5])
+            .Append(' ').Append(hits[6])
+            .Append(' ').Append(hits[8])
+            .Append(postfix).ToString();
     }
 
     #endregion
@@ -172,15 +198,35 @@ public static class VersionSafe {
 
     private static bool IsEnableCompetitiveModeR148() => Persistence.enableCompetitiveMode;
     private static string WriteHitMarginTextR148(int[] hits, string prefix, string postfix) {
-        return Persistence.enableCompetitiveMode ? 
-                   $"{prefix}{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3]} <color=#FFF>{hits[4] + hits[12]}</color> {hits[5]}</color> {hits[6]}</color> {hits[7]}</color> {hits[8]}</color> {hits[10]}{postfix}" : 
-                   $"{prefix}{hits[9]} <color=red>{hits[0]} <color=#FF6F4E>{hits[1]} <color=#A0FF4E>{hits[2]} <color=#60FF4E>{hits[3] + hits[4] + hits[5] + hits[12]}</color> {hits[6]}</color> {hits[7]}</color> {hits[8]}</color> {hits[10]}{postfix}";
+        StringBuilder sb = ResetBuilder().Append(prefix).Append(hits[9])
+            .Append(" <color=red>").Append(hits[0])
+            .Append(" <color=#FF6F4E>").Append(hits[1])
+            .Append(" <color=#A0FF4E>").Append(hits[2])
+            .Append(" <color=#60FF4E>");
+        if(Persistence.enableCompetitiveMode)
+            sb.Append(hits[3]).Append(" <color=#FFF>").Append(hits[4] + hits[12]).Append("</color> ").Append(hits[5]);
+        else sb.Append(hits[3] + hits[4] + hits[5] + hits[12]);
+        return sb.Append("</color> ").Append(hits[6])
+            .Append("</color> ").Append(hits[7])
+            .Append("</color> ").Append(hits[8])
+            .Append("</color> ").Append(hits[10])
+            .Append(postfix).ToString();
     }
 
     private static string WriteHitMarginTextWithoutColorR148(int[] hits, string prefix, string postfix) {
-        return Persistence.enableCompetitiveMode ? 
-                   $"{prefix}{hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3]} {hits[4] + hits[12]} {hits[5]} {hits[6]} {hits[7]} {hits[8]} {hits[10]}{postfix}" :
-                   $"{prefix}{hits[9]} {hits[0]} {hits[1]} {hits[2]} {hits[3] + hits[4] + hits[5] + hits[12]} {hits[6]} {hits[7]} {hits[8]} {hits[10]}{postfix}";
+        StringBuilder sb = ResetBuilder().Append(prefix).Append(hits[9])
+            .Append(' ').Append(hits[0])
+            .Append(' ').Append(hits[1])
+            .Append(' ').Append(hits[2])
+            .Append(' ');
+        if(Persistence.enableCompetitiveMode)
+            sb.Append(hits[3]).Append(' ').Append(hits[4] + hits[12]).Append(' ').Append(hits[5]);
+        else sb.Append(hits[3] + hits[4] + hits[5] + hits[12]);
+        return sb.Append(' ').Append(hits[6])
+            .Append(' ').Append(hits[7])
+            .Append(' ').Append(hits[8])
+            .Append(' ').Append(hits[10])
+            .Append(postfix).ToString();
     }
 
     #endregion

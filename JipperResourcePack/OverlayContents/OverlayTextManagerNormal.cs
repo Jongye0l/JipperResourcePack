@@ -25,12 +25,12 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         if(Status.Settings.ShowAccuracy) {
             float acc = VersionSafe.GetPercentAcc();
             float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile) * 0.0001f;
-            overlay.AccuracyText.text = $"<color=white>Accuracy |</color> {Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces)}%";
+            overlay.AccuracyText.text = "<color=white>Accuracy |</color> " + Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces) + "%";
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             overlay.AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
         }
         if(Status.Settings.ShowXAccuracy) {
-            overlay.XAccuracyText.text = $"<color=white>XAccuracy |</color> {Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces)}%";
+            overlay.XAccuracyText.text = "<color=white>XAccuracy |</color> " + Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces) + "%";
             overlay.XAccuracyText.color = Status.Settings.XAccuracyColor.GetColor(xacc);
         }
         if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay);
@@ -40,12 +40,12 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     private static void UpdateXScore(Overlay overlay) {
         int xScore = scrMistakesManager.marginTrackers[0].xScore;
         int maxXScore = (scrController.instance.currentSeqID - overlay.Hit[(int) HitMargin.Midspin]) * HitMargin.XPerfect.ToXScore();
-        overlay.XScoreText.text = $"<color=white>XScore |</color> {Status.GetXScoreText(xScore, maxXScore)}";
+        overlay.XScoreText.text = "<color=white>XScore |</color> " + Status.GetXScoreText(xScore, maxXScore);
         overlay.XScoreText.color = Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore);
     }
 
     public virtual void UpdateProgress(Overlay overlay) {
-        overlay.ProgressText.text = $"<color=white>Progress |</color> {Math.Round(Progress * 100, Status.Settings.ProgressDecimalPlaces)}%";
+        overlay.ProgressText.text = "<color=white>Progress |</color> " + Math.Round(Progress * 100, Status.Settings.ProgressDecimalPlaces) + "%";
         overlay.ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
     }
     
@@ -64,7 +64,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             updated = true;
         }
         if(LastCheckpoint == scrController.checkpointsUsed && !updated) return;
-        overlay.CheckpointText.text = $"<color=white>CheckPoint |</color> {scrController.checkpointsUsed} ({CurCheck}/{overlay.Checkpoints.Length})";
+        overlay.CheckpointText.text = "<color=white>CheckPoint |</color> " + scrController.checkpointsUsed + " (" + CurCheck + "/" + overlay.Checkpoints.Length + ")";
         LastCheckpoint = scrController.checkpointsUsed;
     }
     
@@ -75,7 +75,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         else if(CurBest > Progress || overlay.AutoOnceEnabled) return;
         
         float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
-        overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, Status.Settings.BestDecimalPlaces)}%";
+        overlay.BestText.text = "<color=white>Best |</color> " + Math.Round(best * 100, Status.Settings.BestDecimalPlaces) + "%";
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
     
@@ -114,19 +114,19 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
                 SetAvgTiming(overlay, average, decimalPlaces);
                 break;
             default:
-                overlay.TimingText.text = $"<color=white>Timing |</color> {Math.Round(LastTiming, decimalPlaces)} ({Math.Round(average, decimalPlaces)})";
+                overlay.TimingText.text = "<color=white>Timing |</color> " + Math.Round(LastTiming, decimalPlaces) + " (" + Math.Round(average, decimalPlaces) + ")";
                 overlay.TimingText.color = Status.GetTimingColor(LastTiming);
                 break;
         }
     }
 
     private void SetTiming(Overlay overlay, int decimalPlaces) {
-        overlay.TimingText.text = $"<color=white>Timing |</color> {Math.Round(LastTiming, decimalPlaces)}";
+        overlay.TimingText.text = "<color=white>Timing |</color> " + Math.Round(LastTiming, decimalPlaces);
         overlay.TimingText.color = Status.GetTimingColor(LastTiming);
     }
 
     private static void SetAvgTiming(Overlay overlay, float average, int decimalPlaces) {
-        overlay.AvgTimingText.text = $"<color=white>A.Timing |</color> {Math.Round(average, decimalPlaces)}";
+        overlay.AvgTimingText.text = "<color=white>A.Timing |</color> " + Math.Round(average, decimalPlaces);
         overlay.AvgTimingText.color = Status.GetTimingColor(average);
     }
 }

@@ -10,7 +10,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     public void UpdateDeath(JOverlay overlay, scrPlanet _) {
         int deathCount;
         if(_death != (deathCount = overlay.Hit[8] + overlay.Hit[9])) {
-            overlay.DeathText.text = $"<color=white>Death |</color> {deathCount}";
+            overlay.DeathText.text = "<color=white>Death |</color> " + deathCount;
             _death = deathCount;
         }
         float max = (scrController.instance.currentSeqID - overlay.StartTile) * 0.05f;
@@ -39,7 +39,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
         }
         if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) s += " 중";
         if(overlay.StartTile != 0) s += "(중간에서 시작)";
-        overlay.StateText.text = $"<color=white>State |</color> {s}";
+        overlay.StateText.text = "<color=white>State |</color> " + s;
     }
     
     public void CheckPurePerfect(JOverlay overlay, scrPlanet _) {

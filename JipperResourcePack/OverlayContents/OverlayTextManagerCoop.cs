@@ -41,7 +41,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     }
 
     private void SetProgress(ref PlayerData pData, float progress) {
-        pData.ProgressString = $" | {ColorToString(Status.Settings.ProgressColor.GetColor(progress))}{Math.Round(progress * 100, Status.Settings.ProgressDecimalPlaces)}%</color>";
+        pData.ProgressString = " | " + ColorToString(Status.Settings.ProgressColor.GetColor(progress)) + Math.Round(progress * 100, Status.Settings.ProgressDecimalPlaces) + "%</color>";
         if(MaxProgress < progress) MaxProgress = progress;
     }
     
@@ -88,21 +88,21 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     private static void SetXScore(ref PlayerData pData, int i) {
         int xScore = scrMistakesManager.marginTrackers[i].xScore;
         int maxXScore = (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID - scrMistakesManager.marginTrackers[i].GetHits(HitMargin.Midspin)) * HitMargin.XPerfect.ToXScore();
-        pData.XScoreString = $" | {ColorToString(Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore))}{Status.GetXScoreText(xScore, maxXScore)}</color>";
+        pData.XScoreString = " | " + ColorToString(Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore)) + Status.GetXScoreText(xScore, maxXScore) + "</color>";
     }
 
     private void SetAccuracy(ref PlayerData pData, int noCheckStartTile, int i) {
         float acc = scrMistakesManager.marginTrackers[i].percentAcc;
         float maxAcc = 1 + (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID - noCheckStartTile + 1) * 0.0001f;
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        pData.AccuracyString = $" | {ColorToString(Status.Settings.AccuracyColor.GetColor(scrMistakesManager.marginTrackers[i].percentXAcc.SetIfNaN(1) == 1 ? 1 : acc / maxAcc))}{Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces)}%</color>";
+        pData.AccuracyString = " | " + ColorToString(Status.Settings.AccuracyColor.GetColor(scrMistakesManager.marginTrackers[i].percentXAcc.SetIfNaN(1) == 1 ? 1 : acc / maxAcc)) + Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces) + "%</color>";
     }
     
     private void SetXAccuracy(ref PlayerData pData, int i) {
         float xacc = scrMistakesManager.marginTrackers[i].percentXAcc;
         if(float.IsNaN(xacc)) xacc = 1;
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        pData.XAccuracyString = $" | {ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc))}{Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces)}%</color>";
+        pData.XAccuracyString = " | " + ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc)) + Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces) + "%</color>";
     }
 
     public void UpdateProgress(Overlay overlay) {
@@ -144,11 +144,11 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     protected void UpdateBestText(Overlay overlay) {
         float best = CurBest > MaxProgress || overlay.AutoOnceEnabled ? CurBest : MaxProgress;
-        overlay.BestText.text = $"<color=white>Best |</color> {Math.Round(best * 100, Status.Settings.BestDecimalPlaces)}%";
+        overlay.BestText.text = "<color=white>Best |</color> " + Math.Round(best * 100, Status.Settings.BestDecimalPlaces) + "%";
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
-    protected static string ColorToString(in Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>";
+    protected static string ColorToString(in Color color) => "<color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">";
     
     public void SetupUnderTextLocation(Overlay overlay) {
         overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, 85);
@@ -197,10 +197,11 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         float timing = LastTimings[i];
         int count = _timingCounts[i];
         float average = count == 0 ? 0 : (float) (_timingSums[i] / count);
+        string timingPrefix = " | " + ColorToString(Status.GetTimingColor(timing)) + Math.Round(timing, decimalPlaces);
         pData.TimingString = type == TimingTextType.BothInOneLine ?
-                                 $" | {ColorToString(Status.GetTimingColor(timing))}{Math.Round(timing, decimalPlaces)} ({Math.Round(average, decimalPlaces)})</color>" :
-                                 $" | {ColorToString(Status.GetTimingColor(timing))}{Math.Round(timing, decimalPlaces)}</color>";
-        pData.AvgTimingString = $" | {ColorToString(Status.GetTimingColor(average))}{Math.Round(average, decimalPlaces)}</color>";
+                                 timingPrefix + " (" + Math.Round(average, decimalPlaces) + ")</color>" :
+                                 timingPrefix + "</color>";
+        pData.AvgTimingString = " | " + ColorToString(Status.GetTimingColor(average)) + Math.Round(average, decimalPlaces) + "</color>";
     }
 
     public struct PlayerData {
