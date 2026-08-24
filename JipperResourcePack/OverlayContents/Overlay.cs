@@ -127,6 +127,7 @@ public class Overlay {
     }
 
     public virtual void SetupLocationMain() {
+        if(!GameObject.activeSelf) return;
         int y = -15;
         SetupLocationMainText(ProgressText, Status.Settings.ShowProgress, ref y);
         SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy, ref y);

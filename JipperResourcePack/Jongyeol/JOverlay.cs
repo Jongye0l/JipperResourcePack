@@ -43,7 +43,7 @@ public class JOverlay : Overlay {
     }
 
     public override void SetupLocationMain() {
-        if(!FPSText) return;
+        if(!GameObject.activeSelf) return;
         int y = -15;
         bool checkAuto = !JStatus.Settings.RemoveNotRequireInAuto || !RDC.auto;
         SetupLocationMainText(FPSText, JStatus.Settings.ShowFPS, ref y);
