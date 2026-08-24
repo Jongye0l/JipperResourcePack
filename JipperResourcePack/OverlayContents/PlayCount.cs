@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using ADOFAI;
@@ -224,9 +225,17 @@ public static class PlayCount {
         public bool Equals(byte[] hash) {
             if(Data == hash) return true;
             if(Data == null || hash == null || Data.Length != hash.Length) return false;
-            return Data.Length == hash.Length && !Data.Where((t, i) => t != hash[i]).Any();
+            for(int i = 0; i < Data.Length; i++) if(Data[i] != hash[i]) return false;
+            return true;
         }
-        public override int GetHashCode() => Data != null ? ToString().GetHashCode() : 0;
+        public override int GetHashCode() {
+            byte[] data = Data;
+            if(data == null) return 0;
+            if(data.Length >= 4) return Unsafe.ReadUnaligned<int>(ref data[0]);
+            int hash = 0;
+            foreach(byte b in data) hash = hash * 31 + b;
+            return hash;
+        }
 
         public static bool operator ==(Hash left, Hash right) => left.Equals(right);
         public static bool operator !=(Hash left, Hash right) => !(left == right);
