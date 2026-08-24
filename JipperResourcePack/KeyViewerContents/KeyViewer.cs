@@ -22,6 +22,7 @@ using UnityModManagerNet;
 using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
 using ThreadPriority = System.Threading.ThreadPriority;
+using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
 namespace JipperResourcePack.KeyViewerContents;
 
@@ -319,6 +320,7 @@ public partial class KeyViewer : Feature {
                 "RainColor2",
                 "RainColor3"
             ];
+            ref ColorCache first = ref settings.Background;
             for(int i = 0; i < 9; i++) {
                 if(i == 8 && Settings.KeyViewerStyle != KeyviewerStyle.Key20) continue;
                 GUILayout.BeginHorizontal();
@@ -330,7 +332,7 @@ public partial class KeyViewer : Feature {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
-                if(settings.GetValue<ColorCache>(names[i]).SettingGUI(settingGUI)) {
+                if(Unsafe.Add(ref first, i).SettingGUI(settingGUI)) {
                     RefreshColors();
                     Main.Instance.SaveSetting();
                 }

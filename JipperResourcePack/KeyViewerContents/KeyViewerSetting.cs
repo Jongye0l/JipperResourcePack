@@ -62,6 +62,9 @@ public class KeyViewerSetting : JASetting {
     public float rainHeight = 200;
     // ReSharper restore InconsistentNaming
 
+    // DO NOT CHANGE THE ORDER OF THESE FIELDS!
+    // KeyViewer.OnGUI() walks them with Unsafe.Add, so it relies on this exact order.
+    // If you have to reorder them, update KeyViewer.OnGUI() as well.
     public ColorCache Background;
     public ColorCache BackgroundClicked;
     public ColorCache Outline;
