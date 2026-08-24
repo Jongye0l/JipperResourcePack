@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -59,19 +60,33 @@ public static class VersionSafe {
         patcher.Patch();
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ColorLogoSafe(this scrLogoText text, Color color, bool isFire) => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void CalculatePercentAcc() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static int[] GetHitMarginsCount() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static double GetPlanetSpeed(scrController controller) => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void LoadScene(string name) => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static float GetPercentAcc() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static float GetPercentXAcc() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static bool IsCoopMode() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static int GetPlayerCount() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void RunAfter(Action action) => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static bool IsEnableCompetitiveMode() => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static string WriteHitMarginTextWithoutColor(int[] hits, string prefix, string postfix) => throw new NotSupportedException("This functionality is not implemented");
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void CalculateTrackerPercentAcc(scrMarginTracker tracker) => throw new NotSupportedException("This functionality is not implemented");
 
     #region R136
