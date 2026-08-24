@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerNormal : IOverlayTextManager {
-    public readonly List<float> Timings = [];
+    private double _timingSum;
+    private int _timingCount;
     public float LastTiming;
     public float Progress;
     public int CurCheck;
@@ -93,7 +92,8 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     }
 
     public void UpdateTiming(Overlay overlay, float timing, int _) {
-        Timings.Add(timing);
+        _timingSum += timing;
+        _timingCount++;
         LastTiming = timing;
         RefreshTiming(overlay);
     }
@@ -101,7 +101,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     public void RefreshTiming(Overlay overlay) {
         if(!Status.Settings.ShowTiming) return;
         int decimalPlaces = Status.Settings.TimingDecimalPlaces;
-        float average = Timings.Count == 0 ? 0 : Timings.Average();
+        float average = _timingCount == 0 ? 0 : (float) (_timingSum / _timingCount);
         switch(Status.Settings.TimingTextType) {
             case TimingTextType.Timing:
                 SetTiming(overlay, decimalPlaces);

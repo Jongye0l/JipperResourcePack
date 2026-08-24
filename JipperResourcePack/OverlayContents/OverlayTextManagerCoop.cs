@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
@@ -9,7 +7,8 @@ namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerCoop : IOverlayTextManager {
     public readonly PlayerData[] PlayerArray;
-    public readonly List<float>[] Timings;
+    private readonly double[] _timingSums;
+    private readonly int[] _timingCounts;
     public readonly float[] LastTimings;
     public float MaxProgress;
     public float CurBest = -1;
@@ -18,8 +17,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     public OverlayTextManagerCoop(Overlay overlay) {
         PlayerArray = new PlayerData[scrPlayerManager.playerCount];
-        Timings = new List<float>[PlayerArray.Length];
-        for(int i = 0; i < Timings.Length; i++) Timings[i] = [];
+        _timingSums = new double[PlayerArray.Length];
+        _timingCounts = new int[PlayerArray.Length];
         LastTimings = new float[PlayerArray.Length];
         overlay.ProgressText.color = Color.white;
         overlay.AccuracyText.color = Color.white;
@@ -170,7 +169,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     
     public void UpdateTiming(Overlay overlay, float timing, int player) {
         if(player < 0 || player >= PlayerArray.Length) player = 0;
-        Timings[player].Add(timing);
+        _timingSums[player] += timing;
+        _timingCounts[player]++;
         LastTimings[player] = timing;
         RefreshTiming(overlay);
     }
@@ -195,8 +195,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     private void SetTiming(ref PlayerData pData, int i, TimingTextType type, int decimalPlaces) {
         float timing = LastTimings[i];
-        List<float> timings = Timings[i];
-        float average = timings.Count == 0 ? 0 : timings.Average();
+        int count = _timingCounts[i];
+        float average = count == 0 ? 0 : (float) (_timingSums[i] / count);
         pData.TimingString = type == TimingTextType.BothInOneLine ?
                                  $" | {ColorToString(Status.GetTimingColor(timing))}{Math.Round(timing, decimalPlaces)} ({Math.Round(average, decimalPlaces)})</color>" :
                                  $" | {ColorToString(Status.GetTimingColor(timing))}{Math.Round(timing, decimalPlaces)}</color>";
