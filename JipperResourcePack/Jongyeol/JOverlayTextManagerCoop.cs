@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using JALib.Tools;
 using JipperResourcePack.OverlayContents;
 using UnityEngine;
 
@@ -40,11 +41,21 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
     }
     
     public void CheckPurePerfect(JOverlay overlay, scrPlanet planet) {
+        bool isXPerfectSupport = VersionControl.releaseNumber >= 148;
+        int max = isXPerfectSupport ? 12 : 10;
         if((object) planet == null) {
             for(int index = 0; index < JPlayerArray.Length; index++) {
                 int[] hit = scrMistakesManager.marginTrackers[index].hitMarginsCount;
-                for(int i = 0; i < 10; i++) {
-                    if(i is 3 or 7) i++;
+                for(int i = 0; i < max; i++) {
+                    if(!isXPerfectSupport && i is 3 or 7) i++;
+                    if(isXPerfectSupport) {
+                        switch(i) {
+                            case >= 3 and <= 5: i = 6;
+                                break;
+                            case 9: i++;
+                                break;
+                        }
+                    }
                     if(hit[i] == 0) continue;
                     overlay.PurePerfect = false;
                     return;
@@ -52,8 +63,16 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
             }
         } else {
             int[] hit = scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount;
-            for(int i = 0; i < 10; i++) {
-                if(i is 3 or 7) i++;
+            for(int i = 0; i < max; i++) {
+                if(!isXPerfectSupport && i is 3 or 7) i++;
+                if(isXPerfectSupport) {
+                    switch(i) {
+                        case >= 3 and <= 5: i = 6;
+                            break;
+                        case 9: i++;
+                            break;
+                    }
+                }
                 if(hit[i] == 0) continue;
                 overlay.PurePerfect = false;
                 return;
@@ -63,10 +82,11 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
 
     public int GetTooJudgement(JOverlay _) {
         int count = 0;
+        int tooLateIndex = VersionControl.releaseNumber < 148 ? 6 : 8;
         for(int i = 0; i < JPlayerArray.Length; i++) {
             int[] hit = scrMistakesManager.marginTrackers[i].hitMarginsCount;
             count += hit[0];
-            count += hit[6];
+            count += hit[tooLateIndex];
         }
         return count;
     }
@@ -77,7 +97,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         public string StateString;
 
         public void SetDeath(JOverlay overlay, int currentTile, int[] hit) {
-            Death = hit[8] + hit[9];
+            Death = VersionControl.releaseNumber < 148 ? hit[8] + hit[9] : hit[10] + hit[11];
             float max = (currentTile - overlay.StartTile) * 0.05f;
             Color color = overlay.GetColor(1 - Math.Min(Death, max) / max);
             DeathString = " | <color=" + ColorUtility.ToHtmlStringRGB(color) + ">" + Death + "</color>";
@@ -105,7 +125,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
                 } else {
                     if(Death > 0) sb.Append("완주");
                     else if(hit[0] != 0) sb.Append("클리어");
-                    else if(hit[1] != 0 || hit[5] != 0) sb.Append("노미스");
+                    else if(hit[1] != 0 || hit[VersionControl.releaseNumber < 148 ? 5 : 7] != 0) sb.Append("노미스");
                     else sb.Append("완벽주의");
                 }
             }

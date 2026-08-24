@@ -1,4 +1,5 @@
 ﻿using System;
+using JALib.Tools;
 using JipperResourcePack.OverlayContents;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     
     public void UpdateDeath(JOverlay overlay, scrPlanet _) {
         int deathCount;
-        if(_death != (deathCount = overlay.Hit[8] + overlay.Hit[9])) {
+        if(_death != (deathCount = VersionControl.releaseNumber < 148 ? overlay.Hit[8] + overlay.Hit[9] : overlay.Hit[10] + overlay.Hit[11])) {
             overlay.DeathText.text = "<color=white>Death |</color> " + deathCount;
             _death = deathCount;
         }
@@ -34,7 +35,7 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
             int[] hits = overlay.Hit;
             if(_death > 0) s = "완주";
             else if(hits[0] != 0) s = "클리어";
-            else if(hits[1] != 0 || hits[5] != 0) s = "노미스";
+            else if(hits[1] != 0 || hits[VersionControl.releaseNumber < 148 ? 5 : 7] != 0) s = "노미스";
             else s = "완벽주의";
         }
         if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) s += " 중";
@@ -44,8 +45,18 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     
     public void CheckPurePerfect(JOverlay overlay, scrPlanet _) {
         int[] hit = overlay.Hit;
-        for(int i = 0; i < 10; i++) {
-            if(i is 3 or 7) i++;
+        bool isXPerfectSupport = VersionControl.releaseNumber >= 148;
+        int max = isXPerfectSupport ? 12 : 10;
+        for(int i = 0; i < max; i++) {
+            if(!isXPerfectSupport && i is 3 or 7) i++;
+            if(isXPerfectSupport) {
+                switch(i) {
+                    case >= 3 and <= 5: i = 6;
+                        break;
+                    case 9: i++;
+                        break;
+                }
+            }
             if(hit[i] != 0) {
                 overlay.PurePerfect = false;
                 return;
@@ -54,6 +65,6 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     }
     
     public int GetTooJudgement(JOverlay overlay) {
-        return overlay.Hit[0] + overlay.Hit[6];
+        return VersionControl.releaseNumber < 148 ? overlay.Hit[0] + overlay.Hit[6] : overlay.Hit[0] + overlay.Hit[8];
     }
 }
