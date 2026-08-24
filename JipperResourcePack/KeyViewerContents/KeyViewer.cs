@@ -1142,8 +1142,8 @@ public partial class KeyViewer : Feature {
         }
 
         KeysSetting keysSetting = Persistence.keyLimiterKeys;
-        _setUnityKeys.Invoke(keysSetting, [ keys.ToArray() ]);
-        _setAsyncKeys.Invoke(keysSetting, [ asyncKeys.ToArray() ]);
+        _setUnityKeys.Invoke(keysSetting, [ keys ]);
+        _setAsyncKeys.Invoke(keysSetting, [ asyncKeys ]);
 
         if(!AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
         
