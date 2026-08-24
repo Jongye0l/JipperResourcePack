@@ -51,6 +51,7 @@ public class Overlay {
     protected bool IsDeath;
     protected string MusicTimeCache;
     protected string MapTimeCache;
+    protected float MapTotalTime = -1;
     public PlayCount.Hash LastHash;
     private float _lastSavedStartProgress = -1;
     public float LastMultiplier = 1f;
@@ -401,7 +402,7 @@ public class Overlay {
         }
         if(Status.Settings.ShowMapTime || requireMusicToMap) {
             float time = scrController.instance.state == States.Start ? 0 : (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
-            float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
+            float totalTime = GetMapTotalTime();
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if((!Status.Settings.ShowMapTime || _lastMapTime == (int) time) &&
@@ -424,6 +425,12 @@ public class Overlay {
         }
     }
     
+    protected float GetMapTotalTime() {
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(MapTotalTime == -1) MapTotalTime = (float) scrLevelMaker.instance.listFloors[^1].entryTime;
+        return MapTotalTime;
+    }
+
     private static string GetTimeString(float time, bool hour) {
         int timeInt = (int) time;
         return hour ? $"{timeInt / 3600}:{timeInt % 3600 / 60:00}:{timeInt % 60:00}" : $"{timeInt / 60}:{timeInt % 60:00}";
@@ -529,6 +536,7 @@ public class Overlay {
             LastHash = hash;
             Checkpoints = null;
             MapTimeCache = null;
+            MapTotalTime = -1;
         }
         MusicTimeCache = null;
         

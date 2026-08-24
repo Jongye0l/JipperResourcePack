@@ -116,7 +116,7 @@ public class JOverlay : Overlay {
         }
         if(JStatus.Settings.ShowMapTime || requireMusicToMap) {
             float time = scrController.instance.state == States.Start ? 0 : (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
-            float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
+            float totalTime = GetMapTotalTime();
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if(!JStatus.Settings.ShowMapTime && !requireMusicToMap) return;
