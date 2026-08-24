@@ -13,13 +13,6 @@ using UnityEngine;
 namespace JipperResourcePack;
 
 public static class VersionSafe {
-    private static readonly StringBuilder Builder = new(192);
-
-    private static StringBuilder ResetBuilder() {
-        Builder.Length = 0;
-        return Builder;
-    }
-
     public static void Setup() {
         Main.Instance.Log("Version Safe Setup");
         JAPatcher patcher = new(Main.Instance);
@@ -167,7 +160,7 @@ public static class VersionSafe {
 
     private static bool IsEnableCompetitiveModeR147() => false;
     private static string WriteHitMarginTextR147(int[] hits, string prefix, string postfix) {
-        return ResetBuilder().Append(prefix).Append(hits[9])
+        return Main.GetSharedBuilder().Append(prefix).Append(hits[9])
             .Append(" <color=red>").Append(hits[0])
             .Append(" <color=#FF6F4E>").Append(hits[1])
             .Append(" <color=#A0FF4E>").Append(hits[2])
@@ -180,7 +173,7 @@ public static class VersionSafe {
     }
 
     private static string WriteHitMarginTextWithoutColorR147(int[] hits, string prefix, string postfix) {
-        return ResetBuilder().Append(prefix).Append(hits[9])
+        return Main.GetSharedBuilder().Append(prefix).Append(hits[9])
             .Append(' ').Append(hits[0])
             .Append(' ').Append(hits[1])
             .Append(' ').Append(hits[2])
@@ -198,7 +191,7 @@ public static class VersionSafe {
 
     private static bool IsEnableCompetitiveModeR148() => Persistence.enableCompetitiveMode;
     private static string WriteHitMarginTextR148(int[] hits, string prefix, string postfix) {
-        StringBuilder sb = ResetBuilder().Append(prefix).Append(hits[9])
+        StringBuilder sb = Main.GetSharedBuilder().Append(prefix).Append(hits[9])
             .Append(" <color=red>").Append(hits[0])
             .Append(" <color=#FF6F4E>").Append(hits[1])
             .Append(" <color=#A0FF4E>").Append(hits[2])
@@ -214,7 +207,7 @@ public static class VersionSafe {
     }
 
     private static string WriteHitMarginTextWithoutColorR148(int[] hits, string prefix, string postfix) {
-        StringBuilder sb = ResetBuilder().Append(prefix).Append(hits[9])
+        StringBuilder sb = Main.GetSharedBuilder().Append(prefix).Append(hits[9])
             .Append(' ').Append(hits[0])
             .Append(' ').Append(hits[1])
             .Append(' ').Append(hits[2])

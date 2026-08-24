@@ -7,8 +7,6 @@ namespace JipperResourcePack.Jongyeol;
 
 public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextManager {
     public readonly JPlayerData[] JPlayerArray;
-    private static readonly StringBuilder FragmentBuilder = new(64);
-    private readonly StringBuilder _stateBuilder = new(64);
 
     public JOverlayTextManagerCoop(JOverlay overlay) : base(overlay) {
         JPlayerArray = new JPlayerData[scrPlayerManager.playerCount];
@@ -33,9 +31,8 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
             for(int i = 0; i < JPlayerArray.Length; i++) 
                 JPlayerArray[i].SetState(overlay, i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else JPlayerArray[planet.player.playerID].SetState(overlay, planet.player.playerID, scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount);
-        
-        StringBuilder sb = _stateBuilder;
-        sb.Length = 0;
+
+        StringBuilder sb = Main.GetSharedBuilder();
         sb.Append("State");
         for(int i = 0; i < JPlayerArray.Length; i++) sb.Append(JPlayerArray[i].StateString);
         if(overlay.StartTile != 0) sb.Append(" | (중간에서 시작)");
@@ -87,8 +84,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         }
 
         public void SetState(JOverlay overlay, int index, int[] hit) {
-            StringBuilder sb = FragmentBuilder;
-            sb.Length = 0;
+            StringBuilder sb = Main.GetSharedBuilder();
             sb.Append(" | ");
             bool color = false;
             if(scrController.instance.state is States.Start or States.Countdown) sb.Append("대기");

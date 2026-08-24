@@ -8,7 +8,6 @@ namespace JipperResourcePack.OverlayContents;
 public class OverlayTextManagerCoop : IOverlayTextManager {
     public readonly PlayerData[] PlayerArray;
     protected readonly string[] ConcatBuffer;
-    private readonly StringBuilder _builder;
     private readonly double[] _timingSums;
     private readonly int[] _timingCounts;
     public readonly float[] LastTimings;
@@ -20,7 +19,6 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     public OverlayTextManagerCoop(Overlay overlay) {
         PlayerArray = new PlayerData[scrPlayerManager.playerCount];
         ConcatBuffer = new string[PlayerArray.Length + 1];
-        _builder = new StringBuilder(128 * PlayerArray.Length);
         _timingSums = new double[PlayerArray.Length];
         _timingCounts = new int[PlayerArray.Length];
         LastTimings = new float[PlayerArray.Length];
@@ -165,8 +163,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                 PlayerArray[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else PlayerArray[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
 
-        StringBuilder sb = _builder;
-        sb.Length = 0;
+        StringBuilder sb = Main.GetSharedBuilder();
         for(int i = 0; i < PlayerArray.Length; i++) sb.Append(PlayerArray[i].JudgementText).Append('\n');
         sb.Length -= 1;
         overlay.JudgementText.text = sb.ToString();

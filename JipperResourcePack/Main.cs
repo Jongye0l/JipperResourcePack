@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -27,6 +28,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private Vector2 _fontScrollPosition;
     private string[] _availableFonts;
     private string[] _availableFontsPath;
+    private static readonly StringBuilder SharedBuilder = new(256);
 
     protected override void OnSetup() {
         Patcher.AddPatch(OnGameStart1);
@@ -38,6 +40,11 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
+    }
+
+    public static StringBuilder GetSharedBuilder() {
+        SharedBuilder.Length = 0;
+        return SharedBuilder;
     }
 
     private void AddFeature() {
