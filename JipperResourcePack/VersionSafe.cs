@@ -152,7 +152,7 @@ public static class VersionSafe {
 
     #region R146
 
-    private static void RunAfterR146(Action action) => UniTask.Yield(PlayerLoopTiming.LastUpdate).GetAwaiter().OnCompleted(action);
+    private static void RunAfterR146(Action action) => PlayerLoopHelper.AddContinuation(PlayerLoopTiming.LastUpdate, action);
 
     #endregion
 
