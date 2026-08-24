@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using JALib.Core;
@@ -12,6 +13,7 @@ using JipperResourcePack.Async;
 using JipperResourcePack.KeyViewerContents.OtherModApi;
 using JipperResourcePack.SettingTool;
 using Newtonsoft.Json.Linq;
+using SkyHook;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -1090,6 +1092,17 @@ public partial class KeyViewer : Feature {
     #endregion
 
     private static void UpdateKeyLimit() {
+        switch(VersionControl.releaseNumber) {
+            case < 145:
+                UpdateKeyLimitR144();
+                break;
+            default:
+                UpdateKeyLimitR145();
+                break;
+        }
+    }
+
+    private static void UpdateKeyLimitR144() {
         KeyViewerSetting settings = Settings;
         if(ADOBase.platform != Platform.Windows || !settings.AutoSetupKeyLimit || !AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
         Dictionary<KeyCode, List<int>> codeDictionary = GetKeyCodes();
@@ -1098,20 +1111,44 @@ public partial class KeyViewer : Feature {
         HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
         foreach(KeyCode keyCode in footKeyCodes) if((int) keyCode < 0x1000) keys.Add(keyCode);
         HashSet<ushort> asyncKeys = [];
-        foreach(KeyCode code in keyCodes) {
+        foreach(KeyCode code in keyCodes.Concat(footKeyCodes)) {
             if((int) code < 0x1000) {
                 if(!codeDictionary.TryGetValue(code, out List<int> value)) continue;
                 foreach(int i in value) asyncKeys.Add((ushort) i);
             } else asyncKeys.Add((ushort) ((int) code - 0x1000));
         }
-        foreach(KeyCode code in footKeyCodes) {
-            if((int) code < 0x1000) {
-                if(!codeDictionary.TryGetValue(code, out List<int> value)) continue;
-                foreach(int i in value) asyncKeys.Add((ushort) i);
-            } else asyncKeys.Add((ushort) ((int) code - 0x1000));
-        }
+
         List<KeyCode> keyList = new(keys);
         List<ushort> asyncKeyList = asyncKeys.ToList();
+        if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
+        if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
+    }
+
+    private static MethodInfo _setUnityKeys = typeof(KeysSetting).Setter("unityKeys");
+    private static MethodInfo _setAsyncKeys = typeof(KeysSetting).Setter("asyncKeys");
+
+    private static void UpdateKeyLimitR145() {
+        KeyViewerSetting settings = Settings;
+        if(!settings.AutoSetupKeyLimit) return;
+        KeyCode[] keyCodes = GetKeyCode();
+        KeyCode[] footKeyCodes = GetFootKeyCode();
+        
+        HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
+        foreach(KeyCode keyCode in footKeyCodes) if((int) keyCode < 0x1000) keys.Add(keyCode);
+        HashSet<ushort> asyncKeys = [];
+        foreach(KeyCode code in keyCodes.Concat(footKeyCodes)) {
+            if((int) code < 0x1000) asyncKeys.Add(SkyHookKeyMapper.KeyLabelToNativeKeyCode(SkyHookKeyMapper.UnityKeyToSkyHookKey(code)));
+            else asyncKeys.Add((ushort) ((int) code - 0x1000));
+        }
+
+        KeysSetting keysSetting = Persistence.keyLimiterKeys;
+        _setUnityKeys.Invoke(keysSetting, [ keys.ToArray() ]);
+        _setAsyncKeys.Invoke(keysSetting, [ asyncKeys.ToArray() ]);
+
+        if(!AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
+        
+        List<KeyCode> keyList = [ .. keys ];
+        List<ushort> asyncKeyList = [ .. asyncKeys ];
         if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
     }
@@ -1132,8 +1169,7 @@ public partial class KeyViewer : Feature {
             lastCode = keyCode;
             JToken token = array[i++];
             if(token.Type == JTokenType.Array) {
-                List<int> list = [];
-                list.AddRange(token.Select(t => t.Value<int>()));
+                List<int> list = token.Select(t => t.Value<int>()).ToList();
                 dictionary.Add(keyCode, list);
             } else {
                 int value = token.Value<int>();
