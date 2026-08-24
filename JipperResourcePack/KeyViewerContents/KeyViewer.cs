@@ -159,7 +159,7 @@ public partial class KeyViewer : Feature {
         settingGUI.AddSettingSliderFloat(ref settings.rainHeight, 200, ref _rainHeightString, localization["keyViewer.rainHeight"], 1, 1000);
         if(ADOBase.platform == Platform.Windows && (AdofaiTweaksAPI.IsExist || KeyboardChatterBlockerAPI.IsExist))
             settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
-        settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], ChangeKeyViewer);
+        settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], [KeyviewerStyle.Key10, KeyviewerStyle.Key12, KeyviewerStyle.Key16, KeyviewerStyle.Key20], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
         if(settings.KeyViewerStyle == KeyviewerStyle.Key16)
             settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey16, localization["keyViewer.showTotalKps"], ResetKeyViewer);
