@@ -72,7 +72,7 @@ public static class BundleLoader {
             return;
         }
         try {
-            fontAsset.fallbackFontAssetTable.Add(RDConstants.data.chineseFontTMPro);
+            fontAsset.fallbackFontAssetTable = [RDConstants.data.latinFontTMPro, RDConstants.data.koreanFontTMPro, RDConstants.data.japaneseFontTMPro, RDConstants.data.chineseFontTMPro];
         } catch (Exception e) {
             Main.Instance.Warning("Failed to add fallback font asset for default font\n" + e);
         }
