@@ -7,7 +7,9 @@ namespace JipperResourcePack.Jongyeol;
 
 public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextManager {
     public readonly JPlayerData[] JPlayerArray;
-    
+    private static readonly StringBuilder FragmentBuilder = new(64);
+    private readonly StringBuilder _stateBuilder = new(64);
+
     public JOverlayTextManagerCoop(JOverlay overlay) : base(overlay) {
         JPlayerArray = new JPlayerData[scrPlayerManager.playerCount];
         overlay.DeathText.color = Color.white;
@@ -20,7 +22,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
                 JPlayerArray[i].SetDeath(overlay, scrPlayerManager.instance.players[i].tapsOnThisFloor, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         else JPlayerArray[planet.player.playerID].SetDeath(overlay, planet.currfloor.seqID, scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount);
         
-        string[] strings = new string[JPlayerArray.Length + 1];
+        string[] strings = ConcatBuffer;
         strings[0] = "Death";
         for(int i = 0; i < JPlayerArray.Length; i++) strings[i + 1] = JPlayerArray[i].DeathString;
         overlay.DeathText.text = string.Concat(strings);
@@ -32,7 +34,8 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
                 JPlayerArray[i].SetState(overlay, i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else JPlayerArray[planet.player.playerID].SetState(overlay, planet.player.playerID, scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount);
         
-        StringBuilder sb = new(32 * JPlayerArray.Length);
+        StringBuilder sb = _stateBuilder;
+        sb.Length = 0;
         sb.Append("State");
         for(int i = 0; i < JPlayerArray.Length; i++) sb.Append(JPlayerArray[i].StateString);
         if(overlay.StartTile != 0) sb.Append(" | (중간에서 시작)");
@@ -84,7 +87,9 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         }
 
         public void SetState(JOverlay overlay, int index, int[] hit) {
-            StringBuilder sb = new(" | ");
+            StringBuilder sb = FragmentBuilder;
+            sb.Length = 0;
+            sb.Append(" | ");
             bool color = false;
             if(scrController.instance.state is States.Start or States.Countdown) sb.Append("대기");
             else if(!RDC.auto && scrPlayerManager.instance.players[index].auto) {

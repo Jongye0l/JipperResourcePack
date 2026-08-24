@@ -7,6 +7,8 @@ namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerCoop : IOverlayTextManager {
     public readonly PlayerData[] PlayerArray;
+    protected readonly string[] ConcatBuffer;
+    private readonly StringBuilder _builder;
     private readonly double[] _timingSums;
     private readonly int[] _timingCounts;
     public readonly float[] LastTimings;
@@ -17,6 +19,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     public OverlayTextManagerCoop(Overlay overlay) {
         PlayerArray = new PlayerData[scrPlayerManager.playerCount];
+        ConcatBuffer = new string[PlayerArray.Length + 1];
+        _builder = new StringBuilder(128 * PlayerArray.Length);
         _timingSums = new double[PlayerArray.Length];
         _timingCounts = new int[PlayerArray.Length];
         LastTimings = new float[PlayerArray.Length];
@@ -52,7 +56,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                     SetAccuracy(ref PlayerArray[i], overlay.NoCheckStartTile, index);
             else SetAccuracy(ref PlayerArray[index], overlay.NoCheckStartTile, index);
             
-            string[] strings = new string[PlayerArray.Length + 1];
+            string[] strings = ConcatBuffer;
             strings[0] = "Accuracy";
             for(int i = 0; i < PlayerArray.Length; i++) 
                 strings[i + 1] = PlayerArray[i].AccuracyString;
@@ -64,7 +68,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                     SetXAccuracy(ref PlayerArray[i], index);
             else SetXAccuracy(ref PlayerArray[index], index);
             
-            string[] strings = new string[PlayerArray.Length + 1];
+            string[] strings = ConcatBuffer;
             strings[0] = "XAccuracy";
             for(int i = 0; i < PlayerArray.Length; i++) 
                 strings[i + 1] = PlayerArray[i].XAccuracyString;
@@ -76,7 +80,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                     SetXScore(ref PlayerArray[i], i);
             else SetXScore(ref PlayerArray[index], index);
             
-            string[] strings = new string[PlayerArray.Length + 1];
+            string[] strings = ConcatBuffer;
             strings[0] = "XScore";
             for(int i = 0; i < PlayerArray.Length; i++) 
                 strings[i + 1] = PlayerArray[i].XScoreString;
@@ -106,7 +110,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     }
 
     public void UpdateProgress(Overlay overlay) {
-        string[] strings = new string[PlayerArray.Length + 1];
+        string[] strings = ConcatBuffer;
         strings[0] = "Progress";
         for(int i = 0; i < PlayerArray.Length; i++) 
             strings[i + 1] = PlayerArray[i].ProgressString;
@@ -161,7 +165,8 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                 PlayerArray[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else PlayerArray[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
 
-        StringBuilder sb = new(128 * PlayerArray.Length);
+        StringBuilder sb = _builder;
+        sb.Length = 0;
         for(int i = 0; i < PlayerArray.Length; i++) sb.Append(PlayerArray[i].JudgementText).Append('\n');
         sb.Length -= 1;
         overlay.JudgementText.text = sb.ToString();
@@ -181,13 +186,13 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         int decimalPlaces = Status.Settings.TimingDecimalPlaces;
         for(int i = 0; i < PlayerArray.Length; i++) SetTiming(ref PlayerArray[i], i, type, decimalPlaces);
         if(type != TimingTextType.AvgTiming) {
-            string[] strings = new string[PlayerArray.Length + 1];
+            string[] strings = ConcatBuffer;
             strings[0] = "Timing";
             for(int i = 0; i < PlayerArray.Length; i++) strings[i + 1] = PlayerArray[i].TimingString;
             overlay.TimingText.text = string.Concat(strings);
         }
         if(type is not (TimingTextType.AvgTiming or TimingTextType.Both)) return;
-        string[] avgStrings = new string[PlayerArray.Length + 1];
+        string[] avgStrings = ConcatBuffer;
         avgStrings[0] = "A.Timing";
         for(int i = 0; i < PlayerArray.Length; i++) avgStrings[i + 1] = PlayerArray[i].AvgTimingString;
         overlay.AvgTimingText.text = string.Concat(avgStrings);
