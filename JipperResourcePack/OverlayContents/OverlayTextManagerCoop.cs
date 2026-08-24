@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
@@ -7,6 +9,8 @@ namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerCoop : IOverlayTextManager {
     public readonly PlayerData[] PlayerArray;
+    public readonly List<float>[] Timings;
+    public readonly float[] LastTimings;
     public float MaxProgress;
     public float CurBest = -1;
     public int CurCheck;
@@ -14,10 +18,15 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     public OverlayTextManagerCoop(Overlay overlay) {
         PlayerArray = new PlayerData[scrPlayerManager.playerCount];
+        Timings = new List<float>[PlayerArray.Length];
+        for(int i = 0; i < Timings.Length; i++) Timings[i] = [];
+        LastTimings = new float[PlayerArray.Length];
         overlay.ProgressText.color = Color.white;
         overlay.AccuracyText.color = Color.white;
         overlay.XAccuracyText.color = Color.white;
         overlay.XScoreText.color = Color.white;
+        overlay.TimingText.color = Color.white;
+        overlay.AvgTimingText.color = Color.white;
     }
 
     public void SetBest(float best) => CurBest = best;
@@ -159,11 +168,48 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         overlay.JudgementText.text = sb.ToString();
     }
     
+    public void UpdateTiming(Overlay overlay, float timing, int player) {
+        if(player < 0 || player >= PlayerArray.Length) player = 0;
+        Timings[player].Add(timing);
+        LastTimings[player] = timing;
+        RefreshTiming(overlay);
+    }
+
+    public void RefreshTiming(Overlay overlay) {
+        if(!Status.Settings.ShowTiming) return;
+        TimingTextType type = Status.Settings.TimingTextType;
+        int decimalPlaces = Status.Settings.TimingDecimalPlaces;
+        for(int i = 0; i < PlayerArray.Length; i++) SetTiming(ref PlayerArray[i], i, type, decimalPlaces);
+        if(type != TimingTextType.AvgTiming) {
+            string[] strings = new string[PlayerArray.Length + 1];
+            strings[0] = "Timing";
+            for(int i = 0; i < PlayerArray.Length; i++) strings[i + 1] = PlayerArray[i].TimingString;
+            overlay.TimingText.text = string.Concat(strings);
+        }
+        if(type is not (TimingTextType.AvgTiming or TimingTextType.Both)) return;
+        string[] avgStrings = new string[PlayerArray.Length + 1];
+        avgStrings[0] = "A.Timing";
+        for(int i = 0; i < PlayerArray.Length; i++) avgStrings[i + 1] = PlayerArray[i].AvgTimingString;
+        overlay.AvgTimingText.text = string.Concat(avgStrings);
+    }
+
+    private void SetTiming(ref PlayerData pData, int i, TimingTextType type, int decimalPlaces) {
+        float timing = LastTimings[i];
+        List<float> timings = Timings[i];
+        float average = timings.Count == 0 ? 0 : timings.Average();
+        pData.TimingString = type == TimingTextType.BothInOneLine ?
+                                 $" | {ColorToString(Status.GetTimingColor(timing))}{Math.Round(timing, decimalPlaces)} ({Math.Round(average, decimalPlaces)})</color>" :
+                                 $" | {ColorToString(Status.GetTimingColor(timing))}{Math.Round(timing, decimalPlaces)}</color>";
+        pData.AvgTimingString = $" | {ColorToString(Status.GetTimingColor(average))}{Math.Round(average, decimalPlaces)}</color>";
+    }
+
     public struct PlayerData {
         public string ProgressString;
         public string AccuracyString;
         public string XAccuracyString;
         public string XScoreString;
+        public string TimingString;
+        public string AvgTimingString;
         public string JudgementText;
 
         public void SetJudgement(int i, int[] hits) {

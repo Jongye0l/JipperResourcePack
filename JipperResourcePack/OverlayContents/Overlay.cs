@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,6 +24,8 @@ public class Overlay {
     public TextMeshProUGUI CheckpointText;
     public TextMeshProUGUI AttemptText;
     public TextMeshProUGUI BestText;
+    public TextMeshProUGUI TimingText;
+    public TextMeshProUGUI AvgTimingText;
     public RectTransform ComboTransform;
     public TextMeshProUGUI ComboTitle;
     public TextMeshProUGUI ComboText;
@@ -107,6 +109,8 @@ public class Overlay {
         SetupMainText("MapTime", ref MapTimeText);
         SetupMainText("Checkpoint", ref CheckpointText);
         SetupMainText("Best", ref BestText);
+        SetupMainText("Timing", ref TimingText);
+        SetupMainText("AvgTiming", ref AvgTimingText);
     }
 
     protected void SetupMainText(string name, ref TextMeshProUGUI text) {
@@ -134,9 +138,12 @@ public class Overlay {
             (Checkpoints ??= scrLevelMaker.instance.listFloors.Where(floor => floor.GetComponent<ffxCheckpoint>())
                  .Select(floor => floor.seqID).ToArray()).Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
+        SetupLocationMainText(TimingText, Status.Settings.ShowTiming && Status.Settings.TimingTextType != TimingTextType.AvgTiming, ref y);
+        SetupLocationMainText(AvgTimingText, Status.Settings.ShowTiming && Status.Settings.TimingTextType is TimingTextType.AvgTiming or TimingTextType.Both, ref y);
         UpdateProgress();
         VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
+        RefreshTiming();
     }
 
     protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
@@ -286,6 +293,8 @@ public class Overlay {
         MapTimeText.font = BundleLoader.FontAsset;
         CheckpointText.font = BundleLoader.FontAsset;
         BestText.font = BundleLoader.FontAsset;
+        TimingText.font = BundleLoader.FontAsset;
+        AvgTimingText.font = BundleLoader.FontAsset;
         BpmText.font = BundleLoader.FontAsset;
         JudgementText.font = BundleLoader.FontAsset;
         ComboTitle.font = BundleLoader.FontAsset;
@@ -482,6 +491,16 @@ public class Overlay {
     // ReSharper disable once CompareOfFloatsByEqualityOperator
     protected static string ColorToHex(Color color) => $"{Mathf.RoundToInt(color.r * 255):X2}{Mathf.RoundToInt(color.g * 255):X2}{Mathf.RoundToInt(color.b * 255):X2}{(color.a == 1 ? "" : Mathf.RoundToInt(color.a * 255).ToString("X2"))}";
 
+    public void UpdateTiming(float timing, int player = -1) {
+        if(!Status.Settings.ShowTiming || !GameObject.activeSelf) return;
+        OverlayTextManager.UpdateTiming(this, timing, player);
+    }
+
+    public void RefreshTiming() {
+        if(!GameObject.activeSelf || OverlayTextManager == null) return;
+        OverlayTextManager.RefreshTiming(this);
+    }
+
     public void UpdateTimingScale() {
         if(!GameObject.activeSelf) return;
         TimingScaleText.text = $"Timing Scale - {Math.Round(scrController.instance.currFloor.marginScale * 100, 2)}%";
@@ -558,7 +577,7 @@ public class Overlay {
         OverlayTextManager.SetBest(1);
     }
     
-    public virtual void Hide() {
+    public void Hide() {
         if((object) GameObject == null || !GameObject.activeSelf) return;
         GameObject.SetActive(false);
         try {

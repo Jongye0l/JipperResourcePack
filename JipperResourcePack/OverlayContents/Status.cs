@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
+using HarmonyLib;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -19,13 +24,29 @@ public class Status : Feature {
     private string _accuracyDecimalPlacesString;
     private string _xAccuracyDecimalPlacesString;
     private string _bestDecimalPlacesString;
-    
+    private string _timingDecimalPlacesString;
+    private static Func<float, float, bool, float, float, double, HitMargin> _getHitMarginR141;
+
     public Status() : this(typeof(ProgressSetting)) {
     }
 
     protected Status(Type settingType) : base(Main.Instance, nameof(Status), true, typeof(Status), settingType) {
         Settings = (ProgressSetting) Setting;
         Instance = this;
+        if(VersionControl.releaseNumber >= 148) {
+            int founded = 0;
+            foreach(MethodInfo methodInfo in typeof(scrPlanet).Methods()) {
+                if(methodInfo.Name.StartsWith("<SwitchChosen>") && methodInfo.Name.Contains("GetHitMargin")) {
+                    Patcher.AddPatch(GetHitMargin, new JAPatchAttribute(methodInfo, PatchType.Transpiler, false));
+                    founded++;
+                }
+            }
+
+            if(founded < 1) Main.Instance.Error("Failed to find the method for transpiler patching: scrPlanet.<SwitchChosen>g__GetHitMargin|");
+            else if(founded != 1) Main.Instance.Warning($"Found {founded} methods for transpiler patching: scrPlanet.<SwitchChosen>g__GetHitMargin|. Expected 1.");
+        } else if(VersionControl.releaseNumber >= 141) {
+            _getHitMarginR141 = (Func<float, float, bool, float, float, double, HitMargin>) Delegate.CreateDelegate(typeof(Func<float, float, bool, float, float, double, HitMargin>), typeof(scrMisc).Method("GetHitMargin"));
+        }
     }
     
     protected override void OnEnable() {
@@ -91,6 +112,17 @@ public class Status : Feature {
             settingGUI.AddSettingSliderInt(ref Settings.BestDecimalPlaces, 2, ref _bestDecimalPlacesString, localization["progress.bestDecimalPlaces"], 0, 4,
                 () => Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance));
         }
+        settingGUI.AddSettingToggle(ref Settings.ShowTiming, localization["progress.showTiming"], Overlay.Instance.SetupLocationMain);
+        if(Settings.ShowTiming) {
+            if(Settings.TimingColor.SettingGUI(settingGUI, localization["progress.timingColor"]))
+                Overlay.Instance.RefreshTiming();
+            settingGUI.AddSettingSliderInt(ref Settings.TimingDecimalPlaces, 5, ref _timingDecimalPlacesString, localization["progress.timingDecimalPlaces"], 0, 5,
+                () => Overlay.Instance.RefreshTiming());
+            settingGUI.AddSettingEnum(ref Settings.TimingTextType, localization["progress.timingTextType"], () => {
+                Overlay.Instance.SetupLocationMain();
+                Overlay.Instance.RefreshTiming();
+            });
+        }
         settingGUI.AddSettingToggle(ref Settings.ShowProgressBar, localization["progress.showProgressBar"], () => {
             ProgressBarObject?.SetActive(Settings.ShowProgressBar);
         });
@@ -108,6 +140,8 @@ public class Status : Feature {
         XScoreTextType.MaxMinus => $"{xScore} (MAX-{maxXScore - xScore})",
         _ => xScore.ToString()
     };
+
+    public static Color GetTimingColor(float timing) => Settings.TimingColor.GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
 
     public class ProgressSetting: JASetting {
         // ReSharper disable FieldCanBeMadeReadOnly.Global
@@ -133,6 +167,10 @@ public class Status : Feature {
         public bool ShowBest;
         public ColorPerDictionary BestColor;
         public int BestDecimalPlaces = 2;
+        public bool ShowTiming = true;
+        public ColorPerDictionary TimingColor;
+        public int TimingDecimalPlaces = 5;
+        public TimingTextType TimingTextType = TimingTextType.BothInOneLine;
         public bool ShowProgressBar = true;
         public ColorPerDictionary ProgressBarColor;
         public ColorPerDictionary ProgressBarBackgroundColor;
@@ -168,6 +206,12 @@ public class Status : Feature {
                 (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
             ]);
             
+            ColorPerDictionary.Setup(ref TimingColor, [
+                (0f, Color.red),
+                (0.5f, new Color(0.9882352941176471f, 1, 0.3019607843137255f)),
+                (1f, new Color(0.3725490196078431f, 1, 0.3119607843137255f))
+            ], new Color(1, 0.8549019607843137f, 0));
+
             ColorPerDictionary.Setup(ref ProgressBarColor, [(1f, new Color(0.9215686f, 0.8039216f, 0.9764706f))]);
             ColorPerDictionary.Setup(ref ProgressBarBackgroundColor, [(1f, Color.white)]);
             ColorPerDictionary.Setup(ref ProgressBarBorderColor, [(1f, Color.black)]);
@@ -199,6 +243,89 @@ public class Status : Feature {
         Overlay.Instance.UpdateProgress(__instance);
     }
     
+    [JAPatch(typeof(scrMisc), "GetHitMargin", PatchType.Postfix, false, MaxVersion = 140)]
+    // ReSharper disable once InconsistentNaming
+    private static void OnHitMarginChange(float hitangle, float refangle, bool isCW, float bpmTimesSpeed, float conductorPitch) {
+        if(!Settings.ShowTiming || RDC.auto || scrController.instance.currFloor.nextfloor && scrController.instance.currFloor.nextfloor.auto) return;
+        float angle = (hitangle - refangle) * (isCW ? 1 : -1) * 57.29578f;
+        float timing = angle / 180 / bpmTimesSpeed / conductorPitch * 60000;
+        Overlay.Instance.UpdateTiming(timing);
+    }
+
+    [JAPatch(typeof(scrPlanet), nameof(scrPlanet.SwitchChosen), PatchType.Transpiler, false, MinVersion = 141, MaxVersion = 147)]
+    private static IEnumerable<CodeInstruction> GetHitMarginR141(IEnumerable<CodeInstruction> instructions) {
+        List<CodeInstruction> list = instructions.ToList();
+        for(int i = 0; i < list.Count; i++) {
+            CodeInstruction codeInstruction = list[i];
+            if(codeInstruction.operand is not MethodInfo { Name: "GetHitMargin" }) continue;
+            list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginProxy).Method);
+            list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
+        }
+        return list;
+    }
+
+    public static HitMargin GetHitMarginProxy(float hitangle, float refangle, bool isCW, float bpmTimesSpeed, float conductorPitch, double marginScale, scrPlanet planet) {
+        try {
+            if(IsTimingAvailable(planet)) {
+                float angle = (hitangle - refangle) * (isCW ? 1 : -1) * 57.29578f;
+                float timing = angle / 180 / bpmTimesSpeed / conductorPitch * 60000;
+                Overlay.Instance.UpdateTiming(timing, planet.player.playerID);
+            }
+        } catch (Exception e) {
+            Main.Instance.LogReportException("Failed to calculate timing", e);
+        }
+        return _getHitMarginR141(hitangle, refangle, isCW, bpmTimesSpeed, conductorPitch, marginScale);
+    }
+
+    private static IEnumerable<CodeInstruction> GetHitMargin(IEnumerable<CodeInstruction> instructions) {
+        List<CodeInstruction> list = instructions.ToList();
+        for(int i = 0; i < list.Count; i++) {
+            CodeInstruction codeInstruction = list[i];
+            if(codeInstruction.operand is not MethodInfo methodInfo) continue;
+            switch(methodInfo.Name) {
+                case "GetHitMarginInDeg":
+                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInDegProxyR148).Method);
+                    list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
+                    break;
+                case "GetHitMarginInSec":
+                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInSecProxyR148).Method);
+                    list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
+                    break;
+            }
+        }
+        return list;
+    }
+
+    private static HitMargin GetHitMarginInDegProxyR148(Difficulty difficulty, float hitAngle, float refAngle, bool clockwise,
+                                                        float floorBpm, float conductorPitch, double marginScale, scrPlanet planet) {
+        try {
+            if(IsTimingAvailable(planet)) {
+                float angle = (hitAngle - refAngle) * (clockwise ? 1 : -1) * 57.29578f;
+                float timing = angle / 180 / floorBpm / conductorPitch * 60000;
+                Overlay.Instance.UpdateTiming(timing, planet.player.playerID);
+            }
+        } catch (Exception e) {
+            Main.Instance.LogReportException("Failed to calculate hit margin in degrees", e);
+        }
+        return scrMisc.GetHitMarginInDeg(difficulty, hitAngle, refAngle, clockwise, floorBpm, conductorPitch, marginScale);
+    }
+
+    private static HitMargin GetHitMarginInSecProxyR148(Difficulty difficulty, double timeDiff, float floorBpm,
+                                                        float conductorPitch, double marginScale, scrPlanet planet) {
+        try {
+            if(IsTimingAvailable(planet)) {
+                float timing = (float) timeDiff * 1000;
+                Overlay.Instance.UpdateTiming(timing, planet.player.playerID);
+            }
+        } catch (Exception e) {
+            Main.Instance.LogReportException("Failed to calculate hit margin in seconds", e);
+        }
+        return scrMisc.GetHitMarginInSec(difficulty, timeDiff, floorBpm, conductorPitch, marginScale);
+    }
+
+    private static bool IsTimingAvailable(scrPlanet planet) =>
+        Settings.ShowTiming && !RDC.auto && !planet.player.auto && (!planet.currfloor.nextfloor || !planet.currfloor.nextfloor.auto);
+
     [JAPatch(typeof(scrShowIfDebug), "Awake", PatchType.Postfix, false, TryingCatch = false)]
     private static void OnShowIfDebugAwake(scrShowIfDebug __instance) {
         VersionSafe.RunAfter(() => {

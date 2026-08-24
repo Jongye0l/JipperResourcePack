@@ -25,7 +25,6 @@ public class JStatus : OverlayContents.Status {
         settingGUI.AddSettingToggle(ref Settings.HideDebugText, localization["progress.hideDebugText"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowDeath, localization["progress.showDeath"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowStart, localization["progress.showStart"], JOverlay.Instance.SetupLocationMain);
-        settingGUI.AddSettingToggle(ref Settings.ShowTiming, localization["progress.showTiming"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.RemoveNotRequireInAuto, localization["progress.removeNotRequireInAuto"], JOverlay.Instance.SetupLocationMain);
     }
 
@@ -39,14 +38,6 @@ public class JStatus : OverlayContents.Status {
         JOverlay.Instance.SetupLocationMain();
         JOverlay.Instance.UpdateState();
         _auto = RDC.auto;
-    }
-
-    [JAPatch(typeof(scrMisc), "GetHitMargin", PatchType.Postfix, false)]
-    // ReSharper disable once InconsistentNaming
-    private static void OnHitMarginChange(float hitangle, float refangle, bool isCW, float bpmTimesSpeed, float conductorPitch) {
-        float angle = (hitangle - refangle) * (isCW ? 1 : -1) * 57.29578f;
-        float timing = angle / 180 / bpmTimesSpeed / conductorPitch * 60000;
-        JOverlay.Instance.UpdateTiming(timing);
     }
 
     [JAPatch(nameof(scrPlayer), nameof(scrPlayer.Die), PatchType.Postfix, false, MinVersion = 141)]
@@ -63,7 +54,6 @@ public class JStatus : OverlayContents.Status {
         public bool HideDebugText = true;
         public bool ShowDeath = true;
         public bool ShowStart = true;
-        public bool ShowTiming = true;
         public bool RemoveNotRequireInAuto = true;
 
         public JProgressSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {

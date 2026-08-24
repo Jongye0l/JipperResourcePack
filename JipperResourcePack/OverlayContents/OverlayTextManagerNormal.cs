@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerNormal : IOverlayTextManager {
+    public readonly List<float> Timings = [];
+    public float LastTiming;
     public float Progress;
     public int CurCheck;
     public int LastCheckpoint = -1;
@@ -86,5 +90,43 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     public void UpdateJudgement(Overlay overlay, int _) {
         int[] hits = overlay.Hit;
         overlay.JudgementText.text = VersionSafe.WriteHitMarginText(hits, null, null);
+    }
+
+    public void UpdateTiming(Overlay overlay, float timing, int _) {
+        Timings.Add(timing);
+        LastTiming = timing;
+        RefreshTiming(overlay);
+    }
+
+    public void RefreshTiming(Overlay overlay) {
+        if(!Status.Settings.ShowTiming) return;
+        int decimalPlaces = Status.Settings.TimingDecimalPlaces;
+        float average = Timings.Count == 0 ? 0 : Timings.Average();
+        switch(Status.Settings.TimingTextType) {
+            case TimingTextType.Timing:
+                SetTiming(overlay, decimalPlaces);
+                break;
+            case TimingTextType.AvgTiming:
+                SetAvgTiming(overlay, average, decimalPlaces);
+                break;
+            case TimingTextType.Both:
+                SetTiming(overlay, decimalPlaces);
+                SetAvgTiming(overlay, average, decimalPlaces);
+                break;
+            default:
+                overlay.TimingText.text = $"<color=white>Timing |</color> {Math.Round(LastTiming, decimalPlaces)} ({Math.Round(average, decimalPlaces)})";
+                overlay.TimingText.color = Status.GetTimingColor(LastTiming);
+                break;
+        }
+    }
+
+    private void SetTiming(Overlay overlay, int decimalPlaces) {
+        overlay.TimingText.text = $"<color=white>Timing |</color> {Math.Round(LastTiming, decimalPlaces)}";
+        overlay.TimingText.color = Status.GetTimingColor(LastTiming);
+    }
+
+    private static void SetAvgTiming(Overlay overlay, float average, int decimalPlaces) {
+        overlay.AvgTimingText.text = $"<color=white>A.Timing |</color> {Math.Round(average, decimalPlaces)}";
+        overlay.AvgTimingText.color = Status.GetTimingColor(average);
     }
 }

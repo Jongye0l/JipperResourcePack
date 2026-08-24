@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ADOFAI;
 using JipperResourcePack.OverlayContents;
@@ -16,9 +15,7 @@ public class JOverlay : Overlay {
     public TextMeshProUGUI StateText;
     public TextMeshProUGUI DeathText;
     public TextMeshProUGUI StartText;
-    public TextMeshProUGUI TimingText;
 
-    private List<float> _timings;
     public bool PurePerfect;
     private int _pseudoFloor = -1;
     private float _lastCurKps = -1;
@@ -43,7 +40,6 @@ public class JOverlay : Overlay {
         SetupMainText("Checkpoint", ref CheckpointText);
         SetupMainText("Death", ref DeathText);
         SetupMainText("Start", ref StartText);
-        SetupMainText("Timing", ref TimingText);
     }
 
     public override void SetupLocationMain() {
@@ -64,7 +60,8 @@ public class JOverlay : Overlay {
         SetupLocationMainText(StateText, JStatus.Settings.ShowState, ref y);
         SetupLocationMainText(DeathText, scrController.instance.noFail && JStatus.Settings.ShowDeath, ref y);
         SetupLocationMainText(StartText, StartTile != 0 && JStatus.Settings.ShowStart, ref y);
-        SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming, ref y);
+        SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming && JStatus.Settings.TimingTextType != TimingTextType.AvgTiming, ref y);
+        SetupLocationMainText(AvgTimingText, checkAuto && JStatus.Settings.ShowTiming && JStatus.Settings.TimingTextType is TimingTextType.AvgTiming or TimingTextType.Both, ref y);
         UpdateProgress();
         VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
@@ -72,10 +69,7 @@ public class JOverlay : Overlay {
         UpdateDeath();
         UpdateState();
         UpdateStart();
-        if(_timings != null) return;
-        _timings = [];
-        UpdateTiming(0);
-        _timings.Clear();
+        RefreshTiming();
     }
 
     public override void UpdateFont() {
@@ -85,7 +79,6 @@ public class JOverlay : Overlay {
         StateText.font = BundleLoader.FontAsset;
         DeathText.font = BundleLoader.FontAsset;
         StartText.font = BundleLoader.FontAsset;
-        TimingText.font = BundleLoader.FontAsset;
     }
 
     public override void UpdateProgress(scrPlanet planet = null) {
@@ -188,13 +181,6 @@ public class JOverlay : Overlay {
         StartText.text = $"Start | {StartTile} ({Math.Round(OverlayTextManager.GetProgress() * 100, 5)}%)";
     }
 
-    public void UpdateTiming(float timing) {
-        if(!JStatus.Settings.ShowTiming || !GameObject.activeSelf) return;
-        _timings.Add(timing);
-        TimingText.text = $"<color=white>Timing |</color> {Math.Round(timing, 5)} ({Math.Round(_timings.Average(), 5)})";
-        TimingText.color = GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
-    }
-
     public override void UpdateBpm() {
         if(!GameObject.activeSelf) return;
         scrFloor floor = scrController.instance.currFloor ?? scrController.instance.firstFloor;
@@ -294,12 +280,6 @@ public class JOverlay : Overlay {
     public override void Show(int floor) {
         PurePerfect = true;
         _pseudoFloor = -1;
-        _timings?.Clear();
         base.Show(floor);
-    }
-
-    public override void Hide() {
-        base.Hide();
-        _timings = null;
     }
 }
