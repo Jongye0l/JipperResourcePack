@@ -1127,8 +1127,8 @@ public partial class KeyViewer : Feature {
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
     }
 
-    private static MethodInfo _setUnityKeys = typeof(KeysSetting).Setter("unityKeys");
-    private static MethodInfo _setAsyncKeys = typeof(KeysSetting).Setter("asyncKeys");
+    private static readonly MethodInfo SetUnityKeys = typeof(KeysSetting).Setter("unityKeys");
+    private static readonly MethodInfo SetAsyncKeys = typeof(KeysSetting).Setter("asyncKeys");
 
     private static void UpdateKeyLimitR145() {
         KeyViewerSetting settings = Settings;
@@ -1145,8 +1145,8 @@ public partial class KeyViewer : Feature {
         }
 
         KeysSetting keysSetting = Persistence.keyLimiterKeys;
-        _setUnityKeys.Invoke(keysSetting, [ keys ]);
-        _setAsyncKeys.Invoke(keysSetting, [ asyncKeys ]);
+        SetUnityKeys.Invoke(keysSetting, [ keys ]);
+        SetAsyncKeys.Invoke(keysSetting, [ asyncKeys ]);
 
         if(!AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
         
