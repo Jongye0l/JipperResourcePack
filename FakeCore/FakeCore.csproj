@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!-- Built once per bucket, exactly like JipperResourcePack.VersionSafe. GameVersion
+             arrives as a global property from that project's build. -->
+        <GameVersion Condition="'$(GameVersion)' == ''">latest</GameVersion>
+        <GameRelease Condition="'$(GameVersion)' != 'latest'">$(GameVersion.Substring(1))</GameRelease>
+        <GameRelease Condition="'$(GameVersion)' == 'latest'">99999</GameRelease>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <DefineConstants Condition="$(GameRelease) &gt;= 136">$(DefineConstants);R136After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 146">$(DefineConstants);R146After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 148">$(DefineConstants);R148After</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net481</TargetFramework>
+        <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+        <AutomaticallyUseFrameworkAssemblies>false</AutomaticallyUseFrameworkAssemblies>
+        <NoStdLib>true</NoStdLib>
+        <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+
+        <LangVersion>latest</LangVersion>
+
+        <AssemblyName>Assembly-CSharp</AssemblyName>
+        <RootNamespace> </RootNamespace>
+        <AssemblyVersion>0.0.0.0</AssemblyVersion>
+
+        <DebugType>none</DebugType>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);CS0649;CS0169;CS0414</NoWarn>
+
+        <!-- Both paths must split per bucket, or the builds overwrite each other. -->
+        <OutputPath>bin\$(Configuration)\$(GameVersion)\</OutputPath>
+        <IntermediateOutputPath>obj\$(Configuration)\$(GameVersion)\</IntermediateOutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    </PropertyGroup>
+
+    <Target Name="GetReferenceAssemblyPaths"/>
+
+    <PropertyGroup>
+        <FrameworkPathOverride>$(GameManagedPath)</FrameworkPathOverride>
+        <TargetFrameworkDirectory>$(GameManagedPath)</TargetFrameworkDirectory>
+        <!-- Non-empty here makes GetReferenceAssemblyPaths skip its lookup entirely. Needed
+             because this project is also built as a nested ProjectReference, where the empty
+             target override above is not enough to stop MSB3644. -->
+        <_TargetFrameworkDirectories>$(GameManagedPath)</_TargetFrameworkDirectories>
+        <_FullFrameworkReferenceAssemblyPaths>$(GameManagedPath)</_FullFrameworkReferenceAssemblyPaths>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="mscorlib">
+            <HintPath>$(GameManagedPath)/mscorlib.dll</HintPath>
+        </Reference>
+        <Reference Include="System">
+            <HintPath>$(GameManagedPath)/System.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Core">
+            <HintPath>$(GameManagedPath)/System.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="netstandard">
+            <HintPath>$(GameManagedPath)/netstandard.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>$(GameManagedPath)/UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(GameManagedPath)/UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+</Project>

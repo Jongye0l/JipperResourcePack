@@ -1,0 +1,116 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <GameVersion Condition="'$(GameVersion)' == ''">latest</GameVersion>
+        <GameRelease Condition="'$(GameVersion)' != 'latest'">$(GameVersion.Substring(1))</GameRelease>
+        <GameRelease Condition="'$(GameVersion)' == 'latest'">99999</GameRelease>
+        <UseFakeCore>true</UseFakeCore>
+        <UseFakeCore Condition="'$(GameVersion)' == 'latest'">false</UseFakeCore>
+        <FakeCoreOutDir>$(MSBuildThisFileDirectory)../FakeCore/bin/$(Configuration)/$(GameVersion)/</FakeCoreOutDir>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <DefineConstants Condition="$(GameRelease) &gt;= 136">$(DefineConstants);R136After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 146">$(DefineConstants);R146After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 148">$(DefineConstants);R148After</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net481</TargetFramework>
+        <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+        <AutomaticallyUseFrameworkAssemblies>false</AutomaticallyUseFrameworkAssemblies>
+        <NoStdLib>true</NoStdLib>
+        <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
+
+        <LangVersion>14</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>portable</DebugType>
+
+        <Version>1.0.0.0</Version>
+        <AssemblyVersion>$(Version)</AssemblyVersion>
+        <FileVersion>$(Version)</FileVersion>
+        <RootNamespace>JipperResourcePack</RootNamespace>
+
+        <OutputPath>bin\$(Configuration)\$(GameVersion)\</OutputPath>
+        <IntermediateOutputPath>obj\$(Configuration)\$(GameVersion)\</IntermediateOutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+        <Description>JipperResourcePack Version Safe Handler</Description>
+        <Company>Jongyeol</Company>
+        <Copyright>Copyright © Jongyeol 2026</Copyright>
+    </PropertyGroup>
+
+    <Target Name="BuildFakeCore" BeforeTargets="ResolveAssemblyReferences" Condition="'$(UseFakeCore)' == 'true'">
+        <ItemGroup>
+            <FakeCoreBuild Include="$(MSBuildThisFileDirectory)../FakeCore/FakeCore.csproj">
+                <AdditionalProperties>GameVersion=$(GameVersion)</AdditionalProperties>
+            </FakeCoreBuild>
+        </ItemGroup>
+        <MSBuild Projects="@(FakeCoreBuild)"/>
+    </Target>
+
+    <Target Name="GetReferenceAssemblyPaths"/>
+
+    <PropertyGroup>
+        <FrameworkPathOverride>$(GameManagedPath)</FrameworkPathOverride>
+        <TargetFrameworkDirectory>$(GameManagedPath)</TargetFrameworkDirectory>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\FakeCore\FakeCore.csproj" Private="false" ReferenceOutputAssembly="false"/>
+        <Reference Include="Assembly-CSharp" Condition="'$(UseFakeCore)' == 'true'">
+            <HintPath>$(FakeCoreOutDir)Assembly-CSharp.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Assembly-CSharp" Condition="'$(GameVersion)' == 'latest'">
+            <HintPath>$(GameManagedPath)/Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <!-- Only needed by types leaking out of the real Assembly-CSharp. -->
+        <Reference Include="RDTools" Condition="'$(GameVersion)' == 'latest'">
+            <HintPath>$(GameManagedPath)/RDTools.dll</HintPath>
+        </Reference>
+        <Reference Include="UniTask" Condition="$(GameRelease) &gt;= 146">
+            <HintPath>$(GameManagedPath)/UniTask.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="mscorlib">
+            <HintPath>$(GameManagedPath)/mscorlib.dll</HintPath>
+        </Reference>
+        <Reference Include="System">
+            <HintPath>$(GameManagedPath)/System.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Core">
+            <HintPath>$(GameManagedPath)/System.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="netstandard">
+            <HintPath>$(GameManagedPath)/netstandard.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>$(GameManagedPath)/UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(GameManagedPath)/UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <Target Name="CopyToModPath" AfterTargets="Build" Condition="'$(ModPath)' != '' and '$(GameVersion)' != 'latest'">
+        <Copy SourceFiles="$(TargetPath)"
+              DestinationFiles="$(ModPath)/JipperResourcePack/VersionSafe/$(TargetName).$(GameVersion).dll"
+              SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
+              DestinationFiles="$(ModPath)/JipperResourcePack/VersionSafe/$(TargetName).$(GameVersion).pdb"
+              Condition="Exists('$(TargetDir)$(TargetName).pdb')" SkipUnchangedFiles="true"/>
+    </Target>
+
+    <Target Name="CopyToReleasePath" AfterTargets="Build" Condition="'$(ReleasePath)' != '' and '$(Configuration)' == 'Release' and '$(GameVersion)' != 'latest'">
+        <Copy SourceFiles="$(TargetPath)"
+              DestinationFiles="$(ReleasePath)/JipperResourcePack/VersionSafe/$(TargetName).$(GameVersion).dll"
+              SkipUnchangedFiles="true"/>
+    </Target>
+
+</Project>

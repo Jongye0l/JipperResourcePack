@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -28,23 +28,28 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private Vector2 _fontScrollPosition;
     private string[] _availableFonts;
     private string[] _availableFontsPath;
-    private static readonly StringBuilder SharedBuilder = new(256);
-
     protected override void OnSetup() {
+        LoadVersionSafe();
         Patcher.AddPatch(OnGameStart1);
         Patcher.AddPatch(OnGameStart2);
         Patcher.AddPatch(OnChangeState);
         Patcher.AddPatch(OnGameStop);
         Patcher.AddPatch(UpdatePlayersCount);
-        VersionSafe.Setup();
         FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
     }
 
-    public static StringBuilder GetSharedBuilder() {
-        SharedBuilder.Length = 0;
-        return SharedBuilder;
+    private void LoadVersionSafe() {
+        int release = VersionControl.releaseNumber;
+        string ver = release switch {
+            >= 148 => "R148",
+            >= 146 => "R146",
+            >= 141 => "R141",
+            _ => "R136"
+        };
+        
+        Assembly.LoadFrom(System.IO.Path.Combine(Path, "VersionSafe", $"JipperResourcePack.VersionSafe.{ver}.dll"));
     }
 
     private void AddFeature() {

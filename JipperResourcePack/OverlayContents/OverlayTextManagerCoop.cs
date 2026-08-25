@@ -238,7 +238,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                 PlayerArray[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else PlayerArray[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
 
-        StringBuilder sb = Main.GetSharedBuilder();
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
         for(int i = 0; i < PlayerArray.Length; i++) sb.Append(PlayerArray[i].JudgementText).Append('\n');
         sb.Length -= 1;
         overlay.JudgementText.text = sb.ToString();

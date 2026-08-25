@@ -6,7 +6,7 @@
         <NoStdLib>true</NoStdLib>
         <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
 
-        <LangVersion>latest</LangVersion>
+        <LangVersion>14</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <DebugSymbols>true</DebugSymbols>
@@ -508,6 +508,35 @@
             <HintPath>$(GameManagedPath)/XTUtilities.dll</HintPath>
         </Reference>
     </ItemGroup>
+
+    <ItemGroup>
+        <!-- Only the compile-time reference is a ProjectReference. The other buckets are built
+             by BuildVersionSafeBuckets below: Rider and VS collapse ProjectReferences that point
+             at the same .csproj into one graph node, so the AdditionalProperties variants get
+             deduped away and only this one is ever built. -->
+        <ProjectReference Include="..\JipperResourcePack.VersionSafe\JipperResourcePack.VersionSafe.csproj"
+                          AdditionalProperties="GameVersion=latest" Private="false"/>
+    </ItemGroup>
+
+    <Target Name="BuildVersionSafeBuckets" AfterTargets="Build">
+        <ItemGroup>
+            <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
+                <AdditionalProperties>GameVersion=R136</AdditionalProperties>
+            </VersionSafeBucket>
+            <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
+                <AdditionalProperties>GameVersion=R141</AdditionalProperties>
+            </VersionSafeBucket>
+            <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
+                <AdditionalProperties>GameVersion=R146</AdditionalProperties>
+            </VersionSafeBucket>
+            <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
+                <AdditionalProperties>GameVersion=R148</AdditionalProperties>
+            </VersionSafeBucket>
+        </ItemGroup>
+        <!-- AdditionalProperties metadata adds to the inherited global properties; the task's
+             Properties attribute would replace them instead. -->
+        <MSBuild Projects="@(VersionSafeBucket)" BuildInParallel="true"/>
+    </Target>
 
     <Target Name="CopyToModPath" AfterTargets="Build" Condition="'$(ModPath)' != ''">
         <Copy SourceFiles="$(OutputPath)JipperResourcePack.dll" DestinationFolder="$(ModPath)/JipperResourcePack" SkipUnchangedFiles="true"/>

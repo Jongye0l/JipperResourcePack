@@ -33,7 +33,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
                 JPlayerArray[i].SetState(overlay, i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else JPlayerArray[planet.player.playerID].SetState(overlay, planet.player.playerID, scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount);
 
-        StringBuilder sb = Main.GetSharedBuilder();
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
         sb.Append("State");
         for(int i = 0; i < JPlayerArray.Length; i++) sb.Append(JPlayerArray[i].StateString);
         if(overlay.StartTile != 0) sb.Append(" | (중간에서 시작)");
@@ -104,7 +104,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         }
 
         public void SetState(JOverlay overlay, int index, int[] hit) {
-            StringBuilder sb = Main.GetSharedBuilder();
+            StringBuilder sb = VersionSafe.GetSharedBuilder();
             sb.Append(" | ");
             bool color = false;
             if(scrController.instance.state is States.Start or States.Countdown) sb.Append("대기");
