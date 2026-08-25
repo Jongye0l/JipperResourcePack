@@ -99,6 +99,8 @@ public partial class KeyViewer {
             try {
                 signal.Wait();
                 while(_listening && queue.TryDequeue(out KeyEvent keyEvent)) ProcessKeyEvent(keyEvent);
+            } catch (ThreadAbortException) {
+                // Handle thread abort if necessary
             } catch (Exception e) {
                 if(!_listening) return;
                 Main.Instance.LogException(e);
