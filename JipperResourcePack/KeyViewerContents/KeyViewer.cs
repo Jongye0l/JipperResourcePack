@@ -629,6 +629,8 @@ public partial class KeyViewer : Feature {
                         0xF4 => "BrightnessZero",
                         0xF5 => "DisplayOff",
                         0xF6 => "Wimax",
+                        65329 => "RightAlt",
+                        65332 => "RightControl",
                         _ => "Key" + code
                     }
                 };
