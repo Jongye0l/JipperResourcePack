@@ -1,12 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.Threading;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Tools;
@@ -21,7 +19,6 @@ using UnityEngine.UI;
 using UnityModManagerNet;
 using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
-using ThreadPriority = System.Threading.ThreadPriority;
 using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
 namespace JipperResourcePack.KeyViewerContents;
@@ -51,22 +48,18 @@ public partial class KeyViewer : Feature {
     public GameObject KeyViewerSizeObject;
     public KeyViewerUpdater Updater;
     public Key[] Keys;
-    public Thread KeyInputListener;
     public Key Kps;
     public Key Total;
     public static Stopwatch Stopwatch;
-    private bool _save;
     private bool _keyShare;
     private bool _keyChangeExpanded;
     private bool _ghostRainChangeExpanded;
     private bool _textChangeExpanded;
     private bool[] _colorExpanded;
     private KeyviewerStyle _currentKeyViewerStyle;
-    private bool[] _keyPressed;
     private bool _confirmResetCount;
 
     private int _selectedKey = -1;
-    private int _winAPICool;
     private int _currentKeyMaxY = 120;
     private int _changeState;
     private string _rainSizeString;
@@ -108,32 +101,24 @@ public partial class KeyViewer : Feature {
         InitializeKeyViewer();
         InitializeFootKeyViewer();
         Object.DontDestroyOnLoad(KeyViewerObject);
-        _pressTimes = new Queue<long>();
+        _pressTimes = new ConcurrentQueue<long>();
         Stopwatch = Stopwatch.StartNew();
-        KeyInputListener = new Thread(ListenKey) {
-            Name = "JipperResourcePack KeyViewer Listener Thread",
-            Priority = ThreadPriority.AboveNormal
-        };
-        KeyInputListener.Start();
-        Application.quitting += ApplicationOnquitting;
+        _eventOffsetTicks = NoEventOffset;
+        RebuildKeyBinding();
+        StartEventListener();
         UpdateKeyLimit();
-    }
-    private void ApplicationOnquitting() {
-        KeyInputListener.Abort();
-        KeyInputListener.Interrupt();
     }
 
     protected override void OnDisable() {
         if(!KeyViewerObject) return;
+        StopEventListener();
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;
         KeyViewerSizeObject = null;
         Keys = null;
-        KeyInputListener.Abort();
-        KeyInputListener.Interrupt();
-        KeyInputListener = null;
+        _keyBinding = null;
         _pressTimes = null;
-        Application.quitting -= ApplicationOnquitting;
+        Array.Clear(_keyState, 0, _keyState.Length);
     }
 
     protected override void OnGUI() {
@@ -358,27 +343,10 @@ public partial class KeyViewer : Feature {
             if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) _confirmResetCount = false;
         }
         if(_selectedKey == -1 || _changeState == 1 || !Application.isFocused) return;
-        if(Input.anyKeyDown) {
-            foreach(KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
-                if(!Input.GetKeyDown(keyCode)) continue;
-                SetupKey(keyCode);
-                break;
-            }
-        } else {
-            if(ADOBase.platform == Platform.Windows) {
-                for(int i = 0; i < 256; i++) {
-                    if((GetAsyncKeyState(i) & 0x8000) != 0 == _keyPressed[i]) continue;
-                    if(_keyPressed[i]) {
-                        _keyPressed[i] = false;
-                        _winAPICool = 0;
-                        continue;
-                    }
-                    if(_winAPICool++ < 6) break;
-                    KeyCode keyCode = (KeyCode) i + 0x1000;
-                    SetupKey(keyCode);
-                    break;
-                }
-            }
+        int capturedKeyCode = _capturedKeyCode;
+        if(capturedKeyCode != 0) {
+            _capturedKeyCode = 0;
+            SetupKey((KeyCode) capturedKeyCode);
         }
         return;
 
@@ -388,23 +356,20 @@ public partial class KeyViewer : Feature {
             _selectedKey = i;
             _changeState = textChanged ? 1 : 0;
             if(textChanged) return;
-            _winAPICool = 0;
-            _keyPressed = new bool[256];
-            for(int i2 = 0; i2 < 256; i2++) _keyPressed[i2] = (GetAsyncKeyState(i2) & 0x8000) != 0;
+            _capturedKeyCode = 0;
         }
 
         void CreateGhostButton(int i) {
             if(!GUILayout.Button(Bold(ToString(ghostKeyCodes[i]), i == _selectedKey && _changeState == 2))) return;
             if(ghostKeyCodes[i] != KeyCode.None) {
                 ghostKeyCodes[i] = KeyCode.None;
+                RebuildKeyBinding();
                 Main.Instance.SaveSetting();
                 return;
             }
             _selectedKey = i;
             _changeState = 2;
-            _winAPICool = 0;
-            _keyPressed = new bool[256];
-            for(int i2 = 0; i2 < 256; i2++) _keyPressed[i2] = (GetAsyncKeyState(i2) & 0x8000) != 0;
+            _capturedKeyCode = 0;
         }
 
         void SetupKey(KeyCode keyCode) {
@@ -413,11 +378,13 @@ public partial class KeyViewer : Feature {
                 else footKeyCodes[_selectedKey - HandOutIndex] = keyCode;
                 Keys[_selectedKey].Text.SetTextForce((_selectedKey < HandOutIndex ? keyTexts[_selectedKey] : null) ?? KeyToString(keyCode));
                 UpdateKeyLimit();
-            } else ghostKeyCodes[_selectedKey] = keyCode;
-            
+            } else {
+                ghostKeyCodes[_selectedKey] = keyCode;
+                RebuildKeyBinding();
+            }
+
             _selectedKey = -1;
-            _winAPICool = 0;
-            _keyPressed = null;
+            _capturedKeyCode = 0;
             Main.Instance.SaveSetting();
         }
     }
@@ -753,6 +720,8 @@ public partial class KeyViewer : Feature {
 
     private void InitializeKeyViewer() {
         _lastYLocation = Settings.YLocation;
+        _lastKpsCount = 0;
+        _lastTotalCount = KeyCountData.Instance.TotalCount;
         _currentKeyMaxY = Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
@@ -832,22 +801,12 @@ public partial class KeyViewer : Feature {
     }
 
     protected override void OnHideGUI() {
-        _winAPICool = 0;
         _sizeString = null;
-        _keyPressed = null;
+        _capturedKeyCode = 0;
         _confirmResetCount = false;
         if(_selectedKey == -1) return;
         Main.Instance.SaveSetting();
         _selectedKey = -1;
-    }
-
-    [DllImport("user32.dll", ExactSpelling = true)]
-    [SuppressUnmanagedCodeSecurity]
-    private static extern short GetAsyncKeyState(int vKey);
-
-    private static bool CheckKey(KeyCode keyCode) {
-        if(keyCode == KeyCode.None) return false;
-        return (int) keyCode < 0x1000 ? Input.GetKey(keyCode) : GetAsyncKeyState((int) keyCode - 0x1000) != 0;
     }
 
     private void Initialize0KeyViewer() {
@@ -864,6 +823,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
+        _pressTimes ??= new ConcurrentQueue<long>();
     }
 
     private void Initialize1KeyViewer() {
@@ -878,10 +838,12 @@ public partial class KeyViewer : Feature {
             Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
             Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
             Updater.enabled = true;
+            _pressTimes ??= new ConcurrentQueue<long>();
         } else {
             Kps = null;
             Total = null;
             Updater.enabled = false;
+            _pressTimes = null;
         }
     }
 
@@ -900,6 +862,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
+        _pressTimes ??= new ConcurrentQueue<long>();
     }
 
     private void Initialize3KeyViewer() {
@@ -912,6 +875,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
+        _pressTimes ??= new ConcurrentQueue<long>();
     }
 
     private void InitializeFootKeyViewer(int size) {
@@ -1099,6 +1063,7 @@ public partial class KeyViewer : Feature {
     #endregion
 
     private static void UpdateKeyLimit() {
+        Instance?.RebuildKeyBinding();
         switch(VersionControl.releaseNumber) {
             case < 145:
                 UpdateKeyLimitR144();

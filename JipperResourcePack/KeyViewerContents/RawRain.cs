@@ -4,7 +4,8 @@ using System.Runtime.CompilerServices;
 namespace JipperResourcePack.KeyViewerContents;
 
 public class RawRain {
-    private static ConcurrentBag<RawRain> _pool = [];
+    public const float RainTickUnit = 3000000f; // 300ms to tick
+    private static readonly ConcurrentBag<RawRain> Pool = [];
     public Key Key;
     public long StartTime;
     public float XSize;
@@ -33,15 +34,15 @@ public class RawRain {
     }
 
     public void Finish(long time) {
-        FinalSizeY = (time - StartTime) / 300f * KeyViewer.Settings.rainSpeed;
+        FinalSizeY = (time - StartTime) / RainTickUnit * KeyViewer.Settings.rainSpeed;
         FinishSize = true;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void AddPool(RawRain rain) => _pool.Add(rain);
+    public static void AddPool(RawRain rain) => Pool.Add(rain);
 
     public static RawRain GetOrNewRawRain(Key key, long startTime, bool isGhost) {
-        if(!_pool.TryTake(out RawRain rain)) return new RawRain(key, startTime, isGhost);
+        if(!Pool.TryTake(out RawRain rain)) return new RawRain(key, startTime, isGhost);
         rain.Init(key, startTime, isGhost);
         rain.Reset();
         return rain;

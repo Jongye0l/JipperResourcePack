@@ -21,7 +21,7 @@ public class RainManager : MonoBehaviour {
             RainList.Add(rainComponent);
         }
         if(RainList.Count == 0) return;
-        long time = KeyViewer.Stopwatch.ElapsedMilliseconds;
+        long time = KeyViewer.CurrentTicks;
         float speed = KeyViewer.Settings.rainSpeed;
         float height = KeyViewer.Settings.rainHeight;
         for(int i = 0; i < RainList.Count; i++) {
@@ -35,7 +35,7 @@ public class RainManager : MonoBehaviour {
                 if(rawRain.FinishSize) rain.Transform.sizeDelta = new Vector2(rawRain.XSize, rawRain.FinalSizeY);
                 rawRain.SizeOver = false;
             }
-            float y = (time - rawRain.StartTime) / 300f * speed;
+            float y = (time - rawRain.StartTime) / RawRain.RainTickUnit * speed;
             if(rawRain.FinishSize) {
                 if(y > height) {
                     float sizeY = rawRain.FinalSizeY - y + height;
