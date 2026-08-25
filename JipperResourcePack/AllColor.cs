@@ -173,7 +173,11 @@ public class AllColor : Feature {
 
 	private static string FormatTime(float seconds) => $"{(int) (seconds / 60):00}:{(int) (seconds % 60):00}";
 
-	public class AllColorSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
-		public ColorCache BaseColor = new(Color.purple);
+	public class AllColorSetting : JASetting {
+		public ColorCache BaseColor;
+		
+		public AllColorSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
+			ColorCache.Setup(ref BaseColor, Color.purple);
+		}
 	}
 }
