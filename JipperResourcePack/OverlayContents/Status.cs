@@ -76,6 +76,10 @@ public class Status : Feature {
                 Overlay.Instance.UpdateAccuracy();
             settingGUI.AddSettingSliderInt(ref Settings.AccuracyDecimalPlaces, 2, ref _accuracyDecimalPlacesString, localization["progress.accuracyDecimalPlaces"], 0, 4,
                 () => Overlay.Instance.UpdateAccuracy());
+            settingGUI.AddSettingEnum(ref Settings.AccuracyTextType, localization["progress.accuracyTextType"], () => {
+                Overlay.Instance.SetupLocationMain();
+                Overlay.Instance.UpdateAccuracy();
+            });
         }
         settingGUI.AddSettingToggle(ref Settings.ShowXAccuracy, localization["progress.showXAccuracy"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowXAccuracy) {
@@ -83,6 +87,10 @@ public class Status : Feature {
                 Overlay.Instance.UpdateAccuracy();
             settingGUI.AddSettingSliderInt(ref Settings.XAccuracyDecimalPlaces, 2, ref _xAccuracyDecimalPlacesString, localization["progress.xAccuracyDecimalPlaces"], 0, 4,
                 () => Overlay.Instance.UpdateAccuracy());
+            settingGUI.AddSettingEnum(ref Settings.XAccuracyTextType, localization["progress.xAccuracyTextType"], () => {
+                Overlay.Instance.SetupLocationMain();
+                Overlay.Instance.UpdateAccuracy();
+            });
         }
         if(!XScoreSupported) GUI.enabled = false;
         settingGUI.AddSettingToggle(ref Settings.ShowXScore, localization["progress.showXScore"], Overlay.Instance.SetupLocationMain);
@@ -91,6 +99,10 @@ public class Status : Feature {
                 if(Settings.XScoreColor.SettingGUI(settingGUI, localization["progress.xScoreColor"]))
                     Overlay.Instance.UpdateAccuracy();
                 settingGUI.AddSettingEnum(ref Settings.XScoreTextType, localization["progress.xScoreTextType"], () => Overlay.Instance.UpdateAccuracy());
+                settingGUI.AddSettingEnum(ref Settings.XScorePotentialTextType, localization["progress.xScorePotentialTextType"], () => {
+                    Overlay.Instance.SetupLocationMain();
+                    Overlay.Instance.UpdateAccuracy();
+                });
             }
         } else {
             GUI.enabled = true;
@@ -141,6 +153,33 @@ public class Status : Feature {
         _ => xScore.ToString()
     };
 
+    public static int GetJudgedTiles(int[] hits, int seqID) => XScoreSupported ? seqID - hits[(int) HitMargin.Midspin] : seqID;
+
+    private static void GetAccuracyCounts(int[] hits, out int perfect, out int accurate) {
+        if(XScoreSupported) {
+            perfect = hits[(int) HitMargin.PerfectMinus] + hits[(int) HitMargin.XPerfect] + hits[(int) HitMargin.PerfectPlus];
+            accurate = perfect + hits[(int) HitMargin.EarlyPerfect] + hits[(int) HitMargin.LatePerfect];
+        } else {
+            // 2 EarlyPerfect, 3 Perfect, 4 LatePerfect, 10 Auto. Auto tiles were still scored before R148.
+            perfect = hits[3] + hits[10];
+            accurate = perfect + hits[2] + hits[4];
+        }
+    }
+
+    public static float GetPotentialAccuracy(int[] hits, float acc, int judged, int remaining) {
+        GetAccuracyCounts(hits, out int perfect, out int accurate);
+        float rate = acc - perfect * 0.0001f;
+        int count = accurate == 0 || rate <= 0 || float.IsNaN(rate) ? judged : (int) Math.Round(accurate / rate);
+        if(count < accurate) count = accurate;
+        int total = count + remaining;
+        return total == 0 ? 1 : (perfect + remaining) * 0.0001f + (float) (accurate + remaining) / total;
+    }
+
+    public static float GetPotentialXAccuracy(float xacc, int judged, int remaining) {
+        int total = judged + remaining;
+        return total == 0 ? 1 : (xacc * judged + remaining) / total;
+    }
+
     public static Color GetTimingColor(float timing) => Settings.TimingColor.GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
 
     public class ProgressSetting: JASetting {
@@ -151,12 +190,15 @@ public class Status : Feature {
         public bool ShowAccuracy;
         public ColorPerDictionary AccuracyColor;
         public int AccuracyDecimalPlaces = 2;
+        public PotentialTextType AccuracyTextType = PotentialTextType.Current;
         public bool ShowXAccuracy = true;
         public ColorPerDictionary XAccuracyColor;
         public int XAccuracyDecimalPlaces = 2;
+        public PotentialTextType XAccuracyTextType = PotentialTextType.Current;
         public bool ShowXScore;
         public ColorPerDictionary XScoreColor;
         public XScoreTextType XScoreTextType = XScoreTextType.WithMax;
+        public PotentialTextType XScorePotentialTextType = PotentialTextType.Current;
         public bool ShowMusicTime = true;
         public ColorPerDictionary MusicTimeColor;
         public bool ShowMapTime;

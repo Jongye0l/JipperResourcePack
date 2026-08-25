@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,8 +18,11 @@ public class Overlay {
     public readonly Canvas Canvas;
     public TextMeshProUGUI ProgressText;
     public TextMeshProUGUI AccuracyText;
+    public TextMeshProUGUI PotentialAccuracyText;
     public TextMeshProUGUI XAccuracyText;
+    public TextMeshProUGUI PotentialXAccuracyText;
     public TextMeshProUGUI XScoreText;
+    public TextMeshProUGUI PotentialXScoreText;
     public TextMeshProUGUI TimeText;
     public TextMeshProUGUI MapTimeText;
     public TextMeshProUGUI CheckpointText;
@@ -52,6 +56,7 @@ public class Overlay {
     protected string MusicTimeCache;
     protected string MapTimeCache;
     protected float MapTotalTime = -1;
+    private int[] _scorableTiles;
     public PlayCount.Hash LastHash;
     private float _lastSavedStartProgress = -1;
     public float LastMultiplier = 1f;
@@ -104,8 +109,11 @@ public class Overlay {
         transform.sizeDelta = new Vector2(456, 100);
         SetupMainText("Progress", ref ProgressText);
         SetupMainText("Accuracy", ref AccuracyText);
+        SetupMainText("PotentialAccuracy", ref PotentialAccuracyText);
         SetupMainText("XAccuracy", ref XAccuracyText);
+        SetupMainText("PotentialXAccuracy", ref PotentialXAccuracyText);
         SetupMainText("XScore", ref XScoreText);
+        SetupMainText("PotentialXScore", ref PotentialXScoreText);
         SetupMainText("MusicTime", ref TimeText);
         SetupMainText("MapTime", ref MapTimeText);
         SetupMainText("Checkpoint", ref CheckpointText);
@@ -130,9 +138,12 @@ public class Overlay {
         if(!GameObject.activeSelf) return;
         int y = -15;
         SetupLocationMainText(ProgressText, Status.Settings.ShowProgress, ref y);
-        SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy, ref y);
-        SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
-        SetupLocationMainText(XScoreText, Status.Settings.ShowXScore && Status.XScoreSupported, ref y);
+        SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy && Status.Settings.AccuracyTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialAccuracyText, Status.Settings.ShowAccuracy && Status.Settings.AccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy && Status.Settings.XAccuracyTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXAccuracyText, Status.Settings.ShowXAccuracy && Status.Settings.XAccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XScoreText, Status.Settings.ShowXScore && Status.XScoreSupported && Status.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXScoreText, Status.Settings.ShowXScore && Status.XScoreSupported && Status.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(CheckpointText,
@@ -289,8 +300,11 @@ public class Overlay {
     public virtual void UpdateFont() {
         ProgressText.font = BundleLoader.FontAsset;
         AccuracyText.font = BundleLoader.FontAsset;
+        PotentialAccuracyText.font = BundleLoader.FontAsset;
         XAccuracyText.font = BundleLoader.FontAsset;
+        PotentialXAccuracyText.font = BundleLoader.FontAsset;
         XScoreText.font = BundleLoader.FontAsset;
+        PotentialXScoreText.font = BundleLoader.FontAsset;
         TimeText.font = BundleLoader.FontAsset;
         MapTimeText.font = BundleLoader.FontAsset;
         CheckpointText.font = BundleLoader.FontAsset;
@@ -426,6 +440,27 @@ public class Overlay {
         }
     }
     
+    public int GetRemainingTiles(int seqID) {
+        List<scrFloor> floors = ADOBase.lm.listFloors;
+        int last = floors.Count - 1;
+        if(seqID < 0) seqID = 0;
+        if(seqID >= last) return 0;
+        if(!Status.XScoreSupported) return last - seqID;
+        int[] scorableTiles = _scorableTiles ??= BuildScorableTiles(floors);
+        return scorableTiles[last] - scorableTiles[seqID];
+    }
+
+    private static int[] BuildScorableTiles(List<scrFloor> floors) {
+        int[] scorableTiles = new int[floors.Count];
+        int count = 0;
+        for(int i = 1; i < floors.Count; i++) {
+            scrFloor floor = floors[i];
+            if(!floor.midSpin && !floor.auto) count++;
+            scorableTiles[i] = count;
+        }
+        return scorableTiles;
+    }
+
     protected float GetMapTotalTime() {
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if(MapTotalTime == -1) MapTotalTime = (float) scrLevelMaker.instance.listFloors[^1].entryTime;
@@ -556,6 +591,7 @@ public class Overlay {
             Checkpoints = null;
             MapTimeCache = null;
             MapTotalTime = -1;
+            _scorableTiles = null;
         }
         MusicTimeCache = null;
         

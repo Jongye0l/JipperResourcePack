@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using JipperResourcePack.SettingTool;
+using TMPro;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
@@ -22,26 +24,50 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     public virtual void UpdateAccuracy(Overlay overlay, int _) {
         float xacc = VersionSafe.GetPercentXAcc();
         if(float.IsNaN(xacc)) xacc = 1;
+        int seqID = scrController.instance.currentSeqID;
+        int remaining = overlay.GetRemainingTiles(seqID);
+        int judged = Status.GetJudgedTiles(overlay.Hit, seqID);
         if(Status.Settings.ShowAccuracy) {
             float acc = VersionSafe.GetPercentAcc();
-            float maxAcc = 1 + (scrController.instance.currentSeqID - overlay.NoCheckStartTile) * 0.0001f;
-            overlay.AccuracyText.text = "<color=white>Accuracy |</color> " + Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces) + "%";
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            overlay.AccuracyText.color = Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc);
+            float potentialAcc = Status.GetPotentialAccuracy(overlay.Hit, acc, judged, remaining);
+            float maxAcc = 1 + (seqID - overlay.NoCheckStartTile) * 0.0001f;
+            int decimalPlaces = Status.Settings.AccuracyDecimalPlaces;
+            // ReSharper disable CompareOfFloatsByEqualityOperator
+            SetDualText(Status.Settings.AccuracyTextType, overlay.AccuracyText, overlay.PotentialAccuracyText, "Accuracy",
+                Math.Round(acc * 100, decimalPlaces) + "%", Math.Round(potentialAcc * 100, decimalPlaces) + "%",
+                Status.Settings.AccuracyColor, xacc == 1 ? 1 : acc / maxAcc, xacc == 1 ? 1 : potentialAcc / (maxAcc + remaining * 0.0001f));
+            // ReSharper restore CompareOfFloatsByEqualityOperator
         }
         if(Status.Settings.ShowXAccuracy) {
-            overlay.XAccuracyText.text = "<color=white>XAccuracy |</color> " + Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces) + "%";
-            overlay.XAccuracyText.color = Status.Settings.XAccuracyColor.GetColor(xacc);
+            float potentialXAcc = Status.GetPotentialXAccuracy(xacc, judged, remaining);
+            int decimalPlaces = Status.Settings.XAccuracyDecimalPlaces;
+            SetDualText(Status.Settings.XAccuracyTextType, overlay.XAccuracyText, overlay.PotentialXAccuracyText, "XAccuracy",
+                Math.Round(xacc * 100, decimalPlaces) + "%", Math.Round(potentialXAcc * 100, decimalPlaces) + "%",
+                Status.Settings.XAccuracyColor, xacc, potentialXAcc);
         }
-        if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay);
+        if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay, judged, remaining);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void UpdateXScore(Overlay overlay) {
+    protected static void SetDualText(PotentialTextType type, TextMeshProUGUI text, TextMeshProUGUI potentialText, string label,
+                                      string value, string potentialValue, ColorPerDictionary cpd, float fValue, float fPotentialValue) {
+        if(type != PotentialTextType.Potential) {
+            text.text = "<color=white>" + label + " |</color> " + (type == PotentialTextType.BothInOneLine ? value + " (" + potentialValue + ")" : value);
+            text.color = cpd.GetColor(fValue);
+        }
+        if(type is not (PotentialTextType.Potential or PotentialTextType.Both)) return;
+        potentialText.text = "<color=white>P." + label + " |</color> " + potentialValue;
+        potentialText.color = cpd.GetColor(fPotentialValue);
+    }
+
+    private static void UpdateXScore(Overlay overlay, int judged, int remaining) {
+        int perfectValue = HitMargin.XPerfect.ToXScore();
         int xScore = scrMistakesManager.marginTrackers[0].xScore;
-        int maxXScore = (scrController.instance.currentSeqID - overlay.Hit[(int) HitMargin.Midspin]) * HitMargin.XPerfect.ToXScore();
-        overlay.XScoreText.text = "<color=white>XScore |</color> " + Status.GetXScoreText(xScore, maxXScore);
-        overlay.XScoreText.color = Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore);
+        int maxXScore = judged * perfectValue;
+        int potentialXScore = xScore + remaining * perfectValue;
+        int totalXScore = maxXScore + remaining * perfectValue;
+        SetDualText(Status.Settings.XScorePotentialTextType, overlay.XScoreText, overlay.PotentialXScoreText, "XScore",
+            Status.GetXScoreText(xScore, maxXScore), Status.GetXScoreText(potentialXScore, totalXScore),
+            Status.Settings.XScoreColor, maxXScore == 0 ? 1 : (float) xScore / maxXScore, totalXScore == 0 ? 1 : (float) potentialXScore / totalXScore);
     }
 
     public virtual void UpdateProgress(Overlay overlay) {

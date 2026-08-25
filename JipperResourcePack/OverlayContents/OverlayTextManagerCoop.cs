@@ -24,8 +24,11 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         LastTimings = new float[PlayerArray.Length];
         overlay.ProgressText.color = Color.white;
         overlay.AccuracyText.color = Color.white;
+        overlay.PotentialAccuracyText.color = Color.white;
         overlay.XAccuracyText.color = Color.white;
+        overlay.PotentialXAccuracyText.color = Color.white;
         overlay.XScoreText.color = Color.white;
+        overlay.PotentialXScoreText.color = Color.white;
         overlay.TimingText.color = Color.white;
         overlay.AvgTimingText.color = Color.white;
     }
@@ -51,60 +54,132 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         if(Status.Settings.ShowAccuracy) {
             if(index == -1)
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    SetAccuracy(ref PlayerArray[i], overlay.NoCheckStartTile, index);
-            else SetAccuracy(ref PlayerArray[index], overlay.NoCheckStartTile, index);
-            
-            string[] strings = ConcatBuffer;
-            strings[0] = "Accuracy";
-            for(int i = 0; i < PlayerArray.Length; i++) 
-                strings[i + 1] = PlayerArray[i].AccuracyString;
-            overlay.AccuracyText.text = string.Concat(strings);
+                    SetAccuracy(overlay, ref PlayerArray[i], i);
+            else SetAccuracy(overlay, ref PlayerArray[index], index);
+
+            PotentialTextType type = Status.Settings.AccuracyTextType;
+            if(type != PotentialTextType.Potential) {
+                string[] strings = ConcatBuffer;
+                strings[0] = "Accuracy";
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    strings[i + 1] = PlayerArray[i].AccuracyString;
+                overlay.AccuracyText.text = string.Concat(strings);
+            }
+            if(type is PotentialTextType.Potential or PotentialTextType.Both) {
+                string[] strings = ConcatBuffer;
+                strings[0] = "P.Accuracy";
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    strings[i + 1] = PlayerArray[i].PotentialAccuracyString;
+                overlay.PotentialAccuracyText.text = string.Concat(strings);
+            }
         }
         if(Status.Settings.ShowXAccuracy) {
             if(index == -1)
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    SetXAccuracy(ref PlayerArray[i], index);
-            else SetXAccuracy(ref PlayerArray[index], index);
-            
-            string[] strings = ConcatBuffer;
-            strings[0] = "XAccuracy";
-            for(int i = 0; i < PlayerArray.Length; i++) 
-                strings[i + 1] = PlayerArray[i].XAccuracyString;
-            overlay.XAccuracyText.text = string.Concat(strings);
+                    SetXAccuracy(overlay, ref PlayerArray[i], i);
+            else SetXAccuracy(overlay, ref PlayerArray[index], index);
+
+            PotentialTextType type = Status.Settings.XAccuracyTextType;
+            if(type != PotentialTextType.Potential) {
+                string[] strings = ConcatBuffer;
+                strings[0] = "XAccuracy";
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    strings[i + 1] = PlayerArray[i].XAccuracyString;
+                overlay.XAccuracyText.text = string.Concat(strings);
+            }
+            if(type is PotentialTextType.Potential or PotentialTextType.Both) {
+                string[] strings = ConcatBuffer;
+                strings[0] = "P.XAccuracy";
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    strings[i + 1] = PlayerArray[i].PotentialXAccuracyString;
+                overlay.PotentialXAccuracyText.text = string.Concat(strings);
+            }
         }
         if(Status.Settings.ShowXScore && Status.XScoreSupported) {
             if(index == -1)
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    SetXScore(ref PlayerArray[i], i);
-            else SetXScore(ref PlayerArray[index], index);
-            
-            string[] strings = ConcatBuffer;
-            strings[0] = "XScore";
-            for(int i = 0; i < PlayerArray.Length; i++) 
-                strings[i + 1] = PlayerArray[i].XScoreString;
-            overlay.XScoreText.text = string.Concat(strings);
+                    SetXScore(overlay, ref PlayerArray[i], i);
+            else SetXScore(overlay, ref PlayerArray[index], index);
+
+            PotentialTextType type = Status.Settings.XScorePotentialTextType;
+            if(type != PotentialTextType.Potential) {
+                string[] strings = ConcatBuffer;
+                strings[0] = "XScore";
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    strings[i + 1] = PlayerArray[i].XScoreString;
+                overlay.XScoreText.text = string.Concat(strings);
+            }
+            if(type is PotentialTextType.Potential or PotentialTextType.Both) {
+                string[] strings = ConcatBuffer;
+                strings[0] = "P.XScore";
+                for(int i = 0; i < PlayerArray.Length; i++)
+                    strings[i + 1] = PlayerArray[i].PotentialXScoreString;
+                overlay.PotentialXScoreText.text = string.Concat(strings);
+            }
         }
     }
 
+    private static int GetSeqID(int i) => scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID;
+
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void SetXScore(ref PlayerData pData, int i) {
+    private static void SetXScore(Overlay overlay, ref PlayerData pData, int i) {
+        int perfectValue = HitMargin.XPerfect.ToXScore();
+        int seqID = GetSeqID(i);
+        int remaining = overlay.GetRemainingTiles(seqID);
         int xScore = scrMistakesManager.marginTrackers[i].xScore;
-        int maxXScore = (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID - scrMistakesManager.marginTrackers[i].GetHits(HitMargin.Midspin)) * HitMargin.XPerfect.ToXScore();
-        pData.XScoreString = " | " + ColorToString(Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore)) + Status.GetXScoreText(xScore, maxXScore) + "</color>";
+        int maxXScore = (seqID - scrMistakesManager.marginTrackers[i].GetHits(HitMargin.Midspin)) * perfectValue;
+        int potentialXScore = xScore + remaining * perfectValue;
+        int totalXScore = maxXScore + remaining * perfectValue;
+        PotentialTextType type = Status.Settings.XScorePotentialTextType;
+        if(type != PotentialTextType.Potential) {
+            string value = ColorToString(Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore)) + Status.GetXScoreText(xScore, maxXScore);
+            if(type == PotentialTextType.BothInOneLine) value += " (" + Status.GetXScoreText(potentialXScore, totalXScore) + ")";
+            pData.XScoreString = " | " + value + "</color>";
+        }
+        if(type is PotentialTextType.Potential or PotentialTextType.Both)
+            pData.PotentialXScoreString = " | " + ColorToString(Status.Settings.XScoreColor.GetColor(totalXScore == 0 ? 1 : (float) potentialXScore / totalXScore)) +
+                                          Status.GetXScoreText(potentialXScore, totalXScore) + "</color>";
     }
 
-    private void SetAccuracy(ref PlayerData pData, int noCheckStartTile, int i) {
-        float acc = scrMistakesManager.marginTrackers[i].percentAcc;
-        float maxAcc = 1 + (scrPlayerManager.instance.allPlayers[i].planetarySystem.chosenPlanet.currfloor.seqID - noCheckStartTile + 1) * 0.0001f;
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        pData.AccuracyString = " | " + ColorToString(Status.Settings.AccuracyColor.GetColor(scrMistakesManager.marginTrackers[i].percentXAcc.SetIfNaN(1) == 1 ? 1 : acc / maxAcc)) + Math.Round(acc * 100, Status.Settings.AccuracyDecimalPlaces) + "%</color>";
+    private void SetAccuracy(Overlay overlay, ref PlayerData pData, int i) {
+        scrMarginTracker tracker = scrMistakesManager.marginTrackers[i];
+        int seqID = GetSeqID(i);
+        int remaining = overlay.GetRemainingTiles(seqID);
+        float acc = tracker.percentAcc;
+        float xacc = tracker.percentXAcc.SetIfNaN(1);
+        float potentialAcc = Status.GetPotentialAccuracy(tracker.hitMarginsCount, acc, Status.GetJudgedTiles(tracker.hitMarginsCount, seqID), remaining);
+        float maxAcc = 1 + (seqID - overlay.NoCheckStartTile + 1) * 0.0001f;
+        PotentialTextType type = Status.Settings.AccuracyTextType;
+        int decimalPlaces = Status.Settings.AccuracyDecimalPlaces;
+        // ReSharper disable CompareOfFloatsByEqualityOperator
+        if(type != PotentialTextType.Potential) {
+            string value = ColorToString(Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc)) + Math.Round(acc * 100, decimalPlaces) + "%";
+            if(type == PotentialTextType.BothInOneLine) value += " (" + Math.Round(potentialAcc * 100, decimalPlaces) + "%)";
+            pData.AccuracyString = " | " + value + "</color>";
+        }
+        if(type is PotentialTextType.Potential or PotentialTextType.Both)
+            pData.PotentialAccuracyString = " | " + ColorToString(Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : potentialAcc / (maxAcc + remaining * 0.0001f))) +
+                                            Math.Round(potentialAcc * 100, decimalPlaces) + "%</color>";
+        // ReSharper restore CompareOfFloatsByEqualityOperator
     }
-    
-    private void SetXAccuracy(ref PlayerData pData, int i) {
-        float xacc = scrMistakesManager.marginTrackers[i].percentXAcc;
+
+    private void SetXAccuracy(Overlay overlay, ref PlayerData pData, int i) {
+        scrMarginTracker tracker = scrMistakesManager.marginTrackers[i];
+        int seqID = GetSeqID(i);
+        int remaining = overlay.GetRemainingTiles(seqID);
+        float xacc = tracker.percentXAcc;
         if(float.IsNaN(xacc)) xacc = 1;
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        pData.XAccuracyString = " | " + ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc)) + Math.Round(xacc * 100, Status.Settings.XAccuracyDecimalPlaces) + "%</color>";
+        float potentialXAcc = Status.GetPotentialXAccuracy(xacc, Status.GetJudgedTiles(tracker.hitMarginsCount, seqID), remaining);
+        PotentialTextType type = Status.Settings.XAccuracyTextType;
+        int decimalPlaces = Status.Settings.XAccuracyDecimalPlaces;
+        if(type != PotentialTextType.Potential) {
+            string value = ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc)) + Math.Round(xacc * 100, decimalPlaces) + "%";
+            if(type == PotentialTextType.BothInOneLine) value += " (" + Math.Round(potentialXAcc * 100, decimalPlaces) + "%)";
+            pData.XAccuracyString = " | " + value + "</color>";
+        }
+        if(type is PotentialTextType.Potential or PotentialTextType.Both)
+            pData.PotentialXAccuracyString = " | " + ColorToString(Status.Settings.XAccuracyColor.GetColor(potentialXAcc)) +
+                                             Math.Round(potentialXAcc * 100, decimalPlaces) + "%</color>";
     }
 
     public void UpdateProgress(Overlay overlay) {
@@ -209,8 +284,11 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     public struct PlayerData {
         public string ProgressString;
         public string AccuracyString;
+        public string PotentialAccuracyString;
         public string XAccuracyString;
+        public string PotentialXAccuracyString;
         public string XScoreString;
+        public string PotentialXScoreString;
         public string TimingString;
         public string AvgTimingString;
         public string JudgementText;
