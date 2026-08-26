@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Tools;
@@ -75,6 +76,7 @@ public partial class KeyViewer : Feature {
         if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys);
         else if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
+        AsyncInputHook.Setup(Patcher);
         AdofaiTweaksAPI.Setup();
         KeyboardChatterBlockerAPI.Setup();
     }
@@ -101,6 +103,7 @@ public partial class KeyViewer : Feature {
         InitializeKeyViewer();
         InitializeFootKeyViewer();
         Object.DontDestroyOnLoad(KeyViewerObject);
+        AsyncInputHook.Acquire();
         _pressTimes = new ConcurrentQueue<long>();
         Stopwatch = Stopwatch.StartNew();
         _eventOffsetTicks = NoEventOffset;
@@ -112,6 +115,7 @@ public partial class KeyViewer : Feature {
     protected override void OnDisable() {
         if(!KeyViewerObject) return;
         StopEventListener();
+        AsyncInputHook.Release();
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;
         KeyViewerSizeObject = null;
@@ -1102,6 +1106,11 @@ public partial class KeyViewer : Feature {
     private static readonly MethodInfo SetAsyncKeys = typeof(KeysSetting).Setter("asyncKeys");
 
     private static void UpdateKeyLimitR145() {
+        if(ADOBase.platform == Platform.Linux && !SkyHookManager.Instance.isHookActive) {
+            if(MainThread.IsMainThread()) Task.Yield().OnCompleted(UpdateKeyLimitR145);
+            else MainThread.Run(Main.Instance, UpdateKeyLimitR145);
+            return;
+        }
         KeyViewerSetting settings = Settings;
         if(!settings.AutoSetupKeyLimit) return;
         KeyCode[] keyCodes = GetKeyCode();
