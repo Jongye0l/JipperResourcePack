@@ -117,7 +117,7 @@ public class AllColor : Feature {
 
 		if(Status.Instance.Enabled) {
 			float t10 = Time.unscaledTime % 10f / 10f;
-			Status.ProgressSetting statusSettings = Status.Settings;
+			Status.StatusSetting statusSettings = Status.Settings;
 			if(statusSettings.ShowProgress)
 				AddColorPreviewLine("Progress", statusSettings.ProgressColor.GetColor(t20), statusSettings.ProgressColor.GetPreviewColor(t20, baseColor), $"{t20 * 100:F1}%");
 			if(statusSettings.ShowAccuracy)

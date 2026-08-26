@@ -7,11 +7,11 @@ using UnityEngine.UI;
 namespace JipperResourcePack.Jongyeol;
 
 public class JStatus : OverlayContents.Status {
-    public static new JProgressSetting Settings;
+    public static new JStatusSetting Settings;
     private static bool _auto;
 
-    public JStatus() : base(typeof(JProgressSetting)) {
-        Settings = (JProgressSetting) Setting;
+    public JStatus() : base(typeof(JStatusSetting)) {
+        Settings = (JStatusSetting) Setting;
         Patcher.AddPatch(typeof(JStatus));
     }
 
@@ -46,7 +46,7 @@ public class JStatus : OverlayContents.Status {
     }
     // ReSharper restore UnusedMember.Local
 
-    public class JProgressSetting : ProgressSetting {
+    public class JStatusSetting : StatusSetting {
         public bool ShowFPS = true;
         public bool ShowAuthor = true;
         public bool ShowState = true;
@@ -56,7 +56,7 @@ public class JStatus : OverlayContents.Status {
         public bool ShowStart = true;
         public bool RemoveNotRequireInAuto = true;
 
-        public JProgressSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
+        public JStatusSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             if(jsonObject == null) ShowAccuracy = true;
         }
     }

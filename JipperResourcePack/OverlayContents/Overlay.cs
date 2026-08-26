@@ -582,7 +582,7 @@ public class Overlay {
 
         if(scrController.checkpointsUsed == 0) {
             _current = ComboTier.White;
-            ComboTitle.text = "X-Perfect";
+            ComboTitle.text = "XPerfect";
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading.Tasks;
 using HarmonyLib;
 using JALib.Core;
 using JALib.Core.Patch;
@@ -16,7 +15,7 @@ using UnityEngine;
 namespace JipperResourcePack.OverlayContents;
 
 public class Status : Feature {
-    public static ProgressSetting Settings;
+    public static StatusSetting Settings;
     public static GameObject ProgressObject;
     public static GameObject ProgressBarObject;
     public static Status Instance;
@@ -27,11 +26,11 @@ public class Status : Feature {
     private string _timingDecimalPlacesString;
     private static Func<float, float, bool, float, float, double, HitMargin> _getHitMarginR141;
 
-    public Status() : this(typeof(ProgressSetting)) {
+    public Status() : this(typeof(StatusSetting)) {
     }
 
     protected Status(Type settingType) : base(Main.Instance, nameof(Status), true, typeof(Status), settingType) {
-        Settings = (ProgressSetting) Setting;
+        Settings = (StatusSetting) Setting;
         Instance = this;
         if(VersionControl.releaseNumber >= 148) {
             int founded = 0;
@@ -182,7 +181,7 @@ public class Status : Feature {
 
     public static Color GetTimingColor(float timing) => Settings.TimingColor.GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
 
-    public class ProgressSetting: JASetting {
+    public class StatusSetting: JASetting {
         // ReSharper disable FieldCanBeMadeReadOnly.Global
         public bool ShowProgress = true;
         public ColorPerDictionary ProgressColor;
@@ -197,7 +196,7 @@ public class Status : Feature {
         public PotentialTextType XAccuracyTextType = PotentialTextType.Current;
         public bool ShowXScore;
         public ColorPerDictionary XScoreColor;
-        public XScoreTextType XScoreTextType = XScoreTextType.WithMax;
+        public XScoreTextType XScoreTextType = XScoreTextType.MaxMinus;
         public PotentialTextType XScorePotentialTextType = PotentialTextType.Current;
         public bool ShowMusicTime = true;
         public ColorPerDictionary MusicTimeColor;
@@ -209,17 +208,17 @@ public class Status : Feature {
         public bool ShowBest;
         public ColorPerDictionary BestColor;
         public int BestDecimalPlaces = 2;
-        public bool ShowTiming = true;
+        public bool ShowTiming;
         public ColorPerDictionary TimingColor;
         public int TimingDecimalPlaces = 5;
-        public TimingTextType TimingTextType = TimingTextType.BothInOneLine;
+        public TimingTextType TimingTextType = TimingTextType.Timing;
         public bool ShowProgressBar = true;
         public ColorPerDictionary ProgressBarColor;
         public ColorPerDictionary ProgressBarBackgroundColor;
         public ColorPerDictionary ProgressBarBorderColor;
         // ReSharper restore FieldCanBeMadeReadOnly.Global
         
-        public ProgressSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
+        public StatusSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             ColorPerDictionary.Setup(ref ProgressColor, [
                 (0f, Color.white),
                 (1f, new Color(0.87450980392156863f, 0.70980392156862745f, 1))
