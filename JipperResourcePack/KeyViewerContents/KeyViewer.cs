@@ -1175,7 +1175,7 @@ public partial class KeyViewer : Feature {
         if(!Settings.AutoSetupKeyLimit || setting.name != "keyLimiter") return true;
         switch(action) {
             case SettingsMenu.Interaction.Activate:
-                setting.UpdateDescription();
+                scrController.instance.pauseMenu.settingsMenu.SetDescription(setting.hasDescription ? setting.GetDescriptionText() : "");
                 break;
             case SettingsMenu.Interaction.Refresh:
                 setting.valueLabel.text = Main.Instance.Localization["KeyViewer.AutoSetupKeyLimit.Label"];
