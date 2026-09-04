@@ -114,7 +114,11 @@ public partial class KeyViewer {
         bool pressed = keyEvent.Pressed;
         if(pressed && _selectedKey != -1 && _changeState != 1) {
             KeyCode capturedKey = SkyHookKeyMapper.SkyHookKeyToUnityKey(keyEvent.Label);
-            _capturedKeyCode = capturedKey == KeyCode.None ? keyEvent.Key + 0x1000 : (int) capturedKey;
+            _capturedKeyCode = capturedKey switch {
+                KeyCode.None => keyEvent.Key + 0x1000,
+                KeyCode.Less => (int) KeyCode.Comma,
+                _ => (int) capturedKey
+            };
         }
         bool counted = false;
         if(binding.LabelMap.TryGetValue(keyEvent.Label, out int[] indexes)) counted = Work(indexes, pressed, keyEvent.Ticks);
