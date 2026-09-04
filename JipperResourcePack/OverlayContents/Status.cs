@@ -32,7 +32,7 @@ public class Status : Feature {
     protected Status(Type settingType) : base(Main.Instance, nameof(Status), true, typeof(Status), settingType) {
         Settings = (StatusSetting) Setting;
         Instance = this;
-        if(VersionControl.releaseNumber >= 148) {
+        if(VersionControl.releaseNumber >= 149) {
             int founded = 0;
             foreach(MethodInfo methodInfo in typeof(scrPlanet).Methods()) {
                 if(methodInfo.Name.StartsWith("<SwitchChosen>") && methodInfo.Name.Contains("GetHitMargin")) {
@@ -105,7 +105,7 @@ public class Status : Feature {
             }
         } else {
             GUI.enabled = true;
-            GUILayout.Label(localization["progress.xScoreRequireR148"]);
+            GUILayout.Label(localization["progress.xScoreRequireR149"]);
         }
         settingGUI.AddSettingToggle(ref Settings.ShowMusicTime, localization["progress.showMusicTime"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowMusicTime && Settings.MusicTimeColor.SettingGUI(settingGUI, localization["progress.musicTimeColor"]))
@@ -144,7 +144,7 @@ public class Status : Feature {
             Overlay.Instance.UpdateProgressBar();
     }
 
-    public static bool XScoreSupported => VersionControl.releaseNumber >= 148;
+    public static bool XScoreSupported => VersionControl.releaseNumber >= 149;
 
     public static string GetXScoreText(int xScore, int maxXScore) => Settings.XScoreTextType switch {
         XScoreTextType.WithMax => xScore + "/" + maxXScore,
@@ -159,7 +159,7 @@ public class Status : Feature {
             perfect = hits[(int) HitMargin.PerfectMinus] + hits[(int) HitMargin.XPerfect] + hits[(int) HitMargin.PerfectPlus];
             accurate = perfect + hits[(int) HitMargin.EarlyPerfect] + hits[(int) HitMargin.LatePerfect];
         } else {
-            // 2 EarlyPerfect, 3 Perfect, 4 LatePerfect, 10 Auto. Auto tiles were still scored before R148.
+            // 2 EarlyPerfect, 3 Perfect, 4 LatePerfect, 10 Auto. Auto tiles were still scored before R149.
             perfect = hits[3] + hits[10];
             accurate = perfect + hits[2] + hits[4];
         }
@@ -293,7 +293,7 @@ public class Status : Feature {
         Overlay.Instance.UpdateTiming(timing);
     }
 
-    [JAPatch(typeof(scrPlanet), nameof(scrPlanet.SwitchChosen), PatchType.Transpiler, false, MinVersion = 141, MaxVersion = 147)]
+    [JAPatch(typeof(scrPlanet), nameof(scrPlanet.SwitchChosen), PatchType.Transpiler, false, MinVersion = 141, MaxVersion = 148)]
     private static IEnumerable<CodeInstruction> GetHitMarginR141(IEnumerable<CodeInstruction> instructions) {
         List<CodeInstruction> list = instructions.ToList();
         for(int i = 0; i < list.Count; i++) {
@@ -325,11 +325,11 @@ public class Status : Feature {
             if(codeInstruction.operand is not MethodInfo methodInfo) continue;
             switch(methodInfo.Name) {
                 case "GetHitMarginInDeg":
-                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInDegProxyR148).Method);
+                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInDegProxyR149).Method);
                     list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
                     break;
                 case "GetHitMarginInSec":
-                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInSecProxyR148).Method);
+                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInSecProxyR149).Method);
                     list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
                     break;
             }
@@ -337,7 +337,7 @@ public class Status : Feature {
         return list;
     }
 
-    private static HitMargin GetHitMarginInDegProxyR148(Difficulty difficulty, float hitAngle, float refAngle, bool clockwise,
+    private static HitMargin GetHitMarginInDegProxyR149(Difficulty difficulty, float hitAngle, float refAngle, bool clockwise,
                                                         float floorBpm, float conductorPitch, double marginScale, scrPlanet planet) {
         try {
             if(IsTimingAvailable(planet)) {
@@ -351,7 +351,7 @@ public class Status : Feature {
         return scrMisc.GetHitMarginInDeg(difficulty, hitAngle, refAngle, clockwise, floorBpm, conductorPitch, marginScale);
     }
 
-    private static HitMargin GetHitMarginInSecProxyR148(Difficulty difficulty, double timeDiff, float floorBpm,
+    private static HitMargin GetHitMarginInSecProxyR149(Difficulty difficulty, double timeDiff, float floorBpm,
                                                         float conductorPitch, double marginScale, scrPlanet planet) {
         try {
             if(IsTimingAvailable(planet)) {

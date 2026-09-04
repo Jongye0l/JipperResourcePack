@@ -41,7 +41,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
     }
     
     public void CheckPurePerfect(JOverlay overlay, scrPlanet planet) {
-        bool isXPerfectSupport = VersionControl.releaseNumber >= 148;
+        bool isXPerfectSupport = VersionControl.releaseNumber >= 149;
         int max = isXPerfectSupport ? 12 : 10;
         if((object) planet == null) {
             for(int index = 0; index < JPlayerArray.Length; index++) {
@@ -82,7 +82,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
 
     public int GetTooJudgement(JOverlay _) {
         int count = 0;
-        int tooLateIndex = VersionControl.releaseNumber < 148 ? 6 : 8;
+        int tooLateIndex = VersionControl.releaseNumber < 149 ? 6 : 8;
         for(int i = 0; i < JPlayerArray.Length; i++) {
             int[] hit = scrMistakesManager.marginTrackers[i].hitMarginsCount;
             count += hit[0];
@@ -97,7 +97,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         public string StateString;
 
         public void SetDeath(JOverlay overlay, int currentTile, int[] hit) {
-            Death = VersionControl.releaseNumber < 148 ? hit[8] + hit[9] : hit[10] + hit[11];
+            Death = VersionControl.releaseNumber < 149 ? hit[8] + hit[9] : hit[10] + hit[11];
             float max = (currentTile - overlay.StartTile) * 0.05f;
             Color color = overlay.GetColor(1 - Math.Min(Death, max) / max);
             DeathString = " | <color=" + ColorUtility.ToHtmlStringRGB(color) + ">" + Death + "</color>";
@@ -125,7 +125,7 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
                 } else {
                     if(Death > 0) sb.Append("완주");
                     else if(hit[0] != 0) sb.Append("클리어");
-                    else if(hit[1] != 0 || hit[VersionControl.releaseNumber < 148 ? 5 : 7] != 0) sb.Append("노미스");
+                    else if(hit[1] != 0 || hit[VersionControl.releaseNumber < 149 ? 5 : 7] != 0) sb.Append("노미스");
                     else sb.Append("완벽주의");
                 }
             }

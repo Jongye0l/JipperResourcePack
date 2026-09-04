@@ -530,7 +530,7 @@
                 <AdditionalProperties>GameVersion=R146</AdditionalProperties>
             </VersionSafeBucket>
             <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
-                <AdditionalProperties>GameVersion=R148</AdditionalProperties>
+                <AdditionalProperties>GameVersion=R149</AdditionalProperties>
             </VersionSafeBucket>
         </ItemGroup>
         <!-- AdditionalProperties metadata adds to the inherited global properties; the task's

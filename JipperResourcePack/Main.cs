@@ -43,7 +43,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private void LoadVersionSafe() {
         int release = VersionControl.releaseNumber;
         string ver = release switch {
-            >= 148 => "R148",
+            >= 149 => "R149",
             >= 146 => "R146",
             >= 141 => "R141",
             _ => "R136"

@@ -77,7 +77,7 @@ public static class VersionSafe {
     public static void RunAfter(Action action) => Task.Yield().GetAwaiter().OnCompleted(action);
 #endif
 
-#if R148After
+#if R149After
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
         StringBuilder sb = GetSharedBuilder().Append(prefix).Append(hits[9])
             .Append(" <color=red>").Append(hits[0])

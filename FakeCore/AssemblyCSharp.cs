@@ -45,11 +45,11 @@ public class scrMistakesManager {
 #if R141After
 public class scrMarginTracker {
 	public int[] hitMarginsCount;
-#if R148After
+#if R149After
 	public void CalculatePercentAcc(bool increaseRemainingPlayerHits = false) { }
-#else // R148After
+#else // R149After
 	public void CalculatePercentAcc() { }
-#endif // R148After
+#endif // R149After
 }
 
 public class PlanetarySystem {
@@ -72,7 +72,7 @@ public class scrPlayerManager {
 }
 #endif // R141After
 
-#if R148After
+#if R149After
 public class Persistence {
 	public static bool enableCompetitiveMode => throw new Exception("stub");
 }

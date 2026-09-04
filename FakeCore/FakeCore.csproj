@@ -12,7 +12,7 @@
         <DefineConstants Condition="$(GameRelease) &gt;= 136">$(DefineConstants);R136After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 146">$(DefineConstants);R146After</DefineConstants>
-        <DefineConstants Condition="$(GameRelease) &gt;= 148">$(DefineConstants);R148After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 149">$(DefineConstants);R149After</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup>
