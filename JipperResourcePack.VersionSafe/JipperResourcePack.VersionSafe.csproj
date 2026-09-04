@@ -96,6 +96,18 @@
         <Reference Include="UnityEngine.CoreModule">
             <HintPath>$(GameManagedPath)/UnityEngine.CoreModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>$(GameManagedPath)/UnityEngine.TextRenderingModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.TextCoreFontEngineModule">
+            <HintPath>$(GameManagedPath)/UnityEngine.TextCoreFontEngineModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.TextCoreTextEngineModule">
+            <HintPath>$(GameManagedPath)/UnityEngine.TextCoreTextEngineModule.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.TextMeshPro">
+            <HintPath>$(GameManagedPath)/Unity.TextMeshPro.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <Target Name="CopyToModPath" AfterTargets="Build" Condition="'$(ModPath)' != '' and '$(GameVersion)' != 'latest'">

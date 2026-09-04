@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using TMPro;
 #if R146After
 using Cysharp.Threading.Tasks;
 #else
 using System.Threading.Tasks;
 #endif
 using UnityEngine;
+using UnityEngine.TextCore.LowLevel;
 
 namespace JipperResourcePack;
 
@@ -44,6 +46,10 @@ public static class VersionSafe {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsCoopMode() => scrPlayerManager.playerCount > 1;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TMP_FontAsset CreateFontAssetFromFile(string fontPath) =>
+        TMP_FontAsset.CreateFontAsset(fontPath, 0, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -66,6 +72,10 @@ public static class VersionSafe {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsCoopMode() => false;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TMP_FontAsset CreateFontAssetFromFile(string fontPath) =>
+        TMP_FontAsset.CreateFontAsset(new Font(fontPath), 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
 
 #endif
 

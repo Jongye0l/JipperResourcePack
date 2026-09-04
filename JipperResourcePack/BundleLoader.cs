@@ -2,7 +2,6 @@
 using System.IO;
 using TMPro;
 using UnityEngine;
-using UnityEngine.TextCore.LowLevel;
 using Object = UnityEngine.Object;
 
 namespace JipperResourcePack;
@@ -66,7 +65,7 @@ public static class BundleLoader {
 
     private static void LoadDefaultFont() {
         string fontPath = Path.Combine(Main.Instance.Path, "Font/MAPLESTORY_OTF_BOLD.OTF");
-        TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(fontPath, 0, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+        TMP_FontAsset fontAsset = VersionSafe.CreateFontAssetFromFile(fontPath);
         if(!fontAsset) {
             Main.Instance.Error("Failed to create font asset for default font: " + fontPath);
             return;
@@ -88,7 +87,7 @@ public static class BundleLoader {
 
     public static void LoadCustomFont(string fontName, string fontPath = null) {
         fontPath ??= GetPathForFontName(fontName);
-        TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(fontPath ?? fontName, 0, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+        TMP_FontAsset fontAsset = VersionSafe.CreateFontAssetFromFile(fontPath ?? fontName);
         if(!fontAsset) {
             Main.Instance.Warning("Failed to create font asset for system font: " + fontName);
             return;
