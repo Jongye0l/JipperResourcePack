@@ -581,8 +581,13 @@ public class Overlay {
         }
 
         if(scrController.checkpointsUsed == 0) {
-            _current = ComboTier.White;
-            ComboTitle.text = "XPerfect";
+            if(VersionControl.releaseNumber >= 149) {
+                _current = ComboTier.White;
+                ComboTitle.text = "XPerfect";
+            } else {
+                _current = ComboTier.Green;
+                ComboTitle.text = "Perfect";
+            }
         }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();

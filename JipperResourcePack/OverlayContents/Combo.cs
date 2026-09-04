@@ -63,8 +63,30 @@ public class Combo : Feature {
     }
     
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
-    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141)]
-    public static void OnHit(HitMargin hit) {
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141, MaxVersion = 148)]
+    public static void OnHitOld(HitMargin hit) {
+        switch(hit) {
+            case (HitMargin) 3 /* Perfect */:
+                Overlay.Instance.UpdateCombo(++ComboCount, true);
+                break;
+            case HitMargin.EarlyPerfect or (HitMargin) 4 /* LatePerfect */ when Settings.ComboJudgementTier == ComboTier.Yellow:
+                Overlay.Instance.UpdateCombo(++ComboCount, true);
+                Overlay.Instance.ChangeComboText(ComboTier.Yellow);
+                break;
+            case (HitMargin) 10 /* Auto */ when Settings.EnableAutoCombo:
+                Overlay.Instance.UpdateCombo(++ComboCount, true);
+                break;
+            case (HitMargin) 10 /* Auto */:
+                break;
+            default:
+                Overlay.Instance.UpdateCombo(ComboCount = 0, false);
+                Overlay.Instance.ChangeComboText(ComboTier.Yellow);
+                break;
+        }
+    }
+    
+    [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 149)]
+    public static void OnHitR149(HitMargin hit) {
         switch(hit) {
             case HitMargin.XPerfect:
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
