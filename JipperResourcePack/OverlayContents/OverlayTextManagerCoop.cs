@@ -45,7 +45,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         }
     }
 
-    private void SetProgress(ref PlayerData pData, float progress) {
+    protected virtual void SetProgress(ref PlayerData pData, float progress) {
         pData.ProgressString = " | " + ColorToString(Status.Settings.ProgressColor.GetColor(progress)) + Math.Round(progress * 100, Status.Settings.ProgressDecimalPlaces) + "%</color>";
         if(MaxProgress < progress) MaxProgress = progress;
     }

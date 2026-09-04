@@ -7,7 +7,14 @@ namespace JipperResourcePack.Jongyeol;
 
 public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayTextManager {
     private int _death = -1;
-    
+
+    public override void UpdateProgress(Overlay overlay) {
+        int cur = scrController.instance.currentSeqID;
+        int last = ADOBase.lm.listFloors.Count - 1;
+        overlay.ProgressText.text = $"<color=white>Progress |</color> {cur} / {last}{(cur == last ? "" : $" [-{last - cur}]")} ({Math.Round(Progress * 100, 5)}%)";
+        overlay.ProgressText.color = JStatus.Settings.ProgressColor.GetColor(Progress);
+    }
+
     public void UpdateDeath(JOverlay overlay, scrPlanet _) {
         int deathCount;
         if(_death != (deathCount = VersionControl.releaseNumber < 149 ? overlay.Hit[8] + overlay.Hit[9] : overlay.Hit[10] + overlay.Hit[11])) {

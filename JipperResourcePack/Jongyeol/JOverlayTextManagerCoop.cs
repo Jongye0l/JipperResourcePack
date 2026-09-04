@@ -14,7 +14,12 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
         overlay.DeathText.color = Color.white;
         overlay.StateText.color = Color.white;
     }
-    
+
+    protected override void SetProgress(ref PlayerData pData, float progress) {
+        pData.ProgressString = $" | {ColorToString(JStatus.Settings.ProgressColor.GetColor(progress))}{Math.Round(progress * 100, 5)}%</color>";
+        if(MaxProgress < progress) MaxProgress = progress;
+    }
+
     public void UpdateDeath(JOverlay overlay, scrPlanet planet) {
         if((object) planet == null) 
             for(int i = 0; i < JPlayerArray.Length; i++) 
