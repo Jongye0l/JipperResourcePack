@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer\Inst
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeCore", "FakeCore\FakeCore.csproj", "{14DB6B56-E690-4E04-AFAF-C1AF9C53B172}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FakeSkyHook", "FakeCore\FakeSkyHook.csproj", "{C322F93B-D8E5-4869-AA9F-0FB1BC165909}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JipperResourcePack.VersionSafe", "JipperResourcePack.VersionSafe\JipperResourcePack.VersionSafe.csproj", "{1FF00464-7806-4151-A64E-39296F3BC564}"
 EndProject
 Global
@@ -30,5 +32,9 @@ Global
 		{1FF00464-7806-4151-A64E-39296F3BC564}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FF00464-7806-4151-A64E-39296F3BC564}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FF00464-7806-4151-A64E-39296F3BC564}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C322F93B-D8E5-4869-AA9F-0FB1BC165909}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C322F93B-D8E5-4869-AA9F-0FB1BC165909}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C322F93B-D8E5-4869-AA9F-0FB1BC165909}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C322F93B-D8E5-4869-AA9F-0FB1BC165909}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

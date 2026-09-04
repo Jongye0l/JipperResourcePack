@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class scrLogoText {
 #if R141After
-	public void ColorLogo(Color? col, bool isFire) { }
+	public void ColorLogo(Color? col, bool isFire) => throw new Exception("stub");
 #else
-	public void ColorLogo(Color col, bool isFire) { }
+	public void ColorLogo(Color col, bool isFire) => throw new Exception("stub");
 #endif
 }
 
@@ -25,7 +25,7 @@ public class ADOBase {
 #if R141After
 	public static scrLoader loader;
 #else
-	public static void LoadScene(string name) { }
+	public static void LoadScene(string name) => throw new Exception("stub");
 #endif
 }
 
@@ -38,7 +38,7 @@ public class scrMistakesManager {
 	public static int[] hitMarginsCount;
 	public float percentAcc;
 	public float percentXAcc;
-	public void CalculatePercentAcc() { }
+	public void CalculatePercentAcc() => throw new Exception("stub");
 #endif
 }
 
@@ -46,9 +46,9 @@ public class scrMistakesManager {
 public class scrMarginTracker {
 	public int[] hitMarginsCount;
 #if R149After
-	public void CalculatePercentAcc(bool increaseRemainingPlayerHits = false) { }
+	public void CalculatePercentAcc(bool increaseRemainingPlayerHits = false) => throw new Exception("stub");
 #else // R149After
-	public void CalculatePercentAcc() { }
+	public void CalculatePercentAcc() => throw new Exception("stub");
 #endif // R149After
 }
 
@@ -61,7 +61,7 @@ public class scrPlayer {
 }
 
 public class scrLoader {
-	public void LoadScene(string name) { }
+	public void LoadScene(string name) => throw new Exception("stub");
 }
 
 

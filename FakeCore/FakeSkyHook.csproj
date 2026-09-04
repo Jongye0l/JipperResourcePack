@@ -10,8 +10,6 @@
 
     <PropertyGroup>
         <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
-        <DefineConstants Condition="$(GameRelease) &gt;= 146">$(DefineConstants);R146After</DefineConstants>
-        <DefineConstants Condition="$(GameRelease) &gt;= 149">$(DefineConstants);R149After</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -24,8 +22,8 @@
 
         <LangVersion>latest</LangVersion>
 
-        <AssemblyName>Assembly-CSharp</AssemblyName>
-        <RootNamespace> </RootNamespace>
+        <AssemblyName>SkyHook.Unity</AssemblyName>
+        <RootNamespace>SkyHook</RootNamespace>
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
 
         <DebugType>none</DebugType>
@@ -72,7 +70,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="AssemblyCSharp.cs" />
+        <Compile Include="SkyHook.cs" />
     </ItemGroup>
 
 </Project>

@@ -46,7 +46,7 @@ public partial class KeyViewer {
                 if(keyCode == KeyCode.None) continue;
                 int index = i + offset;
                 if((int) keyCode < 0x1000) {
-                    KeyLabel label = SkyHookKeyMapper.UnityKeyToSkyHookKey(keyCode);
+                    KeyLabel label = VersionSafe.UnityKeyToSkyHookKey(keyCode);
                     if(label == KeyLabel.Unknown) continue;
                     if(!labels.TryGetValue(label, out List<int> list)) labels[label] = list = [];
                     list.Add(index);
@@ -113,7 +113,7 @@ public partial class KeyViewer {
         if(binding == null || !Enabled) return;
         bool pressed = keyEvent.Pressed;
         if(pressed && _selectedKey != -1 && _changeState != 1) {
-            KeyCode capturedKey = SkyHookKeyMapper.SkyHookKeyToUnityKey(keyEvent.Label);
+            KeyCode capturedKey = VersionSafe.SkyHookKeyToUnityKey(keyEvent.Label);
             _capturedKeyCode = capturedKey switch {
                 KeyCode.None => keyEvent.Key + 0x1000,
                 KeyCode.Less => (int) KeyCode.Comma,

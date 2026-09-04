@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using SkyHook;
 using TMPro;
 #if R146After
 using Cysharp.Threading.Tasks;
@@ -50,6 +51,12 @@ public static class VersionSafe {
     public static TMP_FontAsset CreateFontAssetFromFile(string fontPath) =>
         TMP_FontAsset.CreateFontAsset(fontPath, 0, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static KeyCode SkyHookKeyToUnityKey(KeyLabel key) => SkyHookKeyMapper.SkyHookKeyToUnityKey(key);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static KeyLabel UnityKeyToSkyHookKey(KeyCode key) => SkyHookKeyMapper.UnityKeyToSkyHookKey(key);
+
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -76,6 +83,12 @@ public static class VersionSafe {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TMP_FontAsset CreateFontAssetFromFile(string fontPath) =>
         TMP_FontAsset.CreateFontAsset(new Font(fontPath), 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static KeyCode SkyHookKeyToUnityKey(KeyLabel key) => AsyncKeyMapper.AsyncKeyToUnityKey(key);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static KeyLabel UnityKeyToSkyHookKey(KeyCode key) => AsyncKeyMapper.UnityKeyToAsyncKey(key);
 
 #endif
 

@@ -10,7 +10,6 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <DefineConstants Condition="$(GameRelease) &gt;= 136">$(DefineConstants);R136After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 146">$(DefineConstants);R146After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 149">$(DefineConstants);R149After</DefineConstants>
@@ -48,6 +47,9 @@
             <FakeCoreBuild Include="$(MSBuildThisFileDirectory)../FakeCore/FakeCore.csproj">
                 <AdditionalProperties>GameVersion=$(GameVersion)</AdditionalProperties>
             </FakeCoreBuild>
+            <FakeCoreBuild Include="$(MSBuildThisFileDirectory)../FakeCore/FakeSkyHook.csproj">
+                <AdditionalProperties>GameVersion=$(GameVersion)</AdditionalProperties>
+            </FakeCoreBuild>
         </ItemGroup>
         <MSBuild Projects="@(FakeCoreBuild)"/>
     </Target>
@@ -61,12 +63,20 @@
 
     <ItemGroup>
         <ProjectReference Include="..\FakeCore\FakeCore.csproj" Private="false" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\FakeCore\FakeSkyHook.csproj" Private="false" ReferenceOutputAssembly="false"/>
         <Reference Include="Assembly-CSharp" Condition="'$(UseFakeCore)' == 'true'">
             <HintPath>$(FakeCoreOutDir)Assembly-CSharp.dll</HintPath>
             <Private>false</Private>
         </Reference>
+        <Reference Include="SkyHook.Unity" Condition="'$(UseFakeCore)' == 'true'">
+            <HintPath>$(FakeCoreOutDir)SkyHook.Unity.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
         <Reference Include="Assembly-CSharp" Condition="'$(GameVersion)' == 'latest'">
             <HintPath>$(GameManagedPath)/Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="SkyHook.Unity" Condition="'$(GameVersion)' == 'latest'">
+            <HintPath>$(GameManagedPath)/SkyHook.Unity.dll</HintPath>
         </Reference>
         <!-- Only needed by types leaking out of the real Assembly-CSharp. -->
         <Reference Include="RDTools" Condition="'$(GameVersion)' == 'latest'">
