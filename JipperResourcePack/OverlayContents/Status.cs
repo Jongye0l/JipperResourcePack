@@ -299,8 +299,8 @@ public class Status : Feature {
         for(int i = 0; i < list.Count; i++) {
             CodeInstruction codeInstruction = list[i];
             if(codeInstruction.operand is not MethodInfo { Name: "GetHitMargin" }) continue;
-            list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginProxy).Method);
-            list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
+            list[i] = new CodeInstruction(OpCodes.Ldarg_0);
+            list.Insert(++i, new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginProxy).Method));
         }
         return list;
     }
@@ -325,12 +325,12 @@ public class Status : Feature {
             if(codeInstruction.operand is not MethodInfo methodInfo) continue;
             switch(methodInfo.Name) {
                 case "GetHitMarginInDeg":
-                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInDegProxyR149).Method);
-                    list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
+                    list[i] = new CodeInstruction(OpCodes.Ldarg_0);
+                    list.Insert(++i, new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInDegProxyR149).Method));
                     break;
                 case "GetHitMarginInSec":
-                    list[i] = new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInSecProxyR149).Method);
-                    list.Insert(i++, new CodeInstruction(OpCodes.Ldarg_0));
+                    list[i] = new CodeInstruction(OpCodes.Ldarg_0);
+                    list.Insert(++i, new CodeInstruction(OpCodes.Call, ((Delegate) GetHitMarginInSecProxyR149).Method));
                     break;
             }
         }
