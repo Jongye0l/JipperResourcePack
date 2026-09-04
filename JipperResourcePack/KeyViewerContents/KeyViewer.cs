@@ -1102,8 +1102,8 @@ public partial class KeyViewer : Feature {
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
     }
 
-    private static readonly MethodInfo SetUnityKeys = typeof(KeysSetting).Setter("unityKeys");
-    private static readonly MethodInfo SetAsyncKeys = typeof(KeysSetting).Setter("asyncKeys");
+    private static readonly MethodInfo SetUnityKeys = typeof(ADOBase).Assembly.GetType(nameof(KeysSetting))?.Setter("unityKeys");
+    private static readonly MethodInfo SetAsyncKeys = typeof(ADOBase).Assembly.GetType(nameof(KeysSetting))?.Setter("asyncKeys");
 
     private static void UpdateKeyLimitR145() {
         if(ADOBase.platform == Platform.Linux && !SkyHookManager.Instance.isHookActive) {
