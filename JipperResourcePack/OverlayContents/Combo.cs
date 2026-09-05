@@ -65,11 +65,12 @@ public class Combo : Feature {
     [JAPatch(typeof(scrMistakesManager), "AddHit", PatchType.Postfix, true, MaxVersion = 140)]
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 141, MaxVersion = 148)]
     public static void OnHitOld(HitMargin hit) {
+        ComboTier settingsTier = Settings.ComboJudgementTier;
         switch(hit) {
             case (HitMargin) 3 /* Perfect */:
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
                 break;
-            case HitMargin.EarlyPerfect or (HitMargin) 4 /* LatePerfect */ when Settings.ComboJudgementTier == ComboTier.Yellow:
+            case HitMargin.EarlyPerfect or (HitMargin) 4 /* LatePerfect */ when settingsTier == ComboTier.Yellow:
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
                 Overlay.Instance.ChangeComboText(ComboTier.Yellow);
                 break;
@@ -80,22 +81,23 @@ public class Combo : Feature {
                 break;
             default:
                 Overlay.Instance.UpdateCombo(ComboCount = 0, false);
-                Overlay.Instance.ChangeComboText(ComboTier.Yellow);
+                Overlay.Instance.ChangeComboText(settingsTier);
                 break;
         }
     }
     
     [JAPatch(nameof(scrMarginTracker), nameof(scrMarginTracker.AddHit), PatchType.Postfix, true, MinVersion = 149)]
     public static void OnHitR149(HitMargin hit) {
+        ComboTier settingsTier = Settings.ComboJudgementTier;
         switch(hit) {
             case HitMargin.XPerfect:
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
                 break;
-            case HitMargin.PerfectMinus or HitMargin.PerfectPlus when Settings.ComboJudgementTier >= ComboTier.Green:
+            case HitMargin.PerfectMinus or HitMargin.PerfectPlus when settingsTier >= ComboTier.Green:
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
                 Overlay.Instance.ChangeComboText(ComboTier.Green);
                 break;
-            case HitMargin.EarlyPerfect or HitMargin.LatePerfect when Settings.ComboJudgementTier == ComboTier.Yellow:
+            case HitMargin.EarlyPerfect or HitMargin.LatePerfect when settingsTier == ComboTier.Yellow:
                 Overlay.Instance.UpdateCombo(++ComboCount, true);
                 Overlay.Instance.ChangeComboText(ComboTier.Yellow);
                 break;
@@ -107,7 +109,7 @@ public class Combo : Feature {
                 break;
             default:
                 Overlay.Instance.UpdateCombo(ComboCount = 0, false);
-                Overlay.Instance.ChangeComboText(ComboTier.Yellow);
+                Overlay.Instance.ChangeComboText(settingsTier);
                 break;
         }
     }
