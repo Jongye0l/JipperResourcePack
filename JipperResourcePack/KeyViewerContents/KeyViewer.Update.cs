@@ -117,6 +117,7 @@ public partial class KeyViewer {
             _capturedKeyCode = capturedKey switch {
                 KeyCode.None => keyEvent.Key + 0x1000,
                 KeyCode.Less => (int) KeyCode.Comma,
+                KeyCode.Greater => (int) KeyCode.Equals,
                 _ => (int) capturedKey
             };
         }
