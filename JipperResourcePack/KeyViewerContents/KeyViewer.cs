@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using JALib.Core;
 using JALib.Core.Patch;
@@ -73,7 +72,8 @@ public partial class KeyViewer : Feature {
         Instance = this;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
 
-        if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys);
+        if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys)
+                                                       .AddPatch(KeyLimitPatch).AddPatch(AsyncKeyLimitPatch);
         else if(ADOBase.platform != Platform.Windows) return;
         Patcher.AddPatch(Load);
         AsyncInputHook.Setup(Patcher);
@@ -1101,9 +1101,6 @@ public partial class KeyViewer : Feature {
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
     }
 
-    private static readonly MethodInfo SetUnityKeys = typeof(ADOBase).Assembly.GetType(nameof(KeysSetting))?.Setter("unityKeys");
-    private static readonly MethodInfo SetAsyncKeys = typeof(ADOBase).Assembly.GetType(nameof(KeysSetting))?.Setter("asyncKeys");
-
     private static void UpdateKeyLimitR145() {
         if(ADOBase.platform == Platform.Linux && !SkyHookManager.Instance.isHookActive) {
             if(MainThread.IsMainThread()) Task.Yield().OnCompleted(UpdateKeyLimitR145);
@@ -1115,22 +1112,26 @@ public partial class KeyViewer : Feature {
         KeyCode[] keyCodes = GetKeyCode();
         KeyCode[] footKeyCodes = GetFootKeyCode();
         
-        HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
-        foreach(KeyCode keyCode in footKeyCodes) if((int) keyCode < 0x1000) keys.Add(keyCode);
+        HashSet<KeyCode> keys = [];
         HashSet<ushort> asyncKeys = [];
-        foreach(KeyCode code in keyCodes.Concat(footKeyCodes)) {
-            if((int) code < 0x1000) asyncKeys.Add(SkyHookKeyMapper.KeyLabelToNativeKeyCode(SkyHookKeyMapper.UnityKeyToSkyHookKey(code)));
-            else asyncKeys.Add((ushort) ((int) code - 0x1000));
+        foreach(KeyCode keyCode in keyCodes.Concat(footKeyCodes)) {
+            if((int) keyCode < 0x1000) keys.Add(keyCode);
+            else asyncKeys.Add((ushort) ((int) keyCode - 0x1000));
         }
 
-        KeysSetting keysSetting = Persistence.keyLimiterKeys;
-        SetUnityKeys.Invoke(keysSetting, [ keys ]);
-        SetAsyncKeys.Invoke(keysSetting, [ asyncKeys ]);
+        _unityKeyLimitKeys = keys;
+        _asyncKeyLimitKeys = asyncKeys;
 
         if(!AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
-        
+
         List<KeyCode> keyList = [ .. keys ];
-        List<ushort> asyncKeyList = [ .. asyncKeys ];
+        List<ushort> asyncKeyList = new(asyncKeys.Count + keys.Count);
+
+        foreach(KeyCode code in keys) 
+            asyncKeyList.Add(SkyHookKeyMapper.KeyLabelToNativeKeyCode(SkyHookKeyMapper.UnityKeyToSkyHookKey(code)));
+
+        asyncKeyList.AddRange(asyncKeys);
+
         if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
     }

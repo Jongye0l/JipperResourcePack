@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using HarmonyLib;
+using JALib.Core.Patch;
 using SkyHook;
 using UnityEngine;
 using EventType = SkyHook.EventType;
-using ThreadPriority = System.Threading.ThreadPriority;
 
 namespace JipperResourcePack.KeyViewerContents;
 
@@ -29,6 +32,8 @@ public partial class KeyViewer {
     private volatile int _capturedKeyCode;
     private int _lastKpsCount;
     private int _lastTotalCount;
+    private static HashSet<KeyCode> _unityKeyLimitKeys;
+    private static HashSet<ushort> _asyncKeyLimitKeys;
 
     private void RebuildKeyBinding() {
         if(Keys == null) return;
@@ -57,6 +62,64 @@ public partial class KeyViewer {
                 }
             }
         }
+    }
+    
+    [JAPatch(typeof(RDInputType_Keyboard), nameof(RDInputType_Keyboard.MainIgnoreActive), PatchType.Transpiler, false)]
+    private static IEnumerable<CodeInstruction> KeyLimitPatch(IEnumerable<CodeInstruction> instructions) {
+        List<CodeInstruction> codes = new(instructions);
+        for(int i = 0; i < codes.Count; i++) {
+            CodeInstruction code = codes[i];
+            if(code.operand is FieldInfo { Name: nameof(Persistence.keyLimiterKeys) }) {
+                code.operand = typeof(KeyViewer).GetField(nameof(_unityKeyLimitKeys), BindingFlags.NonPublic | BindingFlags.Static);
+                codes.RemoveAt(i + 1);
+            }
+        }
+        return codes;
+    }
+    
+    [JAPatch(typeof(RDInputType_AsyncKeyboard), nameof(RDInputType_AsyncKeyboard.Main), PatchType.Transpiler, false)]
+    private static IEnumerable<CodeInstruction> AsyncKeyLimitPatch(IEnumerable<CodeInstruction> instructions) {
+        List<CodeInstruction> codes = new(instructions);
+        for(int i = 0; i < codes.Count; i++) {
+            CodeInstruction code = codes[i];
+            if(code.operand is FieldInfo { Name: nameof(Persistence.keyLimiterKeys) }) {
+                codes[i + 3].labels.AddRange(codes[i].labels);
+                codes.RemoveRange(i, 3);
+            } else if(code.operand is MethodInfo { Name: "get_" + nameof(RDInput.useKeyLimiter) }) {
+                LocalBuilder local = (LocalBuilder) codes[i - 1].operand;
+                codes[i].opcode = OpCodes.Ldloc;
+                codes[i++].operand = local;
+                codes.Insert(i++, new CodeInstruction(OpCodes.Call, typeof(KeyViewer).GetMethod(nameof(IsLimitedKey), BindingFlags.NonPublic | BindingFlags.Static)));
+                int j = i;
+                while(true) {
+                    CodeInstruction cur = codes[++j];
+                    if(cur.opcode == OpCodes.Brfalse || cur.opcode == OpCodes.Brfalse_S) break;
+                }
+                codes.RemoveRange(i, j - i);
+            }
+        }
+        return codes;
+    }
+
+    private static bool IsLimitedKey(AsyncKeyCode keyCode) {
+        try {
+            if(!RDInput.useKeyLimiter) return true;
+
+            if(Settings.AutoSetupKeyLimit) {
+                if(keyCode.label != KeyLabel.Unknown) {
+                    foreach(KeyCode unityKeyLimitKey in _unityKeyLimitKeys) {
+                        KeyLabel label = VersionSafe.UnityKeyToSkyHookKey(unityKeyLimitKey);
+                        if(label == keyCode.label) return true;
+                    }
+                }
+                return _asyncKeyLimitKeys.Contains(keyCode.key);
+            }
+        } catch (Exception e) {
+            Main.Instance.LogReportException(e);
+        }
+
+        HashSet<ushort> asyncKeysCache = Persistence.keyLimiterKeys.asyncKeysCache;
+        return asyncKeysCache.Count <= 0 || asyncKeysCache.Contains(keyCode.key);
     }
 
     private static Dictionary<T, int[]> ToArrayMap<T>(Dictionary<T, List<int>> map) {
