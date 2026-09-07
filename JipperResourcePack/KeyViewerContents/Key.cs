@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using JALib.Tools;
 using JipperResourcePack.Async;
 using UnityEngine;
@@ -6,8 +7,9 @@ using UnityEngine.UI;
 
 namespace JipperResourcePack.KeyViewerContents;
 
-public class Key(GameObject gameObject) {
-    public readonly GameObject GameObject = gameObject;
+public class Key {
+    public readonly GameObject GameObject;
+    private readonly Action _updateKey;
     public AsyncText Text;
     public Image Background;
     public Image Outline;
@@ -21,9 +23,14 @@ public class Key(GameObject gameObject) {
     private bool _requestEnabled;
     private bool _currentEnabled;
 
+    public Key(GameObject gameObject) {
+        GameObject = gameObject;
+        _updateKey = () => UpdateKey();
+    }
+
     public void UpdateRequestKey(bool enabled) {
         _requestEnabled = enabled;
-        if(Interlocked.Increment(ref _updateRequested) == 1) MainThread.Run(Main.Instance, () => UpdateKey());
+        if(Interlocked.Increment(ref _updateRequested) == 1) MainThread.Run(Main.Instance, _updateKey);
     }
 
     public void UpdateKey(bool force = false) {
