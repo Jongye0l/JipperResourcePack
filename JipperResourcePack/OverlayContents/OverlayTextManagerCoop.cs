@@ -225,7 +225,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
-    protected static string ColorToString(in Color color) => "<color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">";
+    protected static string ColorToString(in Color color) => "<color=#" + Overlay.ColorToHex(color) + ">";
     
     public void SetupUnderTextLocation(Overlay overlay) {
         overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, 85);

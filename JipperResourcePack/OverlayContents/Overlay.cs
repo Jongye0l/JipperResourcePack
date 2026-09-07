@@ -535,7 +535,7 @@ public class Overlay {
     private const string HexDigits = "0123456789ABCDEF";
 
     // ReSharper disable once CompareOfFloatsByEqualityOperator
-    protected static string ColorToHex(Color color) {
+    public static string ColorToHex(Color color) {
         bool withAlpha = color.a != 1;
         char[] chars = new char[withAlpha ? 8 : 6];
         WriteHexByte(chars, 0, Mathf.RoundToInt(color.r * 255));
