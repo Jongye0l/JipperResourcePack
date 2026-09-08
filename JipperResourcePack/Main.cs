@@ -195,9 +195,9 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         URLLabel("MovingManN(By. Kittut)", "https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js");
         URLLabel("MoreTimeTags(By. Jongyeol)", "https://github.com/Jongye0l/MoreTimeTags");
         URLLabel("BetterCalibration(By. Jongyeol)", "https://github.com/Jongye0l/BetterCalibration");
+        URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         if(JMain.ModeEnabled) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
-            URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         }
         GUILayout.Space(25f);
         GUILayout.Label(Localization["credit.font"]);
