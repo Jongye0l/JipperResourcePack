@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using JALib.Tools;
 using TMPro;
@@ -374,15 +375,13 @@ public class Overlay {
     }
 
     public void UpdateAttempts() {
-        string[] values = new string[2];
-        int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = "Attempt " + (PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0);
-        if(Attempt.Settings.ShowFullAttempt) values[count++] = "Full Attempt " + (PlayCount.GetData(LastHash)?.GetAttempts() ?? 0);
-        AttemptText.text = count switch {
-            0 => "",
-            1 => values[0],
-            _ => values[0] + "\n" + values[1]
-        };
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
+
+        if(Attempt.Settings.ShowAttempt) sb.Append("Attempt ").Append(PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0).Append('\n');
+        if(Attempt.Settings.ShowFullAttempt) sb.Append("Full Attempt ").Append(PlayCount.GetData(LastHash)?.GetAttempts() ?? 0).Append('\n');
+
+        sb.Length--;
+        AttemptText.text = sb.ToString();
     }
 
     public void UpdateJudgement(int index = -1) {

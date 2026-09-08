@@ -78,7 +78,7 @@ public class ColorCache(Color color) {
     }
 
     private string GetHexString() {
-        StringBuilder sb = new();
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
         sb.Append(Normalize(r).ToString("X2"));
         sb.Append(Normalize(g).ToString("X2"));
         sb.Append(Normalize(b).ToString("X2"));
