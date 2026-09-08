@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using SkyHook;
@@ -23,6 +24,23 @@ public static class VersionSafe {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ColorLogoSafe(this scrLogoText text, Color color, bool isFire) => text.ColorLogo(color, isFire);
+
+    private static int DigitCount(int value) {
+        return value < 10 ? 1 :
+            value < 100 ? 2 :
+            value < 1000 ? 3 :
+            value < 10000 ? 4 :
+            value < 100000 ? 5 :
+            value < 1000000 ? 6 :
+            value < 10000000 ? 7 : 
+            value < 100000000 ? 8 :
+            value < 1000000000 ? 9 : 10;
+    }
+
+    private static void AppendBalance(StringBuilder sb, int count) {
+        if(count <= 0) return;
+        sb.Append("<color=#0000>").Append('0', count).Append("</color>");
+    }
 
 #if R141After
     public static void CalculatePercentAcc() {
@@ -102,39 +120,59 @@ public static class VersionSafe {
 
 #if R149After
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
-        StringBuilder sb = GetSharedBuilder().Append(prefix).Append(hits[9])
+        bool competitive = Persistence.enableCompetitiveMode;
+        int diff = DigitCount(hits[11]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
+                   - DigitCount(hits[6]) - DigitCount(hits[7]) - DigitCount(hits[8]) - DigitCount(hits[10]);
+        if(competitive) diff += DigitCount(hits[3]) - DigitCount(hits[5]);
+        StringBuilder sb = GetSharedBuilder();
+        AppendBalance(sb, -diff);
+        sb.Append(prefix).Append(hits[11])
             .Append(" <color=red>").Append(hits[0])
             .Append(" <color=#FF6F4E>").Append(hits[1])
             .Append(" <color=#A0FF4E>").Append(hits[2])
             .Append(" <color=#60FF4E>");
-        if(Persistence.enableCompetitiveMode)
+        if(competitive)
             sb.Append(hits[3]).Append(" <color=#FFF>").Append(hits[4] + hits[12]).Append("</color> ").Append(hits[5]);
         else sb.Append(hits[3] + hits[4] + hits[5] + hits[12]);
-        return sb.Append("</color> ").Append(hits[6])
+        sb.Append("</color> ").Append(hits[6])
             .Append("</color> ").Append(hits[7])
             .Append("</color> ").Append(hits[8])
             .Append("</color> ").Append(hits[10])
-            .Append(postfix).ToString();
+            .Append(postfix);
+        AppendBalance(sb, diff);
+        return sb.ToString();
     }
 
     public static string WriteHitMarginTextWithoutColor(int[] hits, string prefix, string postfix) {
-        StringBuilder sb = GetSharedBuilder().Append(prefix).Append(hits[9])
+        bool competitive = Persistence.enableCompetitiveMode;
+        int diff = DigitCount(hits[11]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
+                   - DigitCount(hits[6]) - DigitCount(hits[7]) - DigitCount(hits[8]) - DigitCount(hits[10]);
+        if(competitive) diff += DigitCount(hits[3]) - DigitCount(hits[5]);
+        StringBuilder sb = GetSharedBuilder();
+        AppendBalance(sb, -diff);
+        sb.Append(prefix).Append(hits[11])
             .Append(' ').Append(hits[0])
             .Append(' ').Append(hits[1])
             .Append(' ').Append(hits[2])
             .Append(' ');
-        if(Persistence.enableCompetitiveMode)
+        if(competitive)
             sb.Append(hits[3]).Append(' ').Append(hits[4] + hits[12]).Append(' ').Append(hits[5]);
         else sb.Append(hits[3] + hits[4] + hits[5] + hits[12]);
-        return sb.Append(' ').Append(hits[6])
+        sb.Append(' ').Append(hits[6])
             .Append(' ').Append(hits[7])
             .Append(' ').Append(hits[8])
             .Append(' ').Append(hits[10])
-            .Append(postfix).ToString();
+          .Append(postfix);
+        AppendBalance(sb, diff);
+        return sb.ToString();
     }
 #else
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
-        return GetSharedBuilder().Append(prefix).Append(hits[9])
+        int diff = DigitCount(hits[9]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
+                   - DigitCount(hits[4]) - DigitCount(hits[5]) - DigitCount(hits[6]) - DigitCount(hits[8]);
+        StringBuilder sb = GetSharedBuilder();
+        AppendBalance(sb, -diff);
+        sb.Append(prefix).Append(hits[9])
             .Append(" <color=red>").Append(hits[0])
             .Append(" <color=#FF6F4E>").Append(hits[1])
             .Append(" <color=#A0FF4E>").Append(hits[2])
@@ -143,11 +181,17 @@ public static class VersionSafe {
             .Append("</color> ").Append(hits[5])
             .Append("</color> ").Append(hits[6])
             .Append("</color> ").Append(hits[8])
-            .Append(postfix).ToString();
+            .Append(postfix);
+        AppendBalance(sb, diff);
+        return sb.ToString();
     }
 
     public static string WriteHitMarginTextWithoutColor(int[] hits, string prefix, string postfix) {
-        return GetSharedBuilder().Append(prefix).Append(hits[9])
+        int diff = DigitCount(hits[9]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
+                   - DigitCount(hits[4]) - DigitCount(hits[5]) - DigitCount(hits[6]) - DigitCount(hits[8]);
+        StringBuilder sb = GetSharedBuilder();
+        AppendBalance(sb, -diff);
+        sb.Append(prefix).Append(hits[9])
             .Append(' ').Append(hits[0])
             .Append(' ').Append(hits[1])
             .Append(' ').Append(hits[2])
@@ -156,7 +200,9 @@ public static class VersionSafe {
             .Append(' ').Append(hits[5])
             .Append(' ').Append(hits[6])
             .Append(' ').Append(hits[8])
-            .Append(postfix).ToString();
+            .Append(postfix);
+        AppendBalance(sb, diff);
+        return sb.ToString();
     }
 #endif
 }
