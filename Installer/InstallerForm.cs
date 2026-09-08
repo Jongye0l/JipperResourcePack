@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Net.Http;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Web.Script.Serialization;
 using JipperResourcePack.Installer.Resource;
 using JipperResourcePack.Installer.Screen;
-using Newtonsoft.Json;
 
 namespace JipperResourcePack.Installer;
 
@@ -21,14 +19,6 @@ public partial class InstallerForm : Form {
     }
 
     private void InstallerForm_Load(object obj, EventArgs args) {
-        try {
-            if(CheckAlreadyRunning()) {
-                Close();
-                return;
-            }
-        } catch (Exception) {
-            // ignored
-        }
         ResetText();
         SetupScreenData();
         new MainScreen().Enter();
@@ -36,19 +26,6 @@ public partial class InstallerForm : Form {
         GlobalSetting.Instance.AdditionMods = GetMods();
     }
 
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern bool SetForegroundWindow(IntPtr hwnd);
-
-    private static bool CheckAlreadyRunning() {
-        int id = Process.GetCurrentProcess().Id;
-        foreach (Process process in Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName)) {
-            if(process.Id == id) continue;
-            SetForegroundWindow(process.MainWindowHandle);
-            return true;
-        }
-        return false;
-    }
 
     public override void ResetText() {
         Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.JipperProfile.ico")!);
@@ -92,6 +69,6 @@ public partial class InstallerForm : Form {
 
     public async Task<ModData[]> GetMods() {
         string responseData = await HttpClient.GetStringAsync("https://github.com/Jongye0l/JipperResourcePack/raw/main/Installer/mods.json");
-        return JsonConvert.DeserializeObject<ModData[]>(responseData);
+        return new JavaScriptSerializer().Deserialize<ModData[]>(responseData);
     }
 }
