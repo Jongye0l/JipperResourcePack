@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 #endif
 using UnityEngine;
 using UnityEngine.TextCore.LowLevel;
+using Object = UnityEngine.Object;
 
 namespace JipperResourcePack;
 
@@ -75,6 +76,9 @@ public static class VersionSafe {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static KeyLabel UnityKeyToSkyHookKey(KeyCode key) => SkyHookKeyMapper.UnityKeyToSkyHookKey(key);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T FindAnyObjectByType<T>() where T : Object => Object.FindAnyObjectByType<T>();
+
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -107,6 +111,9 @@ public static class VersionSafe {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static KeyLabel UnityKeyToSkyHookKey(KeyCode key) => AsyncKeyMapper.UnityKeyToAsyncKey(key);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T FindAnyObjectByType<T>() where T : Object => Object.FindObjectOfType<T>();
 
 #endif
 
