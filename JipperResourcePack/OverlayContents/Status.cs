@@ -50,9 +50,9 @@ public class Status : Feature {
         settingGUI.AddSettingToggle(ref Settings.ShowProgress, localization["progress.showProgress"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowProgress) {
             if(Settings.ProgressColor.SettingGUI(settingGUI, localization["progress.progressColor"]))
-                Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance);
+                Overlay.Instance.OverlayTextManager?.UpdateProgress(Overlay.Instance);
             settingGUI.AddSettingSliderInt(ref Settings.ProgressDecimalPlaces, 2, ref _progressDecimalPlacesString, localization["progress.progressDecimalPlaces"], 0, 4,
-                () => Overlay.Instance.OverlayTextManager.UpdateProgress(Overlay.Instance));
+                () => Overlay.Instance.OverlayTextManager?.UpdateProgress(Overlay.Instance));
         }
         settingGUI.AddSettingToggle(ref Settings.ShowAccuracy, localization["progress.showAccuracy"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowAccuracy) {
@@ -104,9 +104,9 @@ public class Status : Feature {
         settingGUI.AddSettingToggle(ref Settings.ShowBest, localization["progress.showBest"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowBest) {
             if(Settings.BestColor.SettingGUI(settingGUI, localization["progress.bestColor"]))
-                Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance);
+                Overlay.Instance.OverlayTextManager?.UpdateBest(Overlay.Instance);
             settingGUI.AddSettingSliderInt(ref Settings.BestDecimalPlaces, 2, ref _bestDecimalPlacesString, localization["progress.bestDecimalPlaces"], 0, 4,
-                () => Overlay.Instance.OverlayTextManager.UpdateBest(Overlay.Instance));
+                () => Overlay.Instance.OverlayTextManager?.UpdateBest(Overlay.Instance));
         }
         settingGUI.AddSettingToggle(ref Settings.ShowTiming, localization["progress.showTiming"], Overlay.Instance.SetupLocationMain);
         if(Settings.ShowTiming) {
