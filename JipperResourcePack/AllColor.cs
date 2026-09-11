@@ -21,12 +21,12 @@ public class AllColor : Feature {
 
 		GUILayout.BeginHorizontal();
 		if(GUILayout.Button(localization["allColor.red"])) Settings.BaseColor.SetPreset(Color.red);
-		if(GUILayout.Button(localization["allColor.orange"])) Settings.BaseColor.SetPreset(Color.orange);
+		if(GUILayout.Button(localization["allColor.orange"])) Settings.BaseColor.SetPreset(VersionSafe.GetOrange());
 		if(GUILayout.Button(localization["allColor.yellow"])) Settings.BaseColor.SetPreset(Color.yellow);
 		if(GUILayout.Button(localization["allColor.green"])) Settings.BaseColor.SetPreset(Color.green);
-		if(GUILayout.Button(localization["allColor.skyBlue"])) Settings.BaseColor.SetPreset(Color.skyBlue);
+		if(GUILayout.Button(localization["allColor.skyBlue"])) Settings.BaseColor.SetPreset(VersionSafe.GetSkyBlue());
 		if(GUILayout.Button(localization["allColor.blue"])) Settings.BaseColor.SetPreset(Color.blue);
-		if(GUILayout.Button(localization["allColor.purple"])) Settings.BaseColor.SetPreset(Color.purple);
+		if(GUILayout.Button(localization["allColor.purple"])) Settings.BaseColor.SetPreset(VersionSafe.GetPurple());
 		GUILayout.FlexibleSpace();
 		GUILayout.EndHorizontal();
 
@@ -177,7 +177,7 @@ public class AllColor : Feature {
 		public ColorCache BaseColor;
 		
 		public AllColorSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
-			ColorCache.Setup(ref BaseColor, Color.purple);
+			ColorCache.Setup(ref BaseColor, VersionSafe.GetPurple());
 		}
 	}
 }

@@ -79,6 +79,15 @@ public static class VersionSafe {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T FindAnyObjectByType<T>() where T : Object => Object.FindAnyObjectByType<T>();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetOrange() => Color.orange;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetSkyBlue() => Color.skyBlue;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetPurple() => Color.purple;
+
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -114,6 +123,15 @@ public static class VersionSafe {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T FindAnyObjectByType<T>() where T : Object => Object.FindObjectOfType<T>();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetOrange() => new Color(1f, 0.6470588f, 0.0f, 1f);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetSkyBlue() => new Color(0.5294118f, 0.8078432f, 0.9215687f, 1f);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color GetPurple() => new Color(0.627451f, 0.1254902f, 0.9411765f, 1f);
 
 #endif
 
