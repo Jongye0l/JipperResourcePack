@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using ADOFAI;
 using JipperResourcePack.OverlayContents;
@@ -16,15 +15,12 @@ public class JOverlay : Overlay {
     public TextMeshProUGUI StateText;
     public TextMeshProUGUI DeathText;
     public TextMeshProUGUI StartText;
-    public TextMeshProUGUI TimingText;
 
-    private List<float> _timings;
     public bool PurePerfect;
     private int _pseudoFloor = -1;
     private float _lastCurKps = -1;
     private static LevelData LevelData => scnGame.instance ? scnGame.instance.levelData : null;
     private float _fpsTime;
-    private bool _perToCom;
 
     public JOverlay() {
         Instance = this;
@@ -44,18 +40,21 @@ public class JOverlay : Overlay {
         SetupMainText("Checkpoint", ref CheckpointText);
         SetupMainText("Death", ref DeathText);
         SetupMainText("Start", ref StartText);
-        SetupMainText("Timing", ref TimingText);
     }
 
     public override void SetupLocationMain() {
-        if(!FPSText) return;
+        if(!GameObject.activeSelf) return;
         int y = -15;
         bool checkAuto = !JStatus.Settings.RemoveNotRequireInAuto || !RDC.auto;
         SetupLocationMainText(FPSText, JStatus.Settings.ShowFPS, ref y);
         SetupLocationMainText(AuthorText, !string.IsNullOrEmpty(LevelData?.author) && JStatus.Settings.ShowAuthor, ref y);
         SetupLocationMainText(ProgressText, JStatus.Settings.ShowProgress, ref y);
-        SetupLocationMainText(AccuracyText, checkAuto && JStatus.Settings.ShowAccuracy, ref y);
-        SetupLocationMainText(XAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy, ref y);
+        SetupLocationMainText(AccuracyText, checkAuto && JStatus.Settings.ShowAccuracy && JStatus.Settings.AccuracyTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialAccuracyText, checkAuto && JStatus.Settings.ShowAccuracy && JStatus.Settings.AccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy && JStatus.Settings.XAccuracyTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy && JStatus.Settings.XAccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XScoreText, checkAuto && JStatus.Settings.ShowXScore && Status.XScoreSupported && JStatus.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXScoreText, checkAuto && JStatus.Settings.ShowXScore && Status.XScoreSupported && JStatus.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(TimeText, JStatus.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, JStatus.Settings.ShowMapTime, ref y);
         Checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();
@@ -64,7 +63,8 @@ public class JOverlay : Overlay {
         SetupLocationMainText(StateText, JStatus.Settings.ShowState, ref y);
         SetupLocationMainText(DeathText, scrController.instance.noFail && JStatus.Settings.ShowDeath, ref y);
         SetupLocationMainText(StartText, StartTile != 0 && JStatus.Settings.ShowStart, ref y);
-        SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming, ref y);
+        SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming && JStatus.Settings.TimingTextType != TimingTextType.AvgTiming, ref y);
+        SetupLocationMainText(AvgTimingText, checkAuto && JStatus.Settings.ShowTiming && JStatus.Settings.TimingTextType is TimingTextType.AvgTiming or TimingTextType.Both, ref y);
         UpdateProgress();
         VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
@@ -72,10 +72,16 @@ public class JOverlay : Overlay {
         UpdateDeath();
         UpdateState();
         UpdateStart();
-        if(_timings != null) return;
-        _timings = [];
-        UpdateTiming(0);
-        _timings.Clear();
+        RefreshTiming();
+    }
+
+    public override void UpdateFont() {
+        base.UpdateFont();
+        FPSText.font = BundleLoader.FontAsset;
+        AuthorText.font = BundleLoader.FontAsset;
+        StateText.font = BundleLoader.FontAsset;
+        DeathText.font = BundleLoader.FontAsset;
+        StartText.font = BundleLoader.FontAsset;
     }
 
     public override void UpdateProgress(scrPlanet planet = null) {
@@ -107,13 +113,13 @@ public class JOverlay : Overlay {
                     if(time > 0) SongPlaying = true;
                     timeStr = GetTimeString(time, hourNeed);
                 }
-                TimeText.text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {timeStr}~{MusicTimeCache}";
+                TimeText.text = "<color=white>" + (JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time") + " |</color> " + timeStr + "~" + MusicTimeCache;
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
         if(JStatus.Settings.ShowMapTime || requireMusicToMap) {
             float time = scrController.instance.state == States.Start ? 0 : (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
-            float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
+            float totalTime = GetMapTotalTime();
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if(!JStatus.Settings.ShowMapTime && !requireMusicToMap) return;
@@ -121,7 +127,7 @@ public class JOverlay : Overlay {
             MapTimeCache ??= GetTimeString(totalTime, hourNeed);
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
-            string text = $"<color=white>{(JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {timeStr}~{MapTimeCache}";
+            string text = "<color=white>" + (JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time") + " |</color> " + timeStr + "~" + MapTimeCache;
             if(JStatus.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 MapTimeText.color = JStatus.Settings.MapTimeColor.GetColor(time / totalTime);
@@ -135,7 +141,8 @@ public class JOverlay : Overlay {
     
     private static string GetTimeString(float time, bool hour) {
         int timeInt = (int) time;
-        return hour ? $"{timeInt / 3600}:{timeInt % 3600 / 60:00}:{time % 60:00.0}" : $"{timeInt / 60}:{time % 60:00.0}";
+        return hour ? timeInt / 3600 + ":" + (timeInt % 3600 / 60).ToString("00") + ":" + (time % 60).ToString("00.0") :
+                      timeInt / 60 + ":" + (time % 60).ToString("00.0");
     }
 
     public override Color UpdateComboColor(int combo) {
@@ -153,13 +160,13 @@ public class JOverlay : Overlay {
 
     public void UpdateFPS(float deltaTime) {
         if(!JStatus.Settings.ShowFPS || !GameObject.activeSelf || (_fpsTime += deltaTime) < 0.01f) return;
-        FPSText.text = $"FPS | {1 / deltaTime:F4}";
+        FPSText.text = "FPS | " + (1 / deltaTime).ToString("F4");
         _fpsTime %= 0.01f;
     }
 
     private void UpdateAuthor() {
         if(!JStatus.Settings.ShowAuthor || !GameObject.activeSelf) return;
-        AuthorText.text = $"Author | {LevelData?.author ?? ""}";
+        AuthorText.text = "Author | " + (LevelData?.author ?? "");
     }
 
     public void UpdateState(scrPlanet planet = null) {
@@ -175,14 +182,7 @@ public class JOverlay : Overlay {
 
     private void UpdateStart() {
         if(!JStatus.Settings.ShowStart || !GameObject.activeSelf || StartTile != scrController.instance.currentSeqID) return;
-        StartText.text = $"Start | {StartTile} ({Math.Round(OverlayTextManager.GetProgress() * 100, 5)}%)";
-    }
-
-    public void UpdateTiming(float timing) {
-        if(!JStatus.Settings.ShowTiming || !GameObject.activeSelf) return;
-        _timings.Add(timing);
-        TimingText.text = $"<color=white>Timing |</color> {Math.Round(timing, 5)} ({Math.Round(_timings.Average(), 5)})";
-        TimingText.color = GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);
+        StartText.text = "Start | " + StartTile + " (" + Math.Round(OverlayTextManager.GetProgress() * 100, 5) + "%)";
     }
 
     public override void UpdateBpm() {
@@ -200,20 +200,15 @@ public class JOverlay : Overlay {
         if(isPesudo) kps *= count;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm && _lastCurKps == kps) return;
-        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
-                       $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
-                       $"<color=white>KPS |</color> {(isPesudo ? $"<color=#{ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax))}>" : "")}{Math.Round(kps, 2)}{(isPesudo ? "</color>" : "")}";
+        BpmText.text = "<color=white>TBPM | <color=#" + ColorToHex(Jbpm.Settings.BpmColor.GetColor(bpm / Jbpm.Settings.BpmColorMax)) + ">" + Math.Round(bpm, Jbpm.Settings.DecimalPlaces) +
+                       "</color>\nCBPM |</color> " + Math.Round(cbpm, Jbpm.Settings.DecimalPlaces) +
+                       "\n<color=white>KPS |</color> " + (isPesudo ? "<color=#" + ColorToHex(Jbpm.Settings.BpmColor.GetColor(cbpm * count / Jbpm.Settings.BpmColorMax)) + ">" : "") +
+                       Math.Round(kps, Jbpm.Settings.DecimalPlaces)+ (isPesudo ? "</color>" : "");
         if(LastCurBpm != cbpm) BpmText.color = Jbpm.Settings.BpmColor.GetColor(cbpm / Jbpm.Settings.BpmColorMax);
         // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;
         LastCurBpm = cbpm;
         _lastCurKps = kps;
-    }
-
-    public void PerfectToCombo() {
-        if(_perToCom) return;
-        ComboTitle.text = "Combo";
-        _perToCom = true;
     }
 
     private bool CheckPseudo(scrFloor curFloor, float bpm, out float cbpm, out int count) {
@@ -288,16 +283,8 @@ public class JOverlay : Overlay {
     }
 
     public override void Show(int floor) {
-        _perToCom = false;
         PurePerfect = true;
         _pseudoFloor = -1;
-        if(scrController.checkpointsUsed == 0) ComboTitle.text = "Perfect";
-        _timings?.Clear();
         base.Show(floor);
-    }
-
-    public override void Hide() {
-        base.Hide();
-        _timings = null;
     }
 }

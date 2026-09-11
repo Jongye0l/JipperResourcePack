@@ -7,11 +7,11 @@ using UnityEngine.UI;
 namespace JipperResourcePack.Jongyeol;
 
 public class JStatus : OverlayContents.Status {
-    public static new JProgressSetting Settings;
+    public static new JStatusSetting Settings;
     private static bool _auto;
 
-    public JStatus() : base(typeof(JProgressSetting)) {
-        Settings = (JProgressSetting) Setting;
+    public JStatus() : base(typeof(JStatusSetting)) {
+        Settings = (JStatusSetting) Setting;
         Patcher.AddPatch(typeof(JStatus));
     }
 
@@ -25,7 +25,6 @@ public class JStatus : OverlayContents.Status {
         settingGUI.AddSettingToggle(ref Settings.HideDebugText, localization["progress.hideDebugText"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowDeath, localization["progress.showDeath"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowStart, localization["progress.showStart"], JOverlay.Instance.SetupLocationMain);
-        settingGUI.AddSettingToggle(ref Settings.ShowTiming, localization["progress.showTiming"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.RemoveNotRequireInAuto, localization["progress.removeNotRequireInAuto"], JOverlay.Instance.SetupLocationMain);
     }
 
@@ -41,21 +40,13 @@ public class JStatus : OverlayContents.Status {
         _auto = RDC.auto;
     }
 
-    [JAPatch(typeof(scrMisc), "GetHitMargin", PatchType.Postfix, false)]
-    // ReSharper disable once InconsistentNaming
-    private static void OnHitMarginChange(float hitangle, float refangle, bool isCW, float bpmTimesSpeed, float conductorPitch) {
-        float angle = (hitangle - refangle) * (isCW ? 1 : -1) * 57.29578f;
-        float timing = angle / 180 / bpmTimesSpeed / conductorPitch * 60000;
-        JOverlay.Instance.UpdateTiming(timing);
-    }
-
     [JAPatch(nameof(scrPlayer), nameof(scrPlayer.Die), PatchType.Postfix, false, MinVersion = 141)]
     private static void OnDie(PlanetarySystem ___planetarySystem) {
         JOverlay.Instance.UpdateProgress(___planetarySystem.chosenPlanet);
     }
     // ReSharper restore UnusedMember.Local
 
-    public class JProgressSetting : ProgressSetting {
+    public class JStatusSetting : StatusSetting {
         public bool ShowFPS = true;
         public bool ShowAuthor = true;
         public bool ShowState = true;
@@ -63,10 +54,9 @@ public class JStatus : OverlayContents.Status {
         public bool HideDebugText = true;
         public bool ShowDeath = true;
         public bool ShowStart = true;
-        public bool ShowTiming = true;
         public bool RemoveNotRequireInAuto = true;
 
-        public JProgressSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
+        public JStatusSetting(JAMod mod, JObject jsonObject = null) : base(mod, jsonObject) {
             if(jsonObject == null) ShowAccuracy = true;
         }
     }

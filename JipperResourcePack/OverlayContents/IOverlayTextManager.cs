@@ -11,4 +11,6 @@ public interface IOverlayTextManager {
     float GetProgress();
     void SetupUnderTextLocation(Overlay overlay);
     void UpdateJudgement(Overlay overlay, int index);
+    void UpdateTiming(Overlay overlay, float timing, int player);
+    void RefreshTiming(Overlay overlay);
 }

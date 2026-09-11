@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using JALib.Tools;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -10,6 +11,7 @@ public class ColorPerDictionary {
     public ColorCache PerfectColor;
     public ProgressList List = [];
     // ReSharper restore FieldCanBeMadeReadOnly.Global
+    [JsonIgnore] private ProgressList _original;
     [JsonIgnore] private bool _expanded;
     [JsonIgnore] private ProgressColorCache _expandedCache;
 
@@ -17,8 +19,10 @@ public class ColorPerDictionary {
     public ColorPerDictionary() {
     }
 
-    public ColorPerDictionary(IEnumerable<(float, Color)> collection) {
+    public ColorPerDictionary((float, Color)[] collection) {
+        List.Capacity = collection.Length;
         foreach((float, Color) item in collection) Add(item);
+        _original = List.Clone();
     }
 
     public ColorPerDictionary(ColorCache perfectColor) {
@@ -28,14 +32,14 @@ public class ColorPerDictionary {
     public ColorPerDictionary(Color color) : this(new ColorCache(color)) {
     }
 
-    public ColorPerDictionary(IEnumerable<(float, Color)> collection, Color color) {
-        foreach((float, Color) item in collection) Add(item);
-        PerfectColor = new ColorCache(color);
+    public ColorPerDictionary((float, Color)[] collection, Color color) : this(collection, new ColorCache(color)) {
     }
 
-    public ColorPerDictionary(IEnumerable<(float, Color)> collection, ColorCache color) {
+    public ColorPerDictionary((float, Color)[] collection, ColorCache color) {
+        List.Capacity = collection.Length;
         foreach((float, Color) item in collection) Add(item);
         PerfectColor = color;
+        _original = List.Clone();
     }
 
     public Color GetColor(float key) {
@@ -55,7 +59,28 @@ public class ColorPerDictionary {
         return Color.Lerp(List[index - 1], List[index], progress);
     }
 
+    public Color GetPreviewColor(float key, Color baseColor) {
+        if(key < 0) key = 0;
+        if(key > 1) key = 1;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(PerfectColor != null && key == 1) return PerfectColor;
+        if(List.Count == 0) return PerfectColor ?? Color.white;
+
+        int index = List.BinarySearch(key);
+        if(index == 0) return List[0].ApplyHuePreview(baseColor);
+        if(index == List.Count) return List[^1].ApplyHuePreview(baseColor);
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(List[index].Progress == key) return List[index].ApplyHuePreview(baseColor);
+
+        float start = List[index - 1].Progress;
+        float end = List[index].Progress;
+        float progress = (key - start) / (end - start);
+        return Color.Lerp(List[index - 1].ApplyHuePreview(baseColor), List[index].ApplyHuePreview(baseColor), progress);
+    }
+
     public bool SettingGUI(SettingGUI settingGUI, string text) {
+        bool changed = false;
         GUILayout.BeginHorizontal();
         _expanded = GUILayout.Toggle(_expanded, _expanded ? "◢" : "▶", new GUIStyle {
             fixedWidth = 10f,
@@ -65,9 +90,13 @@ public class ColorPerDictionary {
         });
         if(GUILayout.Button(text, GUI.skin.label)) _expanded = !_expanded;
         GUILayout.FlexibleSpace();
+        if(GUILayout.Button(Main.Instance.Localization["Color.Reset"])) {
+            Reset();
+            Main.Instance.SaveSetting();
+            changed = true;
+        }
         GUILayout.EndHorizontal();
-        if(!_expanded) return false;
-        bool changed = false;
+        if(!_expanded) return changed;
         GUILayout.BeginHorizontal();
         GUILayout.Space(18f);
         GUILayout.BeginVertical();
@@ -99,7 +128,7 @@ public class ColorPerDictionary {
                 Main.Instance.SaveSetting();
                 br = true;
             }
-            if(cache.SettingGUI(settingGUI, cache)) {
+            if(cache.SettingGUI(settingGUI)) {
                 changed = true;
                 Main.Instance.SaveSetting();
             }
@@ -123,6 +152,15 @@ public class ColorPerDictionary {
         List.Add(item.Item1, item.Item2);
     }
 
+    public void ApplyBaseColor(Color baseColor) {
+        foreach(ProgressColorCache cache in List) cache.ApplyHue(baseColor);
+    }
+
+    public void Reset() {
+        List = _original?.Clone() ?? [];
+        PerfectColor?.Reset();
+    }
+
     public void Reload(ProgressColorCache item) {
         List.Remove(item);
         List.Add(item);
@@ -130,6 +168,19 @@ public class ColorPerDictionary {
 
     public void Add(ProgressColorCache item) {
         if(item != null) List.Add(item);
+    }
+
+    public static void Setup(ref ColorPerDictionary cache, (float, Color)[] collection) {
+        if(cache == null) cache = new ColorPerDictionary(collection);
+        else cache._original = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
+    }
+    
+    public static void Setup(ref ColorPerDictionary cache, (float, Color)[] collection, Color color) {
+        if(cache == null) cache = new ColorPerDictionary(collection, color);
+        else {
+            cache._original = [..collection.Select(item => new ProgressColorCache(item.Item1, item.Item2))];
+            ColorCache.Setup(ref cache.PerfectColor, color);
+        }
     }
 
     public class ProgressList : List<ProgressColorCache> {
@@ -162,6 +213,10 @@ public class ColorPerDictionary {
                 else end = i - 1;
             }
             return start;
+        }
+
+        public ProgressList Clone() {
+            return [..this];
         }
     }
 }

@@ -1,5 +1,7 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Core.Setting;
@@ -21,21 +23,37 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     public static ResourcePackSetting Settings;
     private static bool _creditsShown;
     private string _sizeString;
-
+    private bool _fontListExpanded;
+    private string _fontSearch;
+    private Vector2 _fontScrollPosition;
+    private string[] _availableFonts;
+    private string[] _availableFontsPath;
     protected override void OnSetup() {
+        LoadVersionSafe();
         Patcher.AddPatch(OnGameStart1);
         Patcher.AddPatch(OnGameStart2);
         Patcher.AddPatch(OnChangeState);
         Patcher.AddPatch(OnGameStop);
         Patcher.AddPatch(UpdatePlayersCount);
-        VersionSafe.Setup();
         FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
     }
 
+    private void LoadVersionSafe() {
+        int release = VersionControl.releaseNumber;
+        string ver = release switch {
+            >= 149 => "R149",
+            >= 146 => "R146",
+            >= 141 => "R141",
+            _ => "R136"
+        };
+        
+        Assembly.LoadFrom(System.IO.Path.Combine(Path, "VersionSafe", $"JipperResourcePack.VersionSafe.{ver}.dll"));
+    }
+
     private void AddFeature() {
-        AddFeature(new Status(), new Bpm(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
+        AddFeature(new AllColor(), new Status(), new Bpm(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), new ResourceChanger(), new KeyViewer());
     }
 
     public void FeatureReset(bool jongyeolMode) {
@@ -86,12 +104,68 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         JMain.Update(deltaTime);
     }
 
+    private GUIStyle _toggleStyle;
+
     protected override void OnGUI() {
         SettingGUI.AddSettingSliderFloat(ref Settings.Size, 1, ref _sizeString, Localization["size"], 0, 2, Overlay.Instance.UpdateSize);
+        _toggleStyle ??= new GUIStyle {
+            fixedWidth = 10f,
+            normal = new GUIStyleState { textColor = Color.white },
+            fontSize = 15,
+            margin = new RectOffset(4, 2, 6, 6)
+        };
+        GUILayout.BeginHorizontal();
+        _fontListExpanded = GUILayout.Toggle(_fontListExpanded, _fontListExpanded ? "◢" : "▶", _toggleStyle);
+        if(GUILayout.Button(Localization["font"], GUI.skin.label)) _fontListExpanded = !_fontListExpanded;
+        GUILayout.FlexibleSpace();
+        GUILayout.Label(string.IsNullOrEmpty(Settings.FontName) ? Localization["font.default"] : Settings.FontName);
+        GUILayout.EndHorizontal();
+        if(!_fontListExpanded) return;
+        GUILayout.BeginHorizontal();
+        GUILayout.Space(18f);
+        GUILayout.BeginVertical();
+        _fontSearch = GUILayout.TextField(_fontSearch ?? "");
+        _fontScrollPosition = GUILayout.BeginScrollView(_fontScrollPosition, GUI.skin.box, GUILayout.Height(150));
+        bool isDefault = string.IsNullOrEmpty(Settings.FontName);
+        if(GUILayout.Button(isDefault ? $"<b>{Localization["font.default"]}</b>" : Localization["font.default"])) SelectFont(null);
+        foreach((string fontName, string fontPath) in GetFilteredFonts()) {
+            bool selected = fontName == Settings.FontName;
+            if(GUILayout.Button(selected ? $"<b>{fontName}</b>" : fontName)) SelectFont(fontName, fontPath);
+        }
+        GUILayout.EndScrollView();
+        GUILayout.EndVertical();
+        GUILayout.EndHorizontal();
+    }
+
+    private IEnumerable<(string Name, string Path)> GetFilteredFonts() {
+        if(_availableFonts == null) {
+            _availableFonts = Font.GetOSInstalledFontNames();
+            _availableFontsPath = Font.GetPathsToOSFonts();
+        }
+        IEnumerable<(string Name, string Path)> fonts = _availableFonts.Zip(_availableFontsPath, (name, path) => (name, path));
+        if(string.IsNullOrEmpty(_fontSearch)) return fonts.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase);
+        return fonts.Where(f => f.Name.Contains(_fontSearch, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(f => f.Name.StartsWith(_fontSearch, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(f => f.Name, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void SelectFont(string fontName, string fontPath = null) {
+        Settings.FontName = fontName;
+        if(string.IsNullOrEmpty(fontName)) BundleLoader.UnloadCustomFont();
+        else BundleLoader.LoadCustomFont(fontName, fontPath);
+        Overlay.Instance.UpdateFont();
+        if(KeyViewer.Instance.Enabled) {
+            KeyViewer.Instance.ResetKeyViewer();
+            KeyViewer.Instance.ResetFootKeyViewer();
+        }
+        SaveSetting();
     }
 
     protected override void OnHideGUI() {
         _sizeString = null;
+        _fontListExpanded = false;
+        _fontSearch = null;
+        _availableFonts = null;
     }
 
     protected override void OnGUIBehind() {
@@ -121,9 +195,9 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         URLLabel("MovingManN(By. Kittut)", "https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js");
         URLLabel("MoreTimeTags(By. Jongyeol)", "https://github.com/Jongye0l/MoreTimeTags");
         URLLabel("BetterCalibration(By. Jongyeol)", "https://github.com/Jongye0l/BetterCalibration");
+        URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         if(JMain.ModeEnabled) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
-            URLLabel("AdvancedCombo(By. Jongyeol)", "https://github.com/Jongye0l/AdvancedCombo");
         }
         GUILayout.Space(25f);
         GUILayout.Label(Localization["credit.font"]);

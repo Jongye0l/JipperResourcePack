@@ -104,7 +104,7 @@ public class ResourceChanger : Feature {
     private static void LoadPlanet() {
         foreach(scrPlanet planet in GetAllPlanets()) OnPlanetStart(planet);
         if(!ADOBase.isLevelSelect) return;
-        scrLogoText logoText = Object.FindObjectOfType<scrLogoText>();
+        scrLogoText logoText = VersionSafe.FindAnyObjectByType<scrLogoText>();
         if(!logoText) return;
         logoText.ColorLogo(PlanetColor, true);
         logoText.ColorLogo(PlanetColor, false);

@@ -1,6 +1,8 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using JALib.Tools;
 using TMPro;
@@ -17,12 +19,18 @@ public class Overlay {
     public readonly Canvas Canvas;
     public TextMeshProUGUI ProgressText;
     public TextMeshProUGUI AccuracyText;
+    public TextMeshProUGUI PotentialAccuracyText;
     public TextMeshProUGUI XAccuracyText;
+    public TextMeshProUGUI PotentialXAccuracyText;
+    public TextMeshProUGUI XScoreText;
+    public TextMeshProUGUI PotentialXScoreText;
     public TextMeshProUGUI TimeText;
     public TextMeshProUGUI MapTimeText;
     public TextMeshProUGUI CheckpointText;
     public TextMeshProUGUI AttemptText;
     public TextMeshProUGUI BestText;
+    public TextMeshProUGUI TimingText;
+    public TextMeshProUGUI AvgTimingText;
     public RectTransform ComboTransform;
     public TextMeshProUGUI ComboTitle;
     public TextMeshProUGUI ComboText;
@@ -48,9 +56,12 @@ public class Overlay {
     protected bool IsDeath;
     protected string MusicTimeCache;
     protected string MapTimeCache;
+    protected float MapTotalTime = -1;
+    private int[] _scorableTiles;
     public PlayCount.Hash LastHash;
     private float _lastSavedStartProgress = -1;
     public float LastMultiplier = 1f;
+    private ComboTier _current;
 
     public Overlay() {
         Instance = this;
@@ -99,11 +110,17 @@ public class Overlay {
         transform.sizeDelta = new Vector2(456, 100);
         SetupMainText("Progress", ref ProgressText);
         SetupMainText("Accuracy", ref AccuracyText);
+        SetupMainText("PotentialAccuracy", ref PotentialAccuracyText);
         SetupMainText("XAccuracy", ref XAccuracyText);
+        SetupMainText("PotentialXAccuracy", ref PotentialXAccuracyText);
+        SetupMainText("XScore", ref XScoreText);
+        SetupMainText("PotentialXScore", ref PotentialXScoreText);
         SetupMainText("MusicTime", ref TimeText);
         SetupMainText("MapTime", ref MapTimeText);
         SetupMainText("Checkpoint", ref CheckpointText);
         SetupMainText("Best", ref BestText);
+        SetupMainText("Timing", ref TimingText);
+        SetupMainText("AvgTiming", ref AvgTimingText);
     }
 
     protected void SetupMainText(string name, ref TextMeshProUGUI text) {
@@ -119,10 +136,15 @@ public class Overlay {
     }
 
     public virtual void SetupLocationMain() {
+        if(!GameObject.activeSelf) return;
         int y = -15;
         SetupLocationMainText(ProgressText, Status.Settings.ShowProgress, ref y);
-        SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy, ref y);
-        SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy, ref y);
+        SetupLocationMainText(AccuracyText, Status.Settings.ShowAccuracy && Status.Settings.AccuracyTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialAccuracyText, Status.Settings.ShowAccuracy && Status.Settings.AccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy && Status.Settings.XAccuracyTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXAccuracyText, Status.Settings.ShowXAccuracy && Status.Settings.XAccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XScoreText, Status.Settings.ShowXScore && Status.XScoreSupported && Status.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXScoreText, Status.Settings.ShowXScore && Status.XScoreSupported && Status.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(CheckpointText,
@@ -130,9 +152,12 @@ public class Overlay {
             (Checkpoints ??= scrLevelMaker.instance.listFloors.Where(floor => floor.GetComponent<ffxCheckpoint>())
                  .Select(floor => floor.seqID).ToArray()).Length > 0, ref y);
         SetupLocationMainText(BestText, Status.Settings.ShowBest, ref y);
+        SetupLocationMainText(TimingText, Status.Settings.ShowTiming && Status.Settings.TimingTextType != TimingTextType.AvgTiming, ref y);
+        SetupLocationMainText(AvgTimingText, Status.Settings.ShowTiming && Status.Settings.TimingTextType is TimingTextType.AvgTiming or TimingTextType.Both, ref y);
         UpdateProgress();
         VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
+        RefreshTiming();
     }
 
     protected static void SetupLocationMainText(TextMeshProUGUI text, bool enabled, ref int y) {
@@ -273,6 +298,28 @@ public class Overlay {
         OverlayTextManager.SetupUnderTextLocation(this);
     }
 
+    public virtual void UpdateFont() {
+        ProgressText.font = BundleLoader.FontAsset;
+        AccuracyText.font = BundleLoader.FontAsset;
+        PotentialAccuracyText.font = BundleLoader.FontAsset;
+        XAccuracyText.font = BundleLoader.FontAsset;
+        PotentialXAccuracyText.font = BundleLoader.FontAsset;
+        XScoreText.font = BundleLoader.FontAsset;
+        PotentialXScoreText.font = BundleLoader.FontAsset;
+        TimeText.font = BundleLoader.FontAsset;
+        MapTimeText.font = BundleLoader.FontAsset;
+        CheckpointText.font = BundleLoader.FontAsset;
+        BestText.font = BundleLoader.FontAsset;
+        TimingText.font = BundleLoader.FontAsset;
+        AvgTimingText.font = BundleLoader.FontAsset;
+        BpmText.font = BundleLoader.FontAsset;
+        JudgementText.font = BundleLoader.FontAsset;
+        ComboTitle.font = BundleLoader.FontAsset;
+        ComboText.font = BundleLoader.FontAsset;
+        TimingScaleText.font = BundleLoader.FontAsset;
+        AttemptText.font = BundleLoader.FontAsset;
+    }
+
     private void SetupShadow(TextMeshProUGUI text) => Shadow(text, 0.5f);
 
     private void SetupDarkShadow(TextMeshProUGUI text) => Shadow(text, 0.7f);
@@ -328,15 +375,13 @@ public class Overlay {
     }
 
     public void UpdateAttempts() {
-        string[] values = new string[2];
-        int count = 0;
-        if(Attempt.Settings.ShowAttempt) values[count++] = $"Attempt {PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0}";
-        if(Attempt.Settings.ShowFullAttempt) values[count++] = $"Full Attempt {PlayCount.GetData(LastHash)?.GetAttempts() ?? 0}";
-        AttemptText.text = count switch {
-            0 => "",
-            1 => values[0],
-            _ => $"{values[0]}\n{values[1]}"
-        };
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
+
+        if(Attempt.Settings.ShowAttempt) sb.Append("Attempt ").Append(PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0).Append('\n');
+        if(Attempt.Settings.ShowFullAttempt) sb.Append("Full Attempt ").Append(PlayCount.GetData(LastHash)?.GetAttempts() ?? 0).Append('\n');
+
+        sb.Length--;
+        AttemptText.text = sb.ToString();
     }
 
     public void UpdateJudgement(int index = -1) {
@@ -364,14 +409,14 @@ public class Overlay {
                     if(time > 0) SongPlaying = true;
                     timeStr = GetTimeString(time, hourNeed);
                 }
-                TimeText.text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time")} |</color> {timeStr}~{MusicTimeCache}";
+                TimeText.text = "<color=white>" + (Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time") + " |</color> " + timeStr + "~" + MusicTimeCache;
                 _lastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
         if(Status.Settings.ShowMapTime || requireMusicToMap) {
             float time = scrController.instance.state == States.Start ? 0 : (float) (scrConductor.instance.addoffset + scrConductor.instance.songposition_minusi);
-            float totalTime = (float) scrLevelMaker.instance.listFloors.Last().entryTime;
+            float totalTime = GetMapTotalTime();
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
             if((!Status.Settings.ShowMapTime || _lastMapTime == (int) time) &&
@@ -380,7 +425,7 @@ public class Overlay {
             MapTimeCache ??= GetTimeString(totalTime, hourNeed);
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
-            string text = $"<color=white>{(Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time")} |</color> {timeStr}~{MapTimeCache}";
+            string text = "<color=white>" + (Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time") + " |</color> " + timeStr + "~" + MapTimeCache;
             if(Status.Settings.ShowMapTime) {
                 MapTimeText.text = text;
                 _lastMapTime = (int) time;
@@ -394,9 +439,37 @@ public class Overlay {
         }
     }
     
+    public int GetRemainingTiles(int seqID) {
+        List<scrFloor> floors = ADOBase.lm.listFloors;
+        int last = floors.Count - 1;
+        if(seqID < 0) seqID = 0;
+        if(seqID >= last) return 0;
+        if(!Status.XScoreSupported) return last - seqID;
+        int[] scorableTiles = _scorableTiles ??= BuildScorableTiles(floors);
+        return scorableTiles[last] - scorableTiles[seqID];
+    }
+
+    private static int[] BuildScorableTiles(List<scrFloor> floors) {
+        int[] scorableTiles = new int[floors.Count];
+        int count = 0;
+        for(int i = 1; i < floors.Count; i++) {
+            scrFloor floor = floors[i];
+            if(!floor.midSpin && !floor.auto) count++;
+            scorableTiles[i] = count;
+        }
+        return scorableTiles;
+    }
+
+    protected float GetMapTotalTime() {
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(MapTotalTime == -1) MapTotalTime = (float) scrLevelMaker.instance.listFloors[^1].entryTime;
+        return MapTotalTime;
+    }
+
     private static string GetTimeString(float time, bool hour) {
         int timeInt = (int) time;
-        return hour ? $"{timeInt / 3600}:{timeInt % 3600 / 60:00}:{timeInt % 60:00}" : $"{timeInt / 60}:{timeInt % 60:00}";
+        return hour ? (timeInt / 3600) + ":" + (timeInt % 3600 / 60).ToString("00") + ":" + (timeInt % 60).ToString("00") :
+                      (timeInt / 60) + ":" + (timeInt % 60).ToString("00");
     }
     
     public void UpdateCombo(int combo, bool bump) {
@@ -449,21 +522,54 @@ public class Overlay {
         float kps = cbpm / 60;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm) return;
-        BpmText.text = $"<color=white>TBPM | <color=#{ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax))}>{Math.Round(bpm, 2)}</color>\n" +
-                       $"CBPM |</color> {Math.Round(cbpm, 2)}\n" +
-                       $"<color=white>KPS |</color> {Math.Round(kps, 2)}";
+        BpmText.text = "<color=white>TBPM | <color=#" + ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax)) + ">" + Math.Round(bpm, Bpm.Settings.DecimalPlaces) +
+                       "</color>\nCBPM |</color> " + Math.Round(cbpm, Bpm.Settings.DecimalPlaces) +
+                       "\n<color=white>KPS |</color> " + Math.Round(kps, Bpm.Settings.DecimalPlaces);
         if(LastCurBpm != cbpm) BpmText.color = Bpm.Settings.BpmColor.GetColor(cbpm / Bpm.Settings.BpmColorMax);
         // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;
         LastCurBpm = cbpm;
     }
 
+    private const string HexDigits = "0123456789ABCDEF";
+
     // ReSharper disable once CompareOfFloatsByEqualityOperator
-    protected static string ColorToHex(Color color) => $"{Mathf.RoundToInt(color.r * 255):X2}{Mathf.RoundToInt(color.g * 255):X2}{Mathf.RoundToInt(color.b * 255):X2}{(color.a == 1 ? "" : Mathf.RoundToInt(color.a * 255).ToString("X2"))}";
+    public static string ColorToHex(Color color) {
+        bool withAlpha = color.a != 1;
+        char[] chars = new char[withAlpha ? 8 : 6];
+        WriteHexByte(chars, 0, Mathf.RoundToInt(color.r * 255));
+        WriteHexByte(chars, 2, Mathf.RoundToInt(color.g * 255));
+        WriteHexByte(chars, 4, Mathf.RoundToInt(color.b * 255));
+        if(withAlpha) WriteHexByte(chars, 6, Mathf.RoundToInt(color.a * 255));
+        return new string(chars);
+    }
+
+    private static void WriteHexByte(char[] chars, int index, int value) {
+        if(value < 0) value = 0;
+        else if(value > 255) value = 255;
+        chars[index] = HexDigits[value >> 4];
+        chars[index + 1] = HexDigits[value & 0xF];
+    }
+
+    public void UpdateTiming(float timing, int player = -1) {
+        if(!Status.Settings.ShowTiming || !GameObject.activeSelf) return;
+        OverlayTextManager.UpdateTiming(this, timing, player);
+    }
+
+    public void RefreshTiming() {
+        if(!GameObject.activeSelf || OverlayTextManager == null) return;
+        OverlayTextManager.RefreshTiming(this);
+    }
 
     public void UpdateTimingScale() {
         if(!GameObject.activeSelf) return;
-        TimingScaleText.text = $"Timing Scale - {Math.Round(scrController.instance.currFloor.marginScale * 100, 2)}%";
+        TimingScaleText.text = "Timing Scale - " + Math.Round(scrController.instance.currFloor.marginScale * 100, 2) + "%";
+    }
+
+    public void ChangeComboText(ComboTier tier) {
+        if(_current >= tier) return;
+        ComboTitle.text = tier == ComboTier.Green ? "Perfect" : "Combo";
+        _current = tier;
     }
     
     public virtual void Show(int floor) {
@@ -472,12 +578,24 @@ public class Overlay {
             if(!AutoOnceEnabled) PlayCount.SetBest(LastHash, _lastSavedStartProgress, OverlayTextManager.GetProgress(), LastMultiplier);
             _lastSavedStartProgress = -1;
         }
+
+        if(scrController.checkpointsUsed == 0) {
+            if(VersionControl.releaseNumber >= 149) {
+                _current = ComboTier.White;
+                ComboTitle.text = "XPerfect";
+            } else {
+                _current = ComboTier.Green;
+                ComboTitle.text = "Perfect";
+            }
+        }
         
         PlayCount.Hash hash = PlayCount.GetMapHash();
         if(LastHash != hash) {
             LastHash = hash;
             Checkpoints = null;
             MapTimeCache = null;
+            MapTotalTime = -1;
+            _scorableTiles = null;
         }
         MusicTimeCache = null;
         
@@ -526,7 +644,7 @@ public class Overlay {
         OverlayTextManager.SetBest(1);
     }
     
-    public virtual void Hide() {
+    public void Hide() {
         if((object) GameObject == null || !GameObject.activeSelf) return;
         GameObject.SetActive(false);
         try {

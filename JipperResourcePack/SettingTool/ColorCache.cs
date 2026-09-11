@@ -14,6 +14,7 @@ public class ColorCache(Color color) {
     public float b = color.b;
     public float a = color.a;
     // ReSharper restore InconsistentNaming
+    [JsonIgnore] private Color _originalColor = color;
     [JsonIgnore] private string _rString;
     [JsonIgnore] private string _gString;
     [JsonIgnore] private string _bString;
@@ -21,23 +22,29 @@ public class ColorCache(Color color) {
     [JsonIgnore] private string _oldHexString;
     [JsonIgnore] private string _hexString;
 
-    public bool SettingGUI(SettingGUI settingGUI, Color defaultColor) {
+    public bool SettingGUI(SettingGUI settingGUI, bool reset = true) {
         bool changed = false;
         _oldHexString ??= _hexString = GetHexString();
+
         settingGUI.AddSettingString(ref _hexString, _oldHexString, "Hex", () => {
             changed = CheckHexString();
         });
-        if(changed) {
-            SetColor(ref defaultColor);
-            _rString = _gString = _bString = _aString = null;
+        if(changed) _rString = _gString = _bString = _aString = null;
+
+        settingGUI.AddSettingSliderFloat(ref r, r, ref _rString, "R", 0, 1, () => changed = true);
+        settingGUI.AddSettingSliderFloat(ref g, g, ref _gString, "G", 0, 1, () => changed = true);
+        settingGUI.AddSettingSliderFloat(ref b, b, ref _bString, "B", 0, 1, () => changed = true);
+        settingGUI.AddSettingSliderFloat(ref a, a, ref _aString, "A", 0, 1, () => changed = true);
+
+        if(reset && GUILayout.Button(Main.Instance.Localization["Color.Reset"])) {
+            Reset();
+            changed = true;
         }
-        settingGUI.AddSettingSliderFloat(ref r, defaultColor.r, ref _rString, "R", 0, 1, () => changed = true);
-        settingGUI.AddSettingSliderFloat(ref g, defaultColor.g, ref _gString, "G", 0, 1, () => changed = true);
-        settingGUI.AddSettingSliderFloat(ref b, defaultColor.b, ref _bString, "B", 0, 1, () => changed = true);
-        settingGUI.AddSettingSliderFloat(ref a, defaultColor.a, ref _aString, "A", 0, 1, () => changed = true);
         if(changed) _oldHexString = _hexString = GetHexString();
         return changed;
     }
+
+    public void Reset() => SetPreset(_originalColor);
 
     private bool CheckHexString() {
         if(string.IsNullOrEmpty(_hexString)) {
@@ -71,7 +78,7 @@ public class ColorCache(Color color) {
     }
 
     private string GetHexString() {
-        StringBuilder sb = new();
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
         sb.Append(Normalize(r).ToString("X2"));
         sb.Append(Normalize(g).ToString("X2"));
         sb.Append(Normalize(b).ToString("X2"));
@@ -94,9 +101,38 @@ public class ColorCache(Color color) {
         color.a = a;
     }
 
+    public void ApplyHue(Color baseColor) {
+        Color newColor = ApplyHuePreview(baseColor);
+        r = newColor.r;
+        g = newColor.g;
+        b = newColor.b;
+    }
+
+    public Color ApplyHuePreview(Color baseColor) {
+        Color.RGBToHSV(this, out _, out float s, out float v);
+        Color.RGBToHSV(baseColor, out float h, out _, out _);
+        Color newColor = Color.HSVToRGB(h, s, v);
+        newColor.a = a;
+        return newColor;
+    }
+
+    public void SetPreset(Color color) {
+        r = color.r;
+        g = color.g;
+        b = color.b;
+        a = color.a;
+        _rString = _gString = _bString = _aString = null;
+        _oldHexString = _hexString = GetHexString();
+    }
+
     public static implicit operator Color(ColorCache cache) {
         Unsafe.SkipInit(out Color color);
         cache.SetColor(ref color);
         return color;
+    }
+
+    public static void Setup(ref ColorCache cache, Color color) {
+        if(cache == null) cache = new ColorCache(color);
+        else cache._originalColor = color;
     }
 }

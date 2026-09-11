@@ -31,6 +31,6 @@ public static class JMain {
         ResourceChanger.PlanetColor = new Color(0.62109375f, 0.7265625f, 1);
         ResourceChanger.TitleColor = new Color(0.5546875f, 0.86328125f, 0.96484375f);
         ResourceChanger.TileColor = new Color(0.88235295f, 0.9882353f, 1f);
-        return [new JStatus(), new Jbpm(), new JCombo(), new Judgement(), new TimingScale(), new Attempt(), resourceChanger, new KeyViewer()];
+        return [new JStatus(), new Jbpm(), new Combo(), new Judgement(), new TimingScale(), new Attempt(), resourceChanger, new KeyViewer()];
     }
 }

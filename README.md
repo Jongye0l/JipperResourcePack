@@ -61,23 +61,25 @@
   * [MovingManN](https://github.com/Jongye0l/JIpper-Overlayer/blob/main/Scripts/MovingManN.js)
   * [MoreTimeTags](https://github.com/Jongye0l/MoreTimeTags)
   * [BetterCalibration](https://github.com/Jongye0l/BetterCalibration)
-  * [State](https://github.com/Jongye0l/State)
   * [AdvancedCombo](https://github.com/Jongye0l/AdvancedCombo)
+  * [State](https://github.com/Jongye0l/State)
   * [unity-mod-manager](https://github.com/newman55/unity-mod-manager)
 * 사용한 폰트
   * [Maplestory OTF Bold](https://fontmeme.com/ktype/maplestory-font)
 ---
 ### 개발 환경 Development environment
-* Windows 11
-* Rider 2026.1.2
+* Linux 7.1.8-arch1-3
+* Rider 2026.2.1
 * .NET Framework 4.8.1
-* C# 13
-* A Dance of Fire and Ice 3.1.1(r142, 65c2589)
+* C# 14
+* A Dance of Fire and Ice 3.3.2(r149, 4f5d053)
 ---
 ### 테스트 환경 Test environment
-* Windows 11
-* A Dance of Fire and Ice 2.9.8(r136, 41f0b77)
-* A Dance of Fire and Ice 3.1.1(r142, 65c2589)
+* Linux 7.1.8-arch1-3
+* A Dance of Fire and Ice 2.9.8(r136, 87412bd)
+* A Dance of Fire and Ice 3.2.0(r145, 2aa2745)
+* A Dance of Fire and Ice 3.3.1(r148, 1b7d115)
+* A Dance of Fire and Ice 3.3.2(r149, 4f5d053)
 ---
 # [Join Jipper's Discord!](https://discord.gg/qTbnPhY7YA)
 # [Join My Discord!](https://discord.jongyeol.kr)

@@ -6,4 +6,5 @@ namespace JipperResourcePack;
 
 public class ResourcePackSetting(JAMod mod, JObject jsonObject = null) : JASetting(mod, jsonObject) {
     public float Size = 1;
+    public string FontName;
 }
