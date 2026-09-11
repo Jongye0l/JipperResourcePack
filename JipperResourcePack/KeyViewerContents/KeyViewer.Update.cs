@@ -181,6 +181,7 @@ public partial class KeyViewer {
                 KeyCode.None => keyEvent.Key + 0x1000,
                 KeyCode.Less => (int) KeyCode.Comma,
                 KeyCode.Greater => (int) KeyCode.Equals,
+                KeyCode.Pipe => (int) KeyCode.Backslash,
                 _ => (int) capturedKey
             };
         }
