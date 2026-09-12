@@ -22,8 +22,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     }
     
     public virtual void UpdateAccuracy(Overlay overlay, int _) {
-        float xacc = VersionSafe.GetPercentXAcc();
-        if(float.IsNaN(xacc)) xacc = 1;
+        float xacc = VersionSafe.GetPercentXAcc().SetIfNaN(1);
         int seqID = scrController.instance.currentSeqID;
         int remaining = overlay.GetRemainingTiles(seqID);
         if(Status.Settings.ShowAccuracy) {

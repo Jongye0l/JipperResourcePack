@@ -196,7 +196,7 @@ public static class VersionSafe {
     public static int GetJudgedTiles(int[] hits, int seqID) => seqID - hits[12 /* Auto */] - hits[14 /* MidSpin */];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float GetPotentialXAccuracy(int index, float xacc, int seqId, int remaining) => scrMistakesManager.marginTrackers[index].maxPossibleXAcc;
+    public static float GetPotentialXAccuracy(int index, float xacc, int seqId, int remaining) => scrMistakesManager.marginTrackers[index].maxPossibleXAcc.SetIfNaN(1);
 #else
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
         int diff = DigitCount(hits[9]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
