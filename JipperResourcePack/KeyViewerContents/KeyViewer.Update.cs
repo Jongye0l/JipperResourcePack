@@ -32,7 +32,7 @@ public partial class KeyViewer {
     private volatile int _capturedKeyCode;
     private int _lastKpsCount;
     private int _lastTotalCount;
-    private static HashSet<KeyCode> _unityKeyLimitKeys;
+    private static HashSet<KeyCode> _unityKeyLimitKeys = [];
     private static HashSet<ushort> _asyncKeyLimitKeys;
 
     private void RebuildKeyBinding() {
