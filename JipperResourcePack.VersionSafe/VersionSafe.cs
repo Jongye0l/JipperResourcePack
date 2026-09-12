@@ -191,6 +191,12 @@ public static class VersionSafe {
         AppendBalance(sb, diff);
         return sb.ToString();
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int GetJudgedTiles(int[] hits, int seqID) => seqID - hits[12 /* Auto */] - hits[14 /* MidSpin */];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float GetPotentialXAccuracy(int index, float xacc, int seqId, int remaining) => scrMistakesManager.marginTrackers[index].maxPossibleXAcc;
 #else
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
         int diff = DigitCount(hits[9]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
@@ -228,6 +234,15 @@ public static class VersionSafe {
             .Append(postfix);
         AppendBalance(sb, diff);
         return sb.ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int GetJudgedTiles(int[] hits, int seqID) => seqID;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float GetPotentialXAccuracy(int index, float xacc, int seqId, int remaining) {
+        int total = seqId + remaining;
+        return total == 0 ? 1 : (xacc * seqId + remaining) / total;
     }
 #endif
 }

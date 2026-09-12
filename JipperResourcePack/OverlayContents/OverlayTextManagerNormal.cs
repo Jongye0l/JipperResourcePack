@@ -26,10 +26,9 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         if(float.IsNaN(xacc)) xacc = 1;
         int seqID = scrController.instance.currentSeqID;
         int remaining = overlay.GetRemainingTiles(seqID);
-        int judged = Status.GetJudgedTiles(overlay.Hit, seqID);
         if(Status.Settings.ShowAccuracy) {
             float acc = VersionSafe.GetPercentAcc();
-            float potentialAcc = Status.GetPotentialAccuracy(overlay.Hit, acc, judged, remaining);
+            float potentialAcc = Status.GetPotentialAccuracy(overlay.Hit, acc, seqID);
             float maxAcc = 1 + (seqID - overlay.NoCheckStartTile) * 0.0001f;
             int decimalPlaces = Status.Settings.AccuracyDecimalPlaces;
             // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -39,13 +38,13 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             // ReSharper restore CompareOfFloatsByEqualityOperator
         }
         if(Status.Settings.ShowXAccuracy) {
-            float potentialXAcc = Status.GetPotentialXAccuracy(xacc, judged, remaining);
+            float potentialXAcc = VersionSafe.GetPotentialXAccuracy(0, xacc, seqID, remaining);
             int decimalPlaces = Status.Settings.XAccuracyDecimalPlaces;
             SetDualText(Status.Settings.XAccuracyTextType, overlay.XAccuracyText, overlay.PotentialXAccuracyText, "XAccuracy",
                 Math.Round(xacc * 100, decimalPlaces) + "%", Math.Round(potentialXAcc * 100, decimalPlaces) + "%",
                 Status.Settings.XAccuracyColor, xacc, potentialXAcc);
         }
-        if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay, judged, remaining);
+        if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay, VersionSafe.GetJudgedTiles(overlay.Hit, seqID), remaining);
     }
 
     protected static void SetDualText(PotentialTextType type, TextMeshProUGUI text, TextMeshProUGUI potentialText, string label,

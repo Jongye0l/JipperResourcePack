@@ -442,7 +442,6 @@ public class Overlay {
     public int GetRemainingTiles(int seqID) {
         List<scrFloor> floors = ADOBase.lm.listFloors;
         int last = floors.Count - 1;
-        if(seqID < 0) seqID = 0;
         if(seqID >= last) return 0;
         if(!Status.XScoreSupported) return last - seqID;
         int[] scorableTiles = _scorableTiles ??= BuildScorableTiles(floors);

@@ -137,11 +137,9 @@ public class Status : Feature {
         _ => xScore.ToString()
     };
 
-    public static int GetJudgedTiles(int[] hits, int seqID) => XScoreSupported ? seqID - hits[(int) HitMargin.Midspin] : seqID;
-
     private static void GetAccuracyCounts(int[] hits, out int perfect, out int accurate) {
         if(XScoreSupported) {
-            perfect = hits[(int) HitMargin.PerfectMinus] + hits[(int) HitMargin.XPerfect] + hits[(int) HitMargin.PerfectPlus];
+            perfect = hits[(int) HitMargin.PerfectMinus] + hits[(int) HitMargin.XPerfect] + hits[(int) HitMargin.PerfectPlus] + hits[(int) HitMargin.Auto] + hits[(int) HitMargin.Midspin];
             accurate = perfect + hits[(int) HitMargin.EarlyPerfect] + hits[(int) HitMargin.LatePerfect];
         } else {
             // 2 EarlyPerfect, 3 Perfect, 4 LatePerfect, 10 Auto. Auto tiles were still scored before R149.
@@ -150,18 +148,15 @@ public class Status : Feature {
         }
     }
 
-    public static float GetPotentialAccuracy(int[] hits, float acc, int judged, int remaining) {
+    public static float GetPotentialAccuracy(int[] hits, float acc, int seqId) {
+        List<scrFloor> floors = ADOBase.lm.listFloors;
+        int remaining = Math.Max(floors.Count - 1 - seqId, 0);
         GetAccuracyCounts(hits, out int perfect, out int accurate);
         float rate = acc - perfect * 0.0001f;
-        int count = accurate == 0 || rate <= 0 || float.IsNaN(rate) ? judged : (int) Math.Round(accurate / rate);
+        int count = accurate == 0 || rate <= 0 || float.IsNaN(rate) ? seqId : (int) Math.Round(accurate / rate);
         if(count < accurate) count = accurate;
         int total = count + remaining;
         return total == 0 ? 1 : (perfect + remaining) * 0.0001f + (float) (accurate + remaining) / total;
-    }
-
-    public static float GetPotentialXAccuracy(float xacc, int judged, int remaining) {
-        int total = judged + remaining;
-        return total == 0 ? 1 : (xacc * judged + remaining) / total;
     }
 
     public static Color GetTimingColor(float timing) => Settings.TimingColor.GetColor(1 - Math.Min(Math.Abs(timing), 150) / 150);

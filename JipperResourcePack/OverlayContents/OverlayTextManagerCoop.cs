@@ -144,10 +144,9 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     private void SetAccuracy(Overlay overlay, ref PlayerData pData, int i) {
         scrMarginTracker tracker = scrMistakesManager.marginTrackers[i];
         int seqID = GetSeqID(i);
-        int remaining = overlay.GetRemainingTiles(seqID);
         float acc = tracker.percentAcc;
         float xacc = tracker.percentXAcc.SetIfNaN(1);
-        float potentialAcc = Status.GetPotentialAccuracy(tracker.hitMarginsCount, acc, Status.GetJudgedTiles(tracker.hitMarginsCount, seqID), remaining);
+        float potentialAcc = Status.GetPotentialAccuracy(tracker.hitMarginsCount, acc, seqID);
         float maxAcc = 1 + (seqID - overlay.NoCheckStartTile + 1) * 0.0001f;
         PotentialTextType type = Status.Settings.AccuracyTextType;
         int decimalPlaces = Status.Settings.AccuracyDecimalPlaces;
@@ -158,7 +157,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
             pData.AccuracyString = " | " + value + "</color>";
         }
         if(type is PotentialTextType.Potential or PotentialTextType.Both)
-            pData.PotentialAccuracyString = " | " + ColorToString(Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : potentialAcc / (maxAcc + remaining * 0.0001f))) +
+            pData.PotentialAccuracyString = " | " + ColorToString(Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : potentialAcc / (maxAcc + overlay.GetRemainingTiles(seqID) * 0.0001f))) +
                                             Math.Round(potentialAcc * 100, decimalPlaces) + "%</color>";
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
@@ -169,7 +168,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         int remaining = overlay.GetRemainingTiles(seqID);
         float xacc = tracker.percentXAcc;
         if(float.IsNaN(xacc)) xacc = 1;
-        float potentialXAcc = Status.GetPotentialXAccuracy(xacc, Status.GetJudgedTiles(tracker.hitMarginsCount, seqID), remaining);
+        float potentialXAcc = VersionSafe.GetPotentialXAccuracy(i, xacc, seqID, remaining);
         PotentialTextType type = Status.Settings.XAccuracyTextType;
         int decimalPlaces = Status.Settings.XAccuracyDecimalPlaces;
         if(type != PotentialTextType.Potential) {
