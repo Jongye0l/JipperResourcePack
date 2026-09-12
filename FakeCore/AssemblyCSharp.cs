@@ -45,11 +45,9 @@ public class scrMistakesManager {
 #if R141After
 public class scrMarginTracker {
 	public int[] hitMarginsCount;
-#if R149After
-	public void CalculatePercentAcc(bool increaseRemainingPlayerHits = false) => throw new Exception("stub");
-	public float maxPossibleXAcc => throw new Exception("stub");
-#else // R149After
 	public void CalculatePercentAcc() => throw new Exception("stub");
+#if R149After
+	public float maxPossibleXAcc => throw new Exception("stub");
 #endif // R149After
 }
 

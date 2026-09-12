@@ -72,14 +72,14 @@
 * Rider 2026.2.1
 * .NET Framework 4.8.1
 * C# 14
-* A Dance of Fire and Ice 3.3.2(r149, 4f5d053)
+* A Dance of Fire and Ice 3.4.0(r149, e5b157d)
 ---
 ### 테스트 환경 Test environment
 * Linux 7.1.8-arch1-3
 * A Dance of Fire and Ice 2.9.8(r136, 87412bd)
 * A Dance of Fire and Ice 3.2.0(r145, 2aa2745)
 * A Dance of Fire and Ice 3.3.1(r148, 1b7d115)
-* A Dance of Fire and Ice 3.3.2(r149, 4f5d053)
+* A Dance of Fire and Ice 3.4.0(r150, e5b157d)
 ---
 # [Join Jipper's Discord!](https://discord.gg/qTbnPhY7YA)
 # [Join My Discord!](https://discord.jongyeol.kr)
