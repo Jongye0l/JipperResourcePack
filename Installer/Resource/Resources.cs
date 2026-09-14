@@ -29,7 +29,7 @@ public class Resources {
         Title3 = "Install",
         Title4 = "Finish",
         SelectLocation_Title = "Please select the A Dance of Fire and Ice folder.",
-        SelectLocation_Description = "Install the Jipper ResourcePack in the Adofai.\nIf you install it in a different Adofai folder or if the program has not found the Adofai folder,\nclick the 'Select Folder' button to select the Adofai folder.",
+        SelectLocation_Description = "Install the Jipper ResourcePack in the ADOFAI.\nIf you install it in a different ADOFAI folder or if the program has not found the ADOFAI folder,\nclick the 'Select Folder' button to select the ADOFAI folder.",
         SelectLocation_Select = "Browse",
         SelectLocation_Location = "Select ADOFAI Folder",
         // SelectLocation_AdofaiFolderGuide = "A Dance of Fire and Ice Folder Guide",
