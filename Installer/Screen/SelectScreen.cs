@@ -6,8 +6,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Web.Script.Serialization;
 using JipperResourcePack.Installer.Resource;
-using Newtonsoft.Json;
 
 namespace JipperResourcePack.Installer.Screen;
 
@@ -284,7 +284,7 @@ public class SelectScreen : Screen {
                             if(!File.Exists(infoLocation)) infoLocation = Path.Combine(file, "info.json");
                             if(!File.Exists(infoLocation)) continue;
 
-                            ModInfo modInfo = JsonConvert.DeserializeObject<ModInfo>(File.ReadAllText(infoLocation));
+                            ModInfo modInfo = Utility.JsonSerializer.Deserialize<ModInfo>(File.ReadAllText(infoLocation));
                             if(token.IsCancellationRequested) return;
                             ExistModsPath.Add(file);
                             modItemQueue.Enqueue(modInfo.Id + "(By " + modInfo.Author.Replace(" & ", ", ").Replace("&", ", ") + ")");

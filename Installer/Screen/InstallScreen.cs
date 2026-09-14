@@ -10,8 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Web.Script.Serialization;
 using JipperResourcePack.Installer.Resource;
-using Newtonsoft.Json.Linq;
 
 namespace JipperResourcePack.Installer.Screen;
 
@@ -21,7 +21,7 @@ public class InstallScreen : Screen {
     public Label LogLabel;
     public Label LastLogLabel = new() { Location = new Point(0, -10) };
     public ConcurrentQueue<string> LogQueue;
-    
+
     public int Progress;
     public string DownloadName;
     public int DownloadProgressStart;
@@ -41,7 +41,7 @@ public class InstallScreen : Screen {
 
     public override void OnEnter() {
         TopPanelLabels[2].Font = Constants.Arial16B;
-        
+
         int maxValue = 0;
         if(GlobalSetting.Instance.IsUninstall) {
             maxValue = GlobalSetting.Instance.UninstallOption switch {
@@ -57,7 +57,7 @@ public class InstallScreen : Screen {
             maxValue += 50 * GlobalSetting.Instance.SelectedMods.Count;
             maxValue += 10 * GlobalSetting.Instance.RemoveRequestMods.Count;
         }
-        
+
         ProgressBar = new ProgressBar {
             Minimum = 0,
             Maximum = maxValue,
@@ -75,13 +75,13 @@ public class InstallScreen : Screen {
             AutoScroll = true,
             BackColor = Color.Silver
         };
-        
+
         MainPanel.SuspendLayout();
         MainPanel.Controls.Add(ProgressBar);
         MainPanel.Controls.Add(LogLabel);
         MainPanel.Controls.Add(LogPanel);
         MainPanel.ResumeLayout();
-        
+
         LogQueue = new ConcurrentQueue<string>([
             "JipperResourcePack Installer v" + Application.ProductVersion,
             "Adofai Version: " + (GlobalSetting.Instance.AdofaiRevision == -1 ? "Unknown" : "r" + GlobalSetting.Instance.AdofaiRevision),
@@ -93,7 +93,7 @@ public class InstallScreen : Screen {
             "Starting Work..."
         ]);
         TempPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp", "JipperResourcePack");
-        
+
         Task.Run(StartWork);
         LogListener();
     }
@@ -134,14 +134,14 @@ public class InstallScreen : Screen {
             } else {
                 if(GlobalSetting.Instance.InstallUnityModManager) await InstallUnityModManager();
                 if(GlobalSetting.Instance.InstallDoorstop) await InstallDoorstop();
-            
+
                 // Remove Before Install
                 foreach(string path in GlobalSetting.Instance.RemoveRequestMods) {
                     Log($"Deleting {path}...");
                     Directory.Delete(path, true);
                     Progress += 10;
                 }
-            
+
                 if(GlobalSetting.Instance.InstallJalib) await DownloadJALib();
                 if(GlobalSetting.Instance.InstallJipperResourcePack) await DownloadJipperResourcePack();
                 foreach(ModData selectedMod in GlobalSetting.Instance.SelectedMods) {
@@ -182,7 +182,7 @@ public class InstallScreen : Screen {
                 File.Copy(Path.Combine(TempPath, "UnityModManagerInstaller", destFileName), Path.Combine(managerPath, destFileName), true);
                 Progress += 2;
             }
-            
+
             Log("Coping Confix.xml...");
             using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.UMM.Config.xml");
             using Stream file = File.Create(Path.Combine(managerPath, "Config.xml"));
@@ -203,7 +203,7 @@ public class InstallScreen : Screen {
         string doorstopPath = Path.Combine(GlobalSetting.Instance.InstallPath, "winhttp.dll");
         string doorstopConfigPath = Path.Combine(GlobalSetting.Instance.InstallPath, "doorstop_config.ini");
         int startProgress = Progress;
-        
+
         Log("Check Doorstop Latest Version...");
         string latestVersion;
         using HttpClient httpClient = new();
@@ -214,18 +214,18 @@ public class InstallScreen : Screen {
             response.EnsureSuccessStatusCode();
             Progress = startProgress + 14;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JObject.Parse(json)["tag_name"]!.Value<string>();
+            latestVersion = GetReleaseTag(json);
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/NeighTools/UnityDoorstop/releases");
             Progress = startProgress + 10;
             response.EnsureSuccessStatusCode();
             Progress = startProgress + 16;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JArray.Parse(json)[0]["tag_name"]!.Value<string>();
+            latestVersion = GetFirstReleaseTag(json);
         }
         Progress = startProgress + 20;
         Log("Latest Version is " + latestVersion);
-        
+
         if(Directory.Exists(TempPath)) Directory.Delete(TempPath, true);
         Directory.CreateDirectory(TempPath);
         try {
@@ -236,7 +236,7 @@ public class InstallScreen : Screen {
             Log("Downloading Doorstop...");
             await Download($"https://github.com/NeighTools/UnityDoorstop/releases/download/{latestVersion}/doorstop_win_release_{latestVersion.TrimStart('v')}.zip", TempPath, false);
             Log("Download Complete Doorstop");
-            
+
             Log("Checking program bits...");
             bool is64Bit = UnmanagedDllIs64Bit(Path.Combine(GlobalSetting.Instance.InstallPath, "A Dance of Fire and Ice.exe"));
             Progress += 2;
@@ -247,17 +247,17 @@ public class InstallScreen : Screen {
                 File.Delete(doorstopPath);
             }
             Progress += 2;
-        
+
             if(File.Exists(doorstopConfigPath)) {
                 Log($"Deleting {doorstopConfigPath}...");
                 File.Delete(doorstopConfigPath);
             }
             Progress += 2;
-        
+
             Log("Coping winhttp.dll...");
             File.Copy(Path.Combine(TempPath, is64Bit ? "x64" : "x86", "winhttp.dll"), doorstopPath);
             Progress += 2;
-            
+
             using(Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("JipperResourcePack.Installer.Resource.UMM.doorstop_config.ini")) {
                 using Stream file = File.Create(doorstopConfigPath);
                 await stream!.CopyToAsync(file);
@@ -382,18 +382,18 @@ public class InstallScreen : Screen {
             response.EnsureSuccessStatusCode();
             Progress = startProgress + 14;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JObject.Parse(json)["tag_name"]!.Value<string>();
+            latestVersion = GetReleaseTag(json);
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JALib/releases");
             Progress = startProgress + 10;
             response.EnsureSuccessStatusCode();
             Progress = startProgress + 16;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JArray.Parse(json)[0]["tag_name"]!.Value<string>();
+            latestVersion = GetFirstReleaseTag(json);
         }
         Progress = startProgress + 20;
         Log("Latest Version is " + latestVersion);
-        
+
         DownloadName = "JALib";
         DownloadProgressStart = Progress;
         DownloadProgressEnd = Progress + 50;
@@ -414,24 +414,48 @@ public class InstallScreen : Screen {
             response.EnsureSuccessStatusCode();
             Progress = startProgress + 14;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JObject.Parse(json)["tag_name"]!.Value<string>();
+            latestVersion = GetReleaseTag(json);
         } catch (Exception) {
             HttpResponseMessage response = await httpClient.GetAsync("https://api.github.com/repos/Jongye0l/JipperResourcePack/releases");
             Progress = startProgress + 10;
             response.EnsureSuccessStatusCode();
             Progress = startProgress + 16;
             string json = await response.Content.ReadAsStringAsync();
-            latestVersion = JArray.Parse(json)[0]["tag_name"]!.Value<string>();
+            latestVersion = GetFirstReleaseTag(json);
         }
         Progress = startProgress + 20;
         Log("Latest Version is " + latestVersion);
-        
+
         DownloadName = "JipperResourcePack";
         DownloadProgressStart = Progress;
         DownloadProgressEnd = Progress + 50;
         Log("Downloading JipperResourcePack...");
         await Download($"https://github.com/Jongye0l/JipperResourcePack/releases/download/{latestVersion}/JipperResourcePack.zip", Path.Combine(GlobalSetting.Instance.InstallPath, "Mods", "JipperResourcePack"), true);
         Log("Download Complete JipperResourcePack");
+    }
+
+    private static string GetReleaseTag(string json) {
+        ReleaseData release = Utility.JsonSerializer.Deserialize<ReleaseData>(json);
+        return SanitizeReleaseTag(release?.tag_name);
+    }
+
+    private static string GetFirstReleaseTag(string json) {
+        ReleaseData[] releases = Utility.JsonSerializer.Deserialize<ReleaseData[]>(json);
+        if(releases == null || releases.Length == 0) throw new InvalidDataException("No releases were found.");
+        return SanitizeReleaseTag(releases[0]?.tag_name);
+    }
+
+    private static string SanitizeReleaseTag(string tag) {
+        if(string.IsNullOrWhiteSpace(tag) || tag.Length > 64)
+            throw new InvalidDataException("The release tag is invalid.");
+        foreach(char character in tag)
+            if(!char.IsLetterOrDigit(character) && character != '.' && character != '-' && character != '_')
+                throw new InvalidDataException("The release tag contains invalid characters.");
+        return tag;
+    }
+
+    private sealed class ReleaseData {
+        public string tag_name { get; set; }
     }
 
     private class InstallStream : Stream {
@@ -464,7 +488,7 @@ public class InstallScreen : Screen {
         public override void Flush() => _baseStream.Flush();
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
         public override void SetLength(long value) => throw new NotSupportedException();
-        
+
         public override int Read(byte[] buffer, int offset, int count) {
             int read = _baseStream.Read(buffer, offset, count);
             _position += read;
