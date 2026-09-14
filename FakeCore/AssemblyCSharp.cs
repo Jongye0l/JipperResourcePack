@@ -76,3 +76,7 @@ public class Persistence {
 	public static bool enableCompetitiveMode => throw new Exception("stub");
 }
 #endif
+
+public static class RDUtils {
+	public static float SetIfNaN(this float f, float value) => throw new Exception("stub");
+}
