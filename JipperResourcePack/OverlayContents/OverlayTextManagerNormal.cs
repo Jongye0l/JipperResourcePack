@@ -43,7 +43,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
                 Math.Round(xacc * 100, decimalPlaces) + "%", Math.Round(potentialXAcc * 100, decimalPlaces) + "%",
                 Status.Settings.XAccuracyColor, xacc, potentialXAcc);
         }
-        if(Status.Settings.ShowXScore && Status.XScoreSupported) UpdateXScore(overlay, VersionSafe.GetJudgedTiles(overlay.Hit, seqID), remaining);
+        if(Status.Settings.ShowXScore && VersionSafe.XScoreSupported) UpdateXScore(overlay, VersionSafe.GetJudgedTiles(overlay.Hit, seqID), remaining);
     }
 
     protected static void SetDualText(PotentialTextType type, TextMeshProUGUI text, TextMeshProUGUI potentialText, string label,

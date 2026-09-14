@@ -53,8 +53,8 @@ public class JOverlay : Overlay {
         SetupLocationMainText(PotentialAccuracyText, checkAuto && JStatus.Settings.ShowAccuracy && JStatus.Settings.AccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(XAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy && JStatus.Settings.XAccuracyTextType != PotentialTextType.Potential, ref y);
         SetupLocationMainText(PotentialXAccuracyText, checkAuto && JStatus.Settings.ShowXAccuracy && JStatus.Settings.XAccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
-        SetupLocationMainText(XScoreText, checkAuto && JStatus.Settings.ShowXScore && Status.XScoreSupported && JStatus.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
-        SetupLocationMainText(PotentialXScoreText, checkAuto && JStatus.Settings.ShowXScore && Status.XScoreSupported && JStatus.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XScoreText, checkAuto && JStatus.Settings.ShowXScore && VersionSafe.XScoreSupported && JStatus.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXScoreText, checkAuto && JStatus.Settings.ShowXScore && VersionSafe.XScoreSupported && JStatus.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(TimeText, JStatus.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, JStatus.Settings.ShowMapTime, ref y);
         Checkpoints ??= scrLevelMaker.instance.listFloors.FindAll(floor => floor.GetComponent<ffxCheckpoint>()).Select(floor => floor.seqID).ToArray();

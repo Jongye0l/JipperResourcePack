@@ -95,7 +95,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                 overlay.PotentialXAccuracyText.text = string.Concat(strings);
             }
         }
-        if(Status.Settings.ShowXScore && Status.XScoreSupported) {
+        if(Status.Settings.ShowXScore && VersionSafe.XScoreSupported) {
             if(index == -1)
                 for(int i = 0; i < PlayerArray.Length; i++)
                     SetXScore(overlay, ref PlayerArray[i], i);

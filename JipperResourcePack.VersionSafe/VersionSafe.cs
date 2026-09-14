@@ -144,6 +144,8 @@ public static class VersionSafe {
 #endif
 
 #if R149After
+    public static bool XScoreSupported => true;
+
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
         bool competitive = Persistence.enableCompetitiveMode;
         int diff = DigitCount(hits[11]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
@@ -197,7 +199,16 @@ public static class VersionSafe {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float GetPotentialXAccuracy(int index, float xacc, int seqId, int remaining) => scrMistakesManager.marginTrackers[index].maxPossibleXAcc.SetIfNaN(1);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static (int, int) GetAccuracyCounts(int[] hits) {
+        int perfect = hits[3 /* PerfectMinus */] + hits[4 /* XPerfect */] + hits[5 /* PerfectPlus */] + hits[12 /* Auto */] + hits[14 /* MidSpin */];
+        int accurate = perfect + hits[2 /* EarlyPerfect */] + hits[6 /* LatePerfect */];
+        return (perfect, accurate);
+    }
 #else
+    public static bool XScoreSupported => false;
+
     public static string WriteHitMarginText(int[] hits, string prefix, string postfix) {
         int diff = DigitCount(hits[9]) + DigitCount(hits[0]) + DigitCount(hits[1]) + DigitCount(hits[2])
                    - DigitCount(hits[4]) - DigitCount(hits[5]) - DigitCount(hits[6]) - DigitCount(hits[8]);
@@ -243,6 +254,13 @@ public static class VersionSafe {
     public static float GetPotentialXAccuracy(int index, float xacc, int seqId, int remaining) {
         int total = seqId + remaining;
         return total == 0 ? 1 : (xacc * seqId + remaining) / total;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static (int, int) GetAccuracyCounts(int[] hits) {
+        int perfect = hits[3 /* Perfect */] + hits[10 /* Auto */];
+        int accurate = perfect + hits[2 /* EarlyPerfect */] + hits[4 /* LatePerfect */];
+        return (perfect, accurate);
     }
 #endif
 }

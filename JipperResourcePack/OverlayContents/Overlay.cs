@@ -143,8 +143,8 @@ public class Overlay {
         SetupLocationMainText(PotentialAccuracyText, Status.Settings.ShowAccuracy && Status.Settings.AccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(XAccuracyText, Status.Settings.ShowXAccuracy && Status.Settings.XAccuracyTextType != PotentialTextType.Potential, ref y);
         SetupLocationMainText(PotentialXAccuracyText, Status.Settings.ShowXAccuracy && Status.Settings.XAccuracyTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
-        SetupLocationMainText(XScoreText, Status.Settings.ShowXScore && Status.XScoreSupported && Status.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
-        SetupLocationMainText(PotentialXScoreText, Status.Settings.ShowXScore && Status.XScoreSupported && Status.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
+        SetupLocationMainText(XScoreText, Status.Settings.ShowXScore && VersionSafe.XScoreSupported && Status.Settings.XScorePotentialTextType != PotentialTextType.Potential, ref y);
+        SetupLocationMainText(PotentialXScoreText, Status.Settings.ShowXScore && VersionSafe.XScoreSupported && Status.Settings.XScorePotentialTextType is PotentialTextType.Potential or PotentialTextType.Both, ref y);
         SetupLocationMainText(TimeText, Status.Settings.ShowMusicTime, ref y);
         SetupLocationMainText(MapTimeText, Status.Settings.ShowMapTime, ref y);
         SetupLocationMainText(CheckpointText,
@@ -443,7 +443,7 @@ public class Overlay {
         List<scrFloor> floors = ADOBase.lm.listFloors;
         int last = floors.Count - 1;
         if(seqID >= last) return 0;
-        if(!Status.XScoreSupported) return last - seqID;
+        if(!VersionSafe.XScoreSupported) return last - seqID;
         int[] scorableTiles = _scorableTiles ??= BuildScorableTiles(floors);
         return scorableTiles[last] - scorableTiles[seqID];
     }

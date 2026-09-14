@@ -76,9 +76,9 @@ public class Status : Feature {
                 Overlay.Instance.UpdateAccuracy();
             });
         }
-        if(!XScoreSupported) GUI.enabled = false;
+        if(!VersionSafe.XScoreSupported) GUI.enabled = false;
         settingGUI.AddSettingToggle(ref Settings.ShowXScore, localization["progress.showXScore"], Overlay.Instance.SetupLocationMain);
-        if(XScoreSupported) {
+        if(VersionSafe.XScoreSupported) {
             if(Settings.ShowXScore) {
                 if(Settings.XScoreColor.SettingGUI(settingGUI, localization["progress.xScoreColor"]))
                     Overlay.Instance.UpdateAccuracy();
@@ -129,29 +129,16 @@ public class Status : Feature {
             Overlay.Instance.UpdateProgressBar();
     }
 
-    public static bool XScoreSupported => VersionControl.releaseNumber >= 149;
-
     public static string GetXScoreText(int xScore, int maxXScore) => Settings.XScoreTextType switch {
         XScoreTextType.WithMax => xScore + "/" + maxXScore,
         XScoreTextType.MaxMinus => xScore + " (MAX-" + (maxXScore - xScore) + ")",
         _ => xScore.ToString()
     };
 
-    private static void GetAccuracyCounts(int[] hits, out int perfect, out int accurate) {
-        if(XScoreSupported) {
-            perfect = hits[(int) HitMargin.PerfectMinus] + hits[(int) HitMargin.XPerfect] + hits[(int) HitMargin.PerfectPlus] + hits[(int) HitMargin.Auto] + hits[(int) HitMargin.Midspin];
-            accurate = perfect + hits[(int) HitMargin.EarlyPerfect] + hits[(int) HitMargin.LatePerfect];
-        } else {
-            // 2 EarlyPerfect, 3 Perfect, 4 LatePerfect, 10 Auto. Auto tiles were still scored before R149.
-            perfect = hits[3] + hits[10];
-            accurate = perfect + hits[2] + hits[4];
-        }
-    }
-
     public static float GetPotentialAccuracy(int[] hits, float acc, int seqId) {
         List<scrFloor> floors = ADOBase.lm.listFloors;
         int remaining = Math.Max(floors.Count - 1 - seqId, 0);
-        GetAccuracyCounts(hits, out int perfect, out int accurate);
+        (int perfect, int accurate) = VersionSafe.GetAccuracyCounts(hits);
         float rate = acc - perfect * 0.0001f;
         int count = accurate == 0 || rate <= 0 || float.IsNaN(rate) ? seqId : (int) Math.Round(accurate / rate);
         if(count < accurate) count = accurate;
