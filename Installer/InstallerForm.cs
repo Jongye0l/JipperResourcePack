@@ -69,6 +69,6 @@ public partial class InstallerForm : Form {
 
     public async Task<ModData[]> GetMods() {
         string responseData = await HttpClient.GetStringAsync("https://github.com/Jongye0l/JipperResourcePack/raw/main/Installer/mods.json");
-        return new JavaScriptSerializer().Deserialize<ModData[]>(responseData);
+        return Utility.JsonSerializer.Deserialize<ModData[]>(responseData);
     }
 }

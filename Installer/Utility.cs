@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Web.Script.Serialization;
 using Microsoft.Win32;
 
 namespace JipperResourcePack.Installer;
 
 public static class Utility {
+    public static readonly JavaScriptSerializer JsonSerializer = new();
+    
     public static string GetAdofaiPath() {
         string steamPath;
         using(RegistryKey key = Registry.LocalMachine.OpenSubKey("Software\\" + (Environment.Is64BitOperatingSystem ? "Wow6432Node\\" : "") + "Valve\\Steam"))

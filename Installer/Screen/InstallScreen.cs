@@ -16,8 +16,6 @@ using JipperResourcePack.Installer.Resource;
 namespace JipperResourcePack.Installer.Screen;
 
 public class InstallScreen : Screen {
-    private static readonly JavaScriptSerializer JsonSerializer = new();
-
     public ProgressBar ProgressBar;
     public Panel LogPanel;
     public Label LogLabel;
@@ -437,12 +435,12 @@ public class InstallScreen : Screen {
     }
 
     private static string GetReleaseTag(string json) {
-        ReleaseData release = JsonSerializer.Deserialize<ReleaseData>(json);
+        ReleaseData release = Utility.JsonSerializer.Deserialize<ReleaseData>(json);
         return SanitizeReleaseTag(release?.tag_name);
     }
 
     private static string GetFirstReleaseTag(string json) {
-        ReleaseData[] releases = JsonSerializer.Deserialize<ReleaseData[]>(json);
+        ReleaseData[] releases = Utility.JsonSerializer.Deserialize<ReleaseData[]>(json);
         if(releases == null || releases.Length == 0) throw new InvalidDataException("No releases were found.");
         return SanitizeReleaseTag(releases[0]?.tag_name);
     }
