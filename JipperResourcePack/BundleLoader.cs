@@ -7,6 +7,7 @@ using Object = UnityEngine.Object;
 namespace JipperResourcePack;
 
 public static class BundleLoader {
+    public const string AdofaiFontName = "$<ADOFAI>";
     private static AssetBundle _bundle;
     public static TMP_FontAsset FontAsset;
     public static TMP_FontAsset DefaultFontAsset;
@@ -16,6 +17,7 @@ public static class BundleLoader {
     public static Sprite KeyOutline;
     public static Sprite GhostRain;
     public static Texture2D SideImage;
+    private static bool _requiredFontUnload;
 
     public static void LoadBundle() {
         RemoveLegacyBundle();
@@ -43,7 +45,10 @@ public static class BundleLoader {
                     break;
             }
         }
-        if(!string.IsNullOrEmpty(Main.Settings.FontName)) LoadCustomFont(Main.Settings.FontName);
+        if(!string.IsNullOrEmpty(Main.Settings.FontName)) {
+            if(Main.Settings.FontName == AdofaiFontName) UnloadCustomFont(RDString.fontData.fontTMP);
+            else LoadCustomFont(Main.Settings.FontName);
+        }
     }
 
     private static void RemoveLegacyBundle() {
@@ -79,7 +84,7 @@ public static class BundleLoader {
     }
 
     public static void UnloadBundle() {
-        UnloadCustomFont();
+        UnloadCustomFont(null);
         Object.Destroy(DefaultFontAsset);
         DefaultFontAsset = null;
         _bundle.Unload(true);
@@ -98,8 +103,8 @@ public static class BundleLoader {
             Main.Instance.Warning("Failed to add fallback font asset for system font: " + fontName + "\n" + e);
         }
 
-        UnloadCustomFont();
-        FontAsset = fontAsset;
+        UnloadCustomFont(fontAsset);
+        _requiredFontUnload = true;
     }
 
     private static string GetPathForFontName(string fontName) {
@@ -109,9 +114,8 @@ public static class BundleLoader {
         return index >= 0 && index < paths.Length ? paths[index] : null;
     }
 
-    public static void UnloadCustomFont() {
-        if(FontAsset == DefaultFontAsset) return;
-        Object.Destroy(FontAsset);
-        FontAsset = DefaultFontAsset;
+    public static void UnloadCustomFont(TMP_FontAsset fontAsset) {
+        if(_requiredFontUnload) Object.Destroy(FontAsset);
+        FontAsset = fontAsset;
     }
 }

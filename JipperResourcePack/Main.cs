@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -119,7 +119,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         _fontListExpanded = GUILayout.Toggle(_fontListExpanded, _fontListExpanded ? "◢" : "▶", _toggleStyle);
         if(GUILayout.Button(Localization["font"], GUI.skin.label)) _fontListExpanded = !_fontListExpanded;
         GUILayout.FlexibleSpace();
-        GUILayout.Label(string.IsNullOrEmpty(Settings.FontName) ? Localization["font.default"] : Settings.FontName);
+        GUILayout.Label(string.IsNullOrEmpty(Settings.FontName) ? Localization["font.default"] : Settings.FontName.Equals(BundleLoader.AdofaiFontName) ? Localization["font.adofai"] : Settings.FontName);
         GUILayout.EndHorizontal();
         if(!_fontListExpanded) return;
         GUILayout.BeginHorizontal();
@@ -129,6 +129,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         _fontScrollPosition = GUILayout.BeginScrollView(_fontScrollPosition, GUI.skin.box, GUILayout.Height(150));
         bool isDefault = string.IsNullOrEmpty(Settings.FontName);
         if(GUILayout.Button(isDefault ? $"<b>{Localization["font.default"]}</b>" : Localization["font.default"])) SelectFont(null);
+        if(GUILayout.Button(Settings.FontName == BundleLoader.AdofaiFontName ? $"<b>{Localization["font.adofai"]}</b>" : Localization["font.adofai"])) SelectFont(BundleLoader.AdofaiFontName);
         foreach((string fontName, string fontPath) in GetFilteredFonts()) {
             bool selected = fontName == Settings.FontName;
             if(GUILayout.Button(selected ? $"<b>{fontName}</b>" : fontName)) SelectFont(fontName, fontPath);
@@ -152,7 +153,8 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
 
     private void SelectFont(string fontName, string fontPath = null) {
         Settings.FontName = fontName;
-        if(string.IsNullOrEmpty(fontName)) BundleLoader.UnloadCustomFont();
+        if(string.IsNullOrEmpty(fontName)) BundleLoader.UnloadCustomFont(BundleLoader.DefaultFontAsset);
+        else if(fontName.Equals(BundleLoader.AdofaiFontName)) BundleLoader.UnloadCustomFont(RDString.fontData.fontTMP);
         else BundleLoader.LoadCustomFont(fontName, fontPath);
         Overlay.Instance.UpdateFont();
         if(KeyViewer.Instance.Enabled) {
