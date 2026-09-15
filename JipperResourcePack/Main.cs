@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -50,6 +50,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         };
         
         Assembly.LoadFrom(System.IO.Path.Combine(Path, "VersionSafe", $"JipperResourcePack.VersionSafe.{ver}.dll"));
+        Log("Loaded VersionSafe for " + ver);
     }
 
     private void AddFeature() {

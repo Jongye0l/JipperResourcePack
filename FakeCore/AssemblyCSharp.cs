@@ -23,7 +23,7 @@ public class scrController {
 
 public class ADOBase {
 #if R141After
-	public static scrLoader loader;
+	public static scrLoader loader => throw new Exception("stub");
 #else
 	public static void LoadScene(string name) => throw new Exception("stub");
 #endif
