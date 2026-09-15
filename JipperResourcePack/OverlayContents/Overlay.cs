@@ -610,7 +610,7 @@ public class Overlay {
         StartTile = floor;
         _lastSavedStartProgress = StartProgress = (float) floor / ADOBase.lm.listFloors.Count;
         LastMultiplier = (float) (ADOBase.conductor.song.pitch * VersionSafe.GetPlanetSpeed(scrController.instance));
-        if(Status.Instance.Enabled && !AutoOnceEnabled) PlayCount.AddAttempts(LastHash, StartProgress, LastMultiplier);
+        if(!AutoOnceEnabled) PlayCount.AddAttempts(LastHash, StartProgress, LastMultiplier);
         SetupTextManager();
         
         GameObject.SetActive(true);
