@@ -72,7 +72,7 @@
 * Rider 2026.2.1
 * .NET Framework 4.8.1
 * C# 14
-* A Dance of Fire and Ice 3.4.0(r149, e5b157d)
+* A Dance of Fire and Ice 3.4.0(r150, e5b157d)
 ---
 ### 테스트 환경 Test environment
 * Linux 7.1.8-arch1-3
