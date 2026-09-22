@@ -97,10 +97,10 @@ namespace JipperResourcePack.Installer {
             // 
             // InstallerForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.ClientSize = new System.Drawing.Size(984, 601);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.Controls.Add(this.VersionLabel);
             this.Controls.Add(this.TopPanel);
