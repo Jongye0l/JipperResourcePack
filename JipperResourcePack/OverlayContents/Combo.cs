@@ -17,6 +17,10 @@ public class Combo : Feature {
     public static RectTransform ComboTransform;
     private string _comboColorMaxString;
     public static Combo Instance;
+    private static RectTransform _levelNameTransform;
+    private static Vector3 _levelNameOriginalScale;
+    private static Vector2 _levelNameOriginalPosition;
+    private static Vector2 _levelNameOriginalSizeDelta;
 
     public Combo() : base(Main.Instance, nameof(Combo), true, typeof(Combo), typeof(ComboSettings)) {
         Instance = this;
@@ -28,6 +32,11 @@ public class Combo : Feature {
 
     protected override void OnDisable() {
         ComboObject?.SetActive(false);
+        if(!_levelNameTransform) return;
+        _levelNameTransform.localScale = _levelNameOriginalScale;
+        _levelNameTransform.anchoredPosition = _levelNameOriginalPosition;
+        _levelNameTransform.sizeDelta = _levelNameOriginalSizeDelta;
+        _levelNameTransform = null;
     }
 
     protected override void OnGUI() {
@@ -118,6 +127,13 @@ public class Combo : Feature {
     public static void OnHUDTextAwake(Text ___txtLevelName) {
         if(!___txtLevelName) return;
         RectTransform transform = ___txtLevelName.GetComponent<RectTransform>();
+        if(!transform) return;
+        if(!_levelNameTransform) {
+            _levelNameTransform = transform;
+            _levelNameOriginalScale = transform.localScale;
+            _levelNameOriginalPosition = transform.anchoredPosition;
+            _levelNameOriginalSizeDelta = transform.sizeDelta;
+        }
         float size = Main.Settings.Size;
         transform.anchoredPosition = new Vector2(0, -20 - 7 * size);
         transform.localScale = new Vector3(0.5f * size, 0.5f * size);
