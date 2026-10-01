@@ -90,6 +90,7 @@ public class Combo : Feature {
                 break;
             default:
                 Overlay.Instance.UpdateCombo(ComboCount = 0, false);
+                if(settingsTier == ComboTier.White) settingsTier = ComboTier.Green;
                 Overlay.Instance.ChangeComboText(settingsTier);
                 break;
         }
