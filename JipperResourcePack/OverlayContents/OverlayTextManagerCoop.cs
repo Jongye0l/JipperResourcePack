@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 
@@ -7,7 +6,6 @@ namespace JipperResourcePack.OverlayContents;
 
 public class OverlayTextManagerCoop : IOverlayTextManager {
     public readonly PlayerData[] PlayerArray;
-    protected readonly string[] ConcatBuffer;
     private readonly double[] _timingSums;
     private readonly int[] _timingCounts;
     public readonly float[] LastTimings;
@@ -18,10 +16,21 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     public OverlayTextManagerCoop(Overlay overlay) {
         PlayerArray = new PlayerData[scrPlayerManager.playerCount];
-        ConcatBuffer = new string[PlayerArray.Length + 1];
         _timingSums = new double[PlayerArray.Length];
         _timingCounts = new int[PlayerArray.Length];
         LastTimings = new float[PlayerArray.Length];
+        for(int i = 0; i < PlayerArray.Length; i++) {
+            ref PlayerData pData = ref PlayerArray[i];
+            pData.ProgressCache.Buffer = new char[48];
+            pData.AccuracyCache.Buffer = new char[64];
+            pData.PotentialAccuracyCache.Buffer = new char[48];
+            pData.XAccuracyCache.Buffer = new char[64];
+            pData.PotentialXAccuracyCache.Buffer = new char[48];
+            pData.XScoreCache.Buffer = new char[96];
+            pData.PotentialXScoreCache.Buffer = new char[48];
+            pData.TimingCache.Buffer = new char[64];
+            pData.AvgTimingCache.Buffer = new char[48];
+        }
         overlay.ProgressText.color = Color.white;
         overlay.AccuracyText.color = Color.white;
         overlay.PotentialAccuracyText.color = Color.white;
@@ -46,7 +55,10 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     }
 
     protected virtual void SetProgress(ref PlayerData pData, float progress) {
-        pData.ProgressString = " | " + ColorToString(Status.Settings.ProgressColor.GetColor(progress)) + Math.Round(progress * 100, Status.Settings.ProgressDecimalPlaces) + "%</color>";
+        char[] buffer = pData.ProgressCache.Buffer;
+        int index = WritePlayerStart(buffer, Status.Settings.ProgressColor.GetColor(progress));
+        index = Overlay.WritePercent(buffer, index, progress * 100, Status.Settings.ProgressDecimalPlaces);
+        pData.ProgressCache.Length = WritePlayerEnd(buffer, index);
         if(MaxProgress < progress) MaxProgress = progress;
     }
     
@@ -59,18 +71,18 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
             PotentialTextType type = Status.Settings.AccuracyTextType;
             if(type != PotentialTextType.Potential) {
-                string[] strings = ConcatBuffer;
-                strings[0] = "Accuracy";
+                char[] buffer = Main.SharedBuffer;
+                int textIndex = Overlay.WriteText(buffer, "Accuracy", 0);
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    strings[i + 1] = PlayerArray[i].AccuracyString;
-                overlay.AccuracyText.text = string.Concat(strings);
+                    textIndex = PlayerArray[i].AccuracyCache.WriteTo(buffer, textIndex);
+                overlay.AccuracyText.SetCharArray(buffer, 0, textIndex);
             }
             if(type is PotentialTextType.Potential or PotentialTextType.Both) {
-                string[] strings = ConcatBuffer;
-                strings[0] = "P.Accuracy";
+                char[] buffer = Main.SharedBuffer;
+                int textIndex = Overlay.WriteText(buffer, "P.Accuracy", 0);
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    strings[i + 1] = PlayerArray[i].PotentialAccuracyString;
-                overlay.PotentialAccuracyText.text = string.Concat(strings);
+                    textIndex = PlayerArray[i].PotentialAccuracyCache.WriteTo(buffer, textIndex);
+                overlay.PotentialAccuracyText.SetCharArray(buffer, 0, textIndex);
             }
         }
         if(Status.Settings.ShowXAccuracy) {
@@ -81,18 +93,18 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
             PotentialTextType type = Status.Settings.XAccuracyTextType;
             if(type != PotentialTextType.Potential) {
-                string[] strings = ConcatBuffer;
-                strings[0] = "XAccuracy";
+                char[] buffer = Main.SharedBuffer;
+                int textIndex = Overlay.WriteText(buffer, "XAccuracy", 0);
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    strings[i + 1] = PlayerArray[i].XAccuracyString;
-                overlay.XAccuracyText.text = string.Concat(strings);
+                    textIndex = PlayerArray[i].XAccuracyCache.WriteTo(buffer, textIndex);
+                overlay.XAccuracyText.SetCharArray(buffer, 0, textIndex);
             }
             if(type is PotentialTextType.Potential or PotentialTextType.Both) {
-                string[] strings = ConcatBuffer;
-                strings[0] = "P.XAccuracy";
+                char[] buffer = Main.SharedBuffer;
+                int textIndex = Overlay.WriteText(buffer, "P.XAccuracy", 0);
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    strings[i + 1] = PlayerArray[i].PotentialXAccuracyString;
-                overlay.PotentialXAccuracyText.text = string.Concat(strings);
+                    textIndex = PlayerArray[i].PotentialXAccuracyCache.WriteTo(buffer, textIndex);
+                overlay.PotentialXAccuracyText.SetCharArray(buffer, 0, textIndex);
             }
         }
         if(Status.Settings.ShowXScore && VersionSafe.XScoreSupported) {
@@ -103,18 +115,18 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
             PotentialTextType type = Status.Settings.XScorePotentialTextType;
             if(type != PotentialTextType.Potential) {
-                string[] strings = ConcatBuffer;
-                strings[0] = "XScore";
+                char[] buffer = Main.SharedBuffer;
+                int textIndex = Overlay.WriteText(buffer, "XScore", 0);
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    strings[i + 1] = PlayerArray[i].XScoreString;
-                overlay.XScoreText.text = string.Concat(strings);
+                    textIndex = PlayerArray[i].XScoreCache.WriteTo(buffer, textIndex);
+                overlay.XScoreText.SetCharArray(buffer, 0, textIndex);
             }
             if(type is PotentialTextType.Potential or PotentialTextType.Both) {
-                string[] strings = ConcatBuffer;
-                strings[0] = "P.XScore";
+                char[] buffer = Main.SharedBuffer;
+                int textIndex = Overlay.WriteText(buffer, "P.XScore", 0);
                 for(int i = 0; i < PlayerArray.Length; i++)
-                    strings[i + 1] = PlayerArray[i].PotentialXScoreString;
-                overlay.PotentialXScoreText.text = string.Concat(strings);
+                    textIndex = PlayerArray[i].PotentialXScoreCache.WriteTo(buffer, textIndex);
+                overlay.PotentialXScoreText.SetCharArray(buffer, 0, textIndex);
             }
         }
     }
@@ -132,13 +144,22 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         int totalXScore = maxXScore + remaining * perfectValue;
         PotentialTextType type = Status.Settings.XScorePotentialTextType;
         if(type != PotentialTextType.Potential) {
-            string value = ColorToString(Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore)) + Status.GetXScoreText(xScore, maxXScore);
-            if(type == PotentialTextType.BothInOneLine) value += " (" + Status.GetXScoreText(potentialXScore, totalXScore) + ")";
-            pData.XScoreString = " | " + value + "</color>";
+            char[] buffer = pData.XScoreCache.Buffer;
+            int index = WritePlayerStart(buffer, Status.Settings.XScoreColor.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore));
+            index = Status.WriteXScoreText(buffer, index, xScore, maxXScore);
+            if(type == PotentialTextType.BothInOneLine) {
+                index = Overlay.WriteText(buffer, " (", index);
+                index = Status.WriteXScoreText(buffer, index, potentialXScore, totalXScore);
+                buffer[index++] = ')';
+            }
+            pData.XScoreCache.Length = WritePlayerEnd(buffer, index);
         }
-        if(type is PotentialTextType.Potential or PotentialTextType.Both)
-            pData.PotentialXScoreString = " | " + ColorToString(Status.Settings.XScoreColor.GetColor(totalXScore == 0 ? 1 : (float) potentialXScore / totalXScore)) +
-                                          Status.GetXScoreText(potentialXScore, totalXScore) + "</color>";
+        if(type is PotentialTextType.Potential or PotentialTextType.Both) {
+            char[] buffer = pData.PotentialXScoreCache.Buffer;
+            int index = WritePlayerStart(buffer, Status.Settings.XScoreColor.GetColor(totalXScore == 0 ? 1 : (float) potentialXScore / totalXScore));
+            index = Status.WriteXScoreText(buffer, index, potentialXScore, totalXScore);
+            pData.PotentialXScoreCache.Length = WritePlayerEnd(buffer, index);
+        }
     }
 
     private void SetAccuracy(Overlay overlay, ref PlayerData pData, int i) {
@@ -152,13 +173,18 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         int decimalPlaces = Status.Settings.AccuracyDecimalPlaces;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(type != PotentialTextType.Potential) {
-            string value = ColorToString(Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc)) + Math.Round(acc * 100, decimalPlaces) + "%";
-            if(type == PotentialTextType.BothInOneLine) value += " (" + Math.Round(potentialAcc * 100, decimalPlaces) + "%)";
-            pData.AccuracyString = " | " + value + "</color>";
+            char[] buffer = pData.AccuracyCache.Buffer;
+            int index = WritePlayerStart(buffer, Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : acc / maxAcc)); // 20
+            index = Overlay.WritePercent(buffer, index, acc * 100, decimalPlaces);
+            if(type == PotentialTextType.BothInOneLine) index = WriteInOnePercent(buffer, index, potentialAcc * 100, decimalPlaces);
+            pData.AccuracyCache.Length = WritePlayerEnd(buffer, index);
         }
-        if(type is PotentialTextType.Potential or PotentialTextType.Both)
-            pData.PotentialAccuracyString = " | " + ColorToString(Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : potentialAcc / (maxAcc + overlay.GetRemainingTiles(seqID) * 0.0001f))) +
-                                            Math.Round(potentialAcc * 100, decimalPlaces) + "%</color>";
+        if(type is PotentialTextType.Potential or PotentialTextType.Both) {
+            char[] buffer = pData.PotentialAccuracyCache.Buffer;
+            int index = WritePlayerStart(buffer, Status.Settings.AccuracyColor.GetColor(xacc == 1 ? 1 : potentialAcc / (maxAcc + overlay.GetRemainingTiles(seqID) * 0.0001f)));
+            index = Overlay.WritePercent(buffer, index, potentialAcc * 100, decimalPlaces);
+            pData.PotentialAccuracyCache.Length = WritePlayerEnd(buffer, index);
+        }
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -172,21 +198,26 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         PotentialTextType type = Status.Settings.XAccuracyTextType;
         int decimalPlaces = Status.Settings.XAccuracyDecimalPlaces;
         if(type != PotentialTextType.Potential) {
-            string value = ColorToString(Status.Settings.XAccuracyColor.GetColor(xacc)) + Math.Round(xacc * 100, decimalPlaces) + "%";
-            if(type == PotentialTextType.BothInOneLine) value += " (" + Math.Round(potentialXAcc * 100, decimalPlaces) + "%)";
-            pData.XAccuracyString = " | " + value + "</color>";
+            char[] buffer = pData.XAccuracyCache.Buffer;
+            int index = WritePlayerStart(buffer, Status.Settings.XAccuracyColor.GetColor(xacc));
+            index = Overlay.WritePercent(buffer, index, xacc * 100, decimalPlaces);
+            if(type == PotentialTextType.BothInOneLine) index = WriteInOnePercent(buffer, index, potentialXAcc * 100, decimalPlaces);
+            pData.XAccuracyCache.Length = WritePlayerEnd(buffer, index);
         }
-        if(type is PotentialTextType.Potential or PotentialTextType.Both)
-            pData.PotentialXAccuracyString = " | " + ColorToString(Status.Settings.XAccuracyColor.GetColor(potentialXAcc)) +
-                                             Math.Round(potentialXAcc * 100, decimalPlaces) + "%</color>";
+        if(type is PotentialTextType.Potential or PotentialTextType.Both) {
+            char[] buffer = pData.PotentialXAccuracyCache.Buffer;
+            int index = WritePlayerStart(buffer, Status.Settings.XAccuracyColor.GetColor(potentialXAcc));
+            index = Overlay.WritePercent(buffer, index, potentialXAcc * 100, decimalPlaces);
+            pData.PotentialXAccuracyCache.Length = WritePlayerEnd(buffer, index);
+        }
     }
 
     public void UpdateProgress(Overlay overlay) {
-        string[] strings = ConcatBuffer;
-        strings[0] = "Progress";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteText(buffer, "Progress", 0);
         for(int i = 0; i < PlayerArray.Length; i++) 
-            strings[i + 1] = PlayerArray[i].ProgressString;
-        overlay.ProgressText.text = string.Concat(strings);
+            index = PlayerArray[i].ProgressCache.WriteTo(buffer, index);
+        overlay.ProgressText.SetCharArray(buffer, 0, index);
     }
     
     public void UpdateProgressBar(Overlay overlay) {
@@ -204,7 +235,15 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
             updated = true;
         }
         if(LastCheckpoint == scrController.checkpointsUsed && !updated) return;
-        overlay.CheckpointText.text = $"<color=white>CheckPoint |</color> {scrController.checkpointsUsed} ({CurCheck}/{overlay.Checkpoints.Length})";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "CheckPoint");
+        index = Overlay.WriteNumber(buffer, index, scrController.checkpointsUsed);
+        index = Overlay.WriteText(buffer, " (", index);
+        index = Overlay.WriteNumber(buffer, index, CurCheck);
+        buffer[index++] = '/';
+        index = Overlay.WriteNumber(buffer, index, overlay.Checkpoints.Length);
+        buffer[index++] = ')';
+        overlay.CheckpointText.SetCharArray(buffer, 0, index);
         LastCheckpoint = scrController.checkpointsUsed;
     }
     
@@ -220,11 +259,30 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
 
     protected void UpdateBestText(Overlay overlay) {
         float best = CurBest > MaxProgress || overlay.AutoOnceEnabled ? CurBest : MaxProgress;
-        overlay.BestText.text = "<color=white>Best |</color> " + Math.Round(best * 100, Status.Settings.BestDecimalPlaces) + "%";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "Best");
+        index = Overlay.WritePercent(buffer, index, best * 100, Status.Settings.BestDecimalPlaces);
+        overlay.BestText.SetCharArray(buffer, 0, index);
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
 
     protected static string ColorToString(in Color color) => "<color=#" + Overlay.ColorToHex(color) + ">";
+
+    protected static int WritePlayerStart(char[] buffer, Color color) {
+        int index = Overlay.WriteText(buffer, " | <color=#", 0);
+        index = Overlay.WriteColorHex(buffer, index, color);
+        buffer[index++] = '>';
+        return index;
+    }
+
+    protected static int WritePlayerEnd(char[] buffer, int index) => Overlay.WriteText(buffer, "</color>", index);
+
+    private static int WriteInOnePercent(char[] buffer, int index, double value, int decimalPlaces) {
+        index = Overlay.WriteText(buffer, " (", index);
+        index = Overlay.WritePercent(buffer, index, value, decimalPlaces);
+        buffer[index++] = ')';
+        return index;
+    }
     
     public void SetupUnderTextLocation(Overlay overlay) {
         overlay.JudgementText.rectTransform.anchoredPosition = new Vector2(0, 85);
@@ -237,10 +295,13 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
                 PlayerArray[i].SetJudgement(i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else PlayerArray[index].SetJudgement(index, scrMistakesManager.marginTrackers[index].hitMarginsCount);
 
-        StringBuilder sb = VersionSafe.GetSharedBuilder();
-        for(int i = 0; i < PlayerArray.Length; i++) sb.Append(PlayerArray[i].JudgementText).Append('\n');
-        sb.Length -= 1;
-        overlay.JudgementText.text = sb.ToString();
+        char[] buffer = Main.SharedBuffer;
+        int textIndex = 0;
+        for(int i = 0; i < PlayerArray.Length; i++) {
+            if(i != 0) buffer[textIndex++] = '\n';
+            textIndex = PlayerArray[i].JudgementCache.WriteTo(buffer, textIndex);
+        }
+        overlay.JudgementText.SetCharArray(buffer, 0, textIndex);
     }
     
     public void UpdateTiming(Overlay overlay, float timing, int player) {
@@ -256,46 +317,64 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
         TimingTextType type = Status.Settings.TimingTextType;
         int decimalPlaces = Status.Settings.TimingDecimalPlaces;
         for(int i = 0; i < PlayerArray.Length; i++) SetTiming(ref PlayerArray[i], i, type, decimalPlaces);
+        char[] buffer = Main.SharedBuffer;
         if(type != TimingTextType.AvgTiming) {
-            string[] strings = ConcatBuffer;
-            strings[0] = "Timing";
-            for(int i = 0; i < PlayerArray.Length; i++) strings[i + 1] = PlayerArray[i].TimingString;
-            overlay.TimingText.text = string.Concat(strings);
+            int index = Overlay.WriteText(buffer, "Timing", 0);
+            for(int i = 0; i < PlayerArray.Length; i++) index = PlayerArray[i].TimingCache.WriteTo(buffer, index);
+            overlay.TimingText.SetCharArray(buffer, 0, index);
         }
         if(type is not (TimingTextType.AvgTiming or TimingTextType.Both)) return;
-        string[] avgStrings = ConcatBuffer;
-        avgStrings[0] = "A.Timing";
-        for(int i = 0; i < PlayerArray.Length; i++) avgStrings[i + 1] = PlayerArray[i].AvgTimingString;
-        overlay.AvgTimingText.text = string.Concat(avgStrings);
+        int avgIndex = Overlay.WriteText(buffer, "A.Timing", 0);
+        for(int i = 0; i < PlayerArray.Length; i++) avgIndex = PlayerArray[i].AvgTimingCache.WriteTo(buffer, avgIndex);
+        overlay.AvgTimingText.SetCharArray(buffer, 0, avgIndex);
     }
 
     private void SetTiming(ref PlayerData pData, int i, TimingTextType type, int decimalPlaces) {
         float timing = LastTimings[i];
         int count = _timingCounts[i];
         float average = count == 0 ? 0 : (float) (_timingSums[i] / count);
-        string timingPrefix = " | " + ColorToString(Status.GetTimingColor(timing)) + Math.Round(timing, decimalPlaces);
-        pData.TimingString = type == TimingTextType.BothInOneLine ?
-                                 timingPrefix + " (" + Math.Round(average, decimalPlaces) + ")</color>" :
-                                 timingPrefix + "</color>";
-        pData.AvgTimingString = " | " + ColorToString(Status.GetTimingColor(average)) + Math.Round(average, decimalPlaces) + "</color>";
+        char[] buffer = pData.TimingCache.Buffer;
+        int index = WritePlayerStart(buffer, Status.GetTimingColor(timing));
+        index = Overlay.WriteRounded(buffer, index, timing, decimalPlaces);
+        if(type == TimingTextType.BothInOneLine) {
+            index = Overlay.WriteText(buffer, " (", index);
+            index = Overlay.WriteRounded(buffer, index, average, decimalPlaces);
+            buffer[index++] = ')';
+        }
+        pData.TimingCache.Length = WritePlayerEnd(buffer, index);
+        buffer = pData.AvgTimingCache.Buffer;
+        index = WritePlayerStart(buffer, Status.GetTimingColor(average));
+        index = Overlay.WriteRounded(buffer, index, average, decimalPlaces);
+        pData.AvgTimingCache.Length = WritePlayerEnd(buffer, index);
     }
 
     public struct PlayerData {
-        public string ProgressString;
-        public string AccuracyString;
-        public string PotentialAccuracyString;
-        public string XAccuracyString;
-        public string PotentialXAccuracyString;
-        public string XScoreString;
-        public string PotentialXScoreString;
-        public string TimingString;
-        public string AvgTimingString;
-        public string JudgementText;
+        public CharCache ProgressCache;
+        public CharCache AccuracyCache;
+        public CharCache PotentialAccuracyCache;
+        public CharCache XAccuracyCache;
+        public CharCache PotentialXAccuracyCache;
+        public CharCache XScoreCache;
+        public CharCache PotentialXScoreCache;
+        public CharCache TimingCache;
+        public CharCache AvgTimingCache;
+        public CharCache JudgementCache;
+        private string _alivePrefix;
+        private string _alivePostfix;
+        private string _deadPrefix;
+        private string _deadPostfix;
 
         public void SetJudgement(int i, int[] hits) {
-            JudgementText = scrPlayerManager.instance.allPlayers[i].alive ? 
-                                VersionSafe.WriteHitMarginText(hits, $"{ColorToString(scrPlayerManager.playerColors[i].ToRealColor())}P{i + 1} |</color> ", $"<color=#0000>P{i + 1} | </color>") : 
-                                VersionSafe.WriteHitMarginTextWithoutColor(hits, $"<color=grey>P{i + 1} | ", $"</color><color=#0000>P{i + 1} | </color>");
+            if(_alivePrefix == null) {
+                _alivePrefix = $"{ColorToString(scrPlayerManager.playerColors[i].ToRealColor())}P{i + 1} |</color> ";
+                _alivePostfix = $"<color=#0000>P{i + 1} | </color>";
+                _deadPrefix = $"<color=grey>P{i + 1} | ";
+                _deadPostfix = $"</color><color=#0000>P{i + 1} | </color>";
+            }
+            StringBuilder sb = VersionSafe.GetSharedBuilder();
+            if(scrPlayerManager.instance.allPlayers[i].alive) VersionSafe.AppendHitMarginText(sb, hits, _alivePrefix, _alivePostfix);
+            else VersionSafe.AppendHitMarginTextWithoutColor(sb, hits, _deadPrefix, _deadPostfix);
+            JudgementCache.Store(sb);
         }
     }
 }

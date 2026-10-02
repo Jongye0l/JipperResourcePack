@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Text;
 using JipperResourcePack.SettingTool;
 using TMPro;
 using UnityEngine;
@@ -32,7 +33,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             int decimalPlaces = Status.Settings.AccuracyDecimalPlaces;
             // ReSharper disable CompareOfFloatsByEqualityOperator
             SetDualText(Status.Settings.AccuracyTextType, overlay.AccuracyText, overlay.PotentialAccuracyText, "Accuracy",
-                Math.Round(acc * 100, decimalPlaces) + "%", Math.Round(potentialAcc * 100, decimalPlaces) + "%",
+                acc * 100, potentialAcc * 100, decimalPlaces,
                 Status.Settings.AccuracyColor, xacc == 1 ? 1 : acc / maxAcc, xacc == 1 ? 1 : potentialAcc / (maxAcc + remaining * 0.0001f));
             // ReSharper restore CompareOfFloatsByEqualityOperator
         }
@@ -40,21 +41,37 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             float potentialXAcc = VersionSafe.GetPotentialXAccuracy(0, xacc, seqID, remaining);
             int decimalPlaces = Status.Settings.XAccuracyDecimalPlaces;
             SetDualText(Status.Settings.XAccuracyTextType, overlay.XAccuracyText, overlay.PotentialXAccuracyText, "XAccuracy",
-                Math.Round(xacc * 100, decimalPlaces) + "%", Math.Round(potentialXAcc * 100, decimalPlaces) + "%",
+                xacc * 100, potentialXAcc * 100, decimalPlaces,
                 Status.Settings.XAccuracyColor, xacc, potentialXAcc);
         }
         if(Status.Settings.ShowXScore && VersionSafe.XScoreSupported) UpdateXScore(overlay, VersionSafe.GetJudgedTiles(overlay.Hit, seqID), remaining);
     }
 
     protected static void SetDualText(PotentialTextType type, TextMeshProUGUI text, TextMeshProUGUI potentialText, string label,
-                                      string value, string potentialValue, ColorPerDictionary cpd, float fValue, float fPotentialValue) {
+                                      double value, double potentialValue, int decimalPlaces, ColorPerDictionary cpd, float fValue, float fPotentialValue) {
+        char[] buffer = Main.SharedBuffer;
         if(type != PotentialTextType.Potential) {
-            text.text = "<color=white>" + label + " |</color> " + (type == PotentialTextType.BothInOneLine ? value + " (" + potentialValue + ")" : value);
+            int index = Overlay.WriteLabel(buffer, label);
+            index = Overlay.WritePercent(buffer, index, value, decimalPlaces);
+            if(type == PotentialTextType.BothInOneLine) {
+                index = Overlay.WriteText(buffer, " (", index);
+                index = Overlay.WritePercent(buffer, index, potentialValue, decimalPlaces);
+                buffer[index++] = ')';
+            }
+            text.SetCharArray(buffer, 0, index);
             text.color = cpd.GetColor(fValue);
         }
         if(type is not (PotentialTextType.Potential or PotentialTextType.Both)) return;
-        potentialText.text = "<color=white>P." + label + " |</color> " + potentialValue;
+        int potentialIndex = WritePotentialLabel(buffer, label);
+        potentialIndex = Overlay.WritePercent(buffer, potentialIndex, potentialValue, decimalPlaces);
+        potentialText.SetCharArray(buffer, 0, potentialIndex);
         potentialText.color = cpd.GetColor(fPotentialValue);
+    }
+
+    private static int WritePotentialLabel(char[] buffer, string label) {
+        int index = Overlay.WriteText(buffer, "<color=white>P.", 0);
+        index = Overlay.WriteText(buffer, label, index);
+        return Overlay.WriteText(buffer, " |</color> ", index);
     }
 
     private static void UpdateXScore(Overlay overlay, int judged, int remaining) {
@@ -63,13 +80,32 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         int maxXScore = judged * perfectValue;
         int potentialXScore = xScore + remaining * perfectValue;
         int totalXScore = maxXScore + remaining * perfectValue;
-        SetDualText(Status.Settings.XScorePotentialTextType, overlay.XScoreText, overlay.PotentialXScoreText, "XScore",
-            Status.GetXScoreText(xScore, maxXScore), Status.GetXScoreText(potentialXScore, totalXScore),
-            Status.Settings.XScoreColor, maxXScore == 0 ? 1 : (float) xScore / maxXScore, totalXScore == 0 ? 1 : (float) potentialXScore / totalXScore);
+        PotentialTextType type = Status.Settings.XScorePotentialTextType;
+        ColorPerDictionary cpd = Status.Settings.XScoreColor;
+        char[] buffer = Main.SharedBuffer;
+        if(type != PotentialTextType.Potential) {
+            int index = Overlay.WriteLabel(buffer, "XScore");
+            index = Status.WriteXScoreText(buffer, index, xScore, maxXScore);
+            if(type == PotentialTextType.BothInOneLine) {
+                index = Overlay.WriteText(buffer, " (", index);
+                index = Status.WriteXScoreText(buffer, index, potentialXScore, totalXScore);
+                buffer[index++] = ')';
+            }
+            overlay.XScoreText.SetCharArray(buffer, 0, index);
+            overlay.XScoreText.color = cpd.GetColor(maxXScore == 0 ? 1 : (float) xScore / maxXScore);
+        }
+        if(type is not (PotentialTextType.Potential or PotentialTextType.Both)) return;
+        int potentialIndex = WritePotentialLabel(buffer, "XScore");
+        potentialIndex = Status.WriteXScoreText(buffer, potentialIndex, potentialXScore, totalXScore);
+        overlay.PotentialXScoreText.SetCharArray(buffer, 0, potentialIndex);
+        overlay.PotentialXScoreText.color = cpd.GetColor(totalXScore == 0 ? 1 : (float) potentialXScore / totalXScore);
     }
 
     public virtual void UpdateProgress(Overlay overlay) {
-        overlay.ProgressText.text = "<color=white>Progress |</color> " + Math.Round(Progress * 100, Status.Settings.ProgressDecimalPlaces) + "%";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "Progress");
+        index = Overlay.WritePercent(buffer, index, Progress * 100, Status.Settings.ProgressDecimalPlaces);
+        overlay.ProgressText.SetCharArray(buffer, 0, index);
         overlay.ProgressText.color = Status.Settings.ProgressColor.GetColor(Progress);
     }
     
@@ -88,7 +124,15 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
             updated = true;
         }
         if(LastCheckpoint == scrController.checkpointsUsed && !updated) return;
-        overlay.CheckpointText.text = "<color=white>CheckPoint |</color> " + scrController.checkpointsUsed + " (" + CurCheck + "/" + overlay.Checkpoints.Length + ")";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "CheckPoint");
+        index = Overlay.WriteNumber(buffer, index, scrController.checkpointsUsed);
+        index = Overlay.WriteText(buffer, " (", index);
+        index = Overlay.WriteNumber(buffer, index, CurCheck);
+        buffer[index++] = '/';
+        index = Overlay.WriteNumber(buffer, index, overlay.Checkpoints.Length);
+        buffer[index++] = ')';
+        overlay.CheckpointText.SetCharArray(buffer, 0, index);
         LastCheckpoint = scrController.checkpointsUsed;
     }
     
@@ -99,7 +143,10 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
         else if(CurBest > Progress || overlay.AutoOnceEnabled) return;
         
         float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;
-        overlay.BestText.text = "<color=white>Best |</color> " + Math.Round(best * 100, Status.Settings.BestDecimalPlaces) + "%";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "Best");
+        index = Overlay.WritePercent(buffer, index, best * 100, Status.Settings.BestDecimalPlaces);
+        overlay.BestText.SetCharArray(buffer, 0, index);
         overlay.BestText.color = Status.Settings.BestColor.GetColor(best);
     }
     
@@ -111,8 +158,9 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     }
 
     public void UpdateJudgement(Overlay overlay, int _) {
-        int[] hits = overlay.Hit;
-        overlay.JudgementText.text = VersionSafe.WriteHitMarginText(hits, null, null);
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
+        VersionSafe.AppendHitMarginText(sb, overlay.Hit, null, null);
+        overlay.JudgementText.SetCharArray(Main.SharedBuffer, 0, Overlay.WriteBuilder(Main.SharedBuffer, sb, 0));
     }
 
     public void UpdateTiming(Overlay overlay, float timing, int _) {
@@ -138,19 +186,31 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
                 SetAvgTiming(overlay, average, decimalPlaces);
                 break;
             default:
-                overlay.TimingText.text = "<color=white>Timing |</color> " + Math.Round(LastTiming, decimalPlaces) + " (" + Math.Round(average, decimalPlaces) + ")";
+                char[] buffer = Main.SharedBuffer;
+                int index = Overlay.WriteLabel(buffer, "Timing");
+                index = Overlay.WriteRounded(buffer, index, LastTiming, decimalPlaces);
+                index = Overlay.WriteText(buffer, " (", index);
+                index = Overlay.WriteRounded(buffer, index, average, decimalPlaces);
+                buffer[index++] = ')';
+                overlay.TimingText.SetCharArray(buffer, 0, index);
                 overlay.TimingText.color = Status.GetTimingColor(LastTiming);
                 break;
         }
     }
 
     private void SetTiming(Overlay overlay, int decimalPlaces) {
-        overlay.TimingText.text = "<color=white>Timing |</color> " + Math.Round(LastTiming, decimalPlaces);
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "Timing");
+        index = Overlay.WriteRounded(buffer, index, LastTiming, decimalPlaces);
+        overlay.TimingText.SetCharArray(buffer, 0, index);
         overlay.TimingText.color = Status.GetTimingColor(LastTiming);
     }
 
     private static void SetAvgTiming(Overlay overlay, float average, int decimalPlaces) {
-        overlay.AvgTimingText.text = "<color=white>A.Timing |</color> " + Math.Round(average, decimalPlaces);
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "A.Timing");
+        index = Overlay.WriteRounded(buffer, index, average, decimalPlaces);
+        overlay.AvgTimingText.SetCharArray(buffer, 0, index);
         overlay.AvgTimingText.color = Status.GetTimingColor(average);
     }
 }

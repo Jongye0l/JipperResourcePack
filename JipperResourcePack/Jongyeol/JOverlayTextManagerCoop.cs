@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using JALib.Tools;
 using JipperResourcePack.OverlayContents;
 using UnityEngine;
@@ -11,25 +10,32 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
 
     public JOverlayTextManagerCoop(JOverlay overlay) : base(overlay) {
         JPlayerArray = new JPlayerData[scrPlayerManager.playerCount];
+        for(int i = 0; i < JPlayerArray.Length; i++) {
+            JPlayerArray[i].DeathCache.Buffer = new char[48];
+            JPlayerArray[i].StateCache.Buffer = new char[48];
+        }
         overlay.DeathText.color = Color.white;
         overlay.StateText.color = Color.white;
     }
 
     protected override void SetProgress(ref PlayerData pData, float progress) {
-        pData.ProgressString = $" | {ColorToString(JStatus.Settings.ProgressColor.GetColor(progress))}{Math.Round(progress * 100, 5)}%</color>";
+        char[] buffer = pData.ProgressCache.Buffer;
+        int index = WritePlayerStart(buffer, JStatus.Settings.ProgressColor.GetColor(progress));
+        index = Overlay.WritePercent(buffer, index, progress * 100, 5);
+        pData.ProgressCache.Length = WritePlayerEnd(buffer, index);
         if(MaxProgress < progress) MaxProgress = progress;
     }
 
     public void UpdateDeath(JOverlay overlay, scrPlanet planet) {
-        if((object) planet == null) 
-            for(int i = 0; i < JPlayerArray.Length; i++) 
+        if((object) planet == null)
+            for(int i = 0; i < JPlayerArray.Length; i++)
                 JPlayerArray[i].SetDeath(overlay, scrPlayerManager.instance.players[i].tapsOnThisFloor, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         else JPlayerArray[planet.player.playerID].SetDeath(overlay, planet.currfloor.seqID, scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount);
-        
-        string[] strings = ConcatBuffer;
-        strings[0] = "Death";
-        for(int i = 0; i < JPlayerArray.Length; i++) strings[i + 1] = JPlayerArray[i].DeathString;
-        overlay.DeathText.text = string.Concat(strings);
+
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteText(buffer, "Death", 0);
+        for(int i = 0; i < JPlayerArray.Length; i++) index = JPlayerArray[i].DeathCache.WriteTo(buffer, index);
+        overlay.DeathText.SetCharArray(buffer, 0, index);
     }
 
     public void UpdateState(JOverlay overlay, scrPlanet planet) {
@@ -38,11 +44,11 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
                 JPlayerArray[i].SetState(overlay, i, scrMistakesManager.marginTrackers[i].hitMarginsCount);
         } else JPlayerArray[planet.player.playerID].SetState(overlay, planet.player.playerID, scrMistakesManager.marginTrackers[planet.player.playerID].hitMarginsCount);
 
-        StringBuilder sb = VersionSafe.GetSharedBuilder();
-        sb.Append("State");
-        for(int i = 0; i < JPlayerArray.Length; i++) sb.Append(JPlayerArray[i].StateString);
-        if(overlay.StartTile != 0) sb.Append(" | (중간에서 시작)");
-        overlay.StateText.text = sb.ToString();
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteText(buffer, "State", 0);
+        for(int i = 0; i < JPlayerArray.Length; i++) index = JPlayerArray[i].StateCache.WriteTo(buffer, index);
+        if(overlay.StartTile != 0) index = Overlay.WriteText(buffer, " | (중간에서 시작)", index);
+        overlay.StateText.SetCharArray(buffer, 0, index);
     }
     
     public void CheckPurePerfect(JOverlay overlay, scrPlanet planet) {
@@ -98,45 +104,47 @@ public class JOverlayTextManagerCoop : OverlayTextManagerCoop, IJOverlayTextMana
 
     public struct JPlayerData {
         public int Death;
-        public string DeathString;
-        public string StateString;
+        public CharCache DeathCache;
+        public CharCache StateCache;
 
         public void SetDeath(JOverlay overlay, int currentTile, int[] hit) {
             Death = VersionControl.releaseNumber < 149 ? hit[8] + hit[9] : hit[10] + hit[11];
             float max = (currentTile - overlay.StartTile) * 0.05f;
-            Color color = overlay.GetColor(1 - Math.Min(Death, max) / max);
-            DeathString = " | <color=" + ColorUtility.ToHtmlStringRGB(color) + ">" + Death + "</color>";
+            char[] buffer = DeathCache.Buffer;
+            int index = WritePlayerStart(buffer, overlay.GetColor(1 - Math.Min(Death, max) / max));
+            index = Overlay.WriteNumber(buffer, index, Death);
+            DeathCache.Length = WritePlayerEnd(buffer, index);
         }
 
         public void SetState(JOverlay overlay, int index, int[] hit) {
-            StringBuilder sb = VersionSafe.GetSharedBuilder();
-            sb.Append(" | ");
+            char[] buffer = StateCache.Buffer;
+            int textIndex = Overlay.WriteText(buffer, " | ", 0);
             bool color = false;
-            if(scrController.instance.state is States.Start or States.Countdown) sb.Append("대기");
+            if(scrController.instance.state is States.Start or States.Countdown) textIndex = Overlay.WriteText(buffer, "대기", textIndex);
             else if(!RDC.auto && scrPlayerManager.instance.players[index].auto) {
-                sb.Append("<color=red>리스폰 대기");
+                textIndex = Overlay.WriteText(buffer, "<color=red>리스폰 대기", textIndex);
                 color = true;
             } else {
                 scrFloor curFloor = scrPlayerManager.instance.players[index].planetarySystem.chosenPlanet.currfloor;
                 if(curFloor && curFloor.nextfloor && curFloor.nextfloor.auto) {
-                    sb.Append("<color=#ff7f00>자동 플레이 타일");
+                    textIndex = Overlay.WriteText(buffer, "<color=#ff7f00>자동 플레이 타일", textIndex);
                     color = true;
                 } else if(RDC.auto) {
-                    sb.Append("<color=#1bff00>자동 플레이");
+                    textIndex = Overlay.WriteText(buffer, "<color=#1bff00>자동 플레이", textIndex);
                     color = true;
                 } else if(IsPurePerfect(hit)) {
-                    sb.Append("<color=#ffda00>완벽한 플레이");
+                    textIndex = Overlay.WriteText(buffer, "<color=#ffda00>완벽한 플레이", textIndex);
                     color = true;
                 } else {
-                    if(Death > 0) sb.Append("완주");
-                    else if(hit[0] != 0) sb.Append("클리어");
-                    else if(hit[1] != 0 || hit[VersionControl.releaseNumber < 149 ? 5 : 7] != 0) sb.Append("노미스");
-                    else sb.Append("완벽주의");
+                    if(Death > 0) textIndex = Overlay.WriteText(buffer, "완주", textIndex);
+                    else if(hit[0] != 0) textIndex = Overlay.WriteText(buffer, "클리어", textIndex);
+                    else if(hit[1] != 0 || hit[VersionControl.releaseNumber < 149 ? 5 : 7] != 0) textIndex = Overlay.WriteText(buffer, "노미스", textIndex);
+                    else textIndex = Overlay.WriteText(buffer, "완벽주의", textIndex);
                 }
             }
-            if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) sb.Append(" 중");
-            if(color) sb.Append("</color>");
-            StateString = sb.ToString();
+            if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) textIndex = Overlay.WriteText(buffer, " 중", textIndex);
+            if(color) textIndex = Overlay.WriteText(buffer, "</color>", textIndex);
+            StateCache.Length = textIndex;
         }
         
         private static bool IsPurePerfect(int[] hit) {

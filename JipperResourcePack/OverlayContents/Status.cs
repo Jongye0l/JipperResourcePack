@@ -129,11 +129,21 @@ public class Status : Feature {
             Overlay.Instance.UpdateProgressBar();
     }
 
-    public static string GetXScoreText(int xScore, int maxXScore) => Settings.XScoreTextType switch {
-        XScoreTextType.WithMax => xScore + "/" + maxXScore,
-        XScoreTextType.MaxMinus => xScore + " (MAX-" + (maxXScore - xScore) + ")",
-        _ => xScore.ToString()
-    };
+    public static int WriteXScoreText(char[] buffer, int index, int xScore, int maxXScore) {
+        index = Overlay.WriteNumber(buffer, index, xScore);
+        switch(Settings.XScoreTextType) {
+            case XScoreTextType.WithMax:
+                buffer[index++] = '/';
+                return Overlay.WriteNumber(buffer, index, maxXScore);
+            case XScoreTextType.MaxMinus:
+                index = Overlay.WriteText(buffer, " (MAX-", index);
+                index = Overlay.WriteNumber(buffer, index, maxXScore - xScore);
+                buffer[index++] = ')';
+                return index;
+            default:
+                return index;
+        }
+    }
 
     public static float GetPotentialAccuracy(int[] hits, float acc, int seqId) {
         List<scrFloor> floors = ADOBase.lm.listFloors;

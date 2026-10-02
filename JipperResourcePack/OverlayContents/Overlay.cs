@@ -380,13 +380,21 @@ public class Overlay {
     }
 
     public void UpdateAttempts() {
-        StringBuilder sb = VersionSafe.GetSharedBuilder();
+        char[] buffer = Main.SharedBuffer;
+        int index = 0;
 
-        if(Attempt.Settings.ShowAttempt) sb.Append("Attempt ").Append(PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0).Append('\n');
-        if(Attempt.Settings.ShowFullAttempt) sb.Append("Full Attempt ").Append(PlayCount.GetData(LastHash)?.GetAttempts() ?? 0).Append('\n');
+        if(Attempt.Settings.ShowAttempt) {
+            index = WriteText(buffer, "Attempt ", index);
+            index = WriteNumber(buffer, index, PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0);
+            buffer[index++] = '\n';
+        }
+        if(Attempt.Settings.ShowFullAttempt) {
+            index = WriteText(buffer, "Full Attempt ", index);
+            index = WriteNumber(buffer, index, PlayCount.GetData(LastHash)?.GetAttempts() ?? 0);
+            buffer[index++] = '\n';
+        }
 
-        sb.Length--;
-        AttemptText.text = sb.ToString();
+        AttemptText.SetCharArray(buffer, 0, index > 0 ? index - 1 : 0);
     }
 
     public void UpdateJudgement(int index = -1) {
@@ -487,9 +495,26 @@ public class Overlay {
         return WriteText(buffer, timeCache, index);
     }
 
-    protected static int WriteText(char[] buffer, string value, int index) {
+    public static int WriteText(char[] buffer, string value, int index) {
         value.CopyTo(0, buffer, index, value.Length);
         return index + value.Length;
+    }
+
+    public static int WriteBuilder(char[] buffer, StringBuilder sb, int index) {
+        sb.CopyTo(0, buffer, index, sb.Length);
+        return index + sb.Length;
+    }
+
+    public static int WriteLabel(char[] buffer, string label) {
+        int index = WriteText(buffer, "<color=white>", 0);
+        index = WriteText(buffer, label, index);
+        return WriteText(buffer, " |</color> ", index);
+    }
+
+    public static int WritePercent(char[] buffer, int index, double value, int decimals) {
+        index = WriteRounded(buffer, index, value, decimals);
+        buffer[index++] = '%';
+        return index;
     }
 
     private static int WriteTime(char[] buffer, int index, int time, bool hour) {
@@ -502,7 +527,11 @@ public class Overlay {
         return WriteTwoDigits(buffer, index, time % 60);
     }
 
-    protected static int WriteNumber(char[] buffer, int index, int value) {
+    public static int WriteNumber(char[] buffer, int index, int value) {
+        if(value < 0) {
+            buffer[index++] = '-';
+            value = -value;
+        }
         int end = index + 1;
         for(int i = value / 10; i > 0; i /= 10) end++;
         for(int i = end - 1; i >= index; i--) {
@@ -512,15 +541,38 @@ public class Overlay {
         return end;
     }
 
-    protected static int WriteTwoDigits(char[] buffer, int index, int value) {
+    public static int WriteTwoDigits(char[] buffer, int index, int value) {
         buffer[index] = (char) ('0' + value / 10);
         buffer[index + 1] = (char) ('0' + value % 10);
         return index + 2;
     }
-    
+
+    public static int WriteRounded(char[] buffer, int index, double value, int decimals) {
+        if(double.IsNaN(value)) return WriteText(buffer, "NaN", index);
+        if(value < 0) {
+            buffer[index++] = '-';
+            value = -value;
+        }
+        if(double.IsInfinity(value)) return WriteText(buffer, "Infinity", index);
+        long scale = 1;
+        for(int i = 0; i < decimals; i++) scale *= 10;
+        long scaled = (long) Math.Round(value * scale);
+        index = WriteNumber(buffer, index, (int) (scaled / scale));
+        long fraction = scaled % scale;
+        if(fraction == 0) return index;
+        buffer[index++] = '.';
+        int end = index + decimals;
+        for(int i = end - 1; i >= index; i--) {
+            buffer[i] = (char) ('0' + fraction % 10);
+            fraction /= 10;
+        }
+        while(buffer[end - 1] == '0') end--;
+        return end;
+    }
+
     public void UpdateCombo(int combo, bool bump) {
         if(!GameObject.activeSelf) return;
-        ComboText.text = combo.ToString();
+        ComboText.SetCharArray(Main.SharedBuffer, 0, WriteNumber(Main.SharedBuffer, 0, combo));
         ComboText.color = UpdateComboColor(combo);
         if(bump) {
             _stopwatch.Restart();
@@ -568,9 +620,17 @@ public class Overlay {
         float kps = cbpm / 60;
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if(LastTileBpm == bpm && LastCurBpm == cbpm) return;
-        BpmText.text = "<color=white>TBPM | <color=#" + ColorToHex(Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax)) + ">" + Math.Round(bpm, Bpm.Settings.DecimalPlaces) +
-                       "</color>\nCBPM |</color> " + Math.Round(cbpm, Bpm.Settings.DecimalPlaces) +
-                       "\n<color=white>KPS |</color> " + Math.Round(kps, Bpm.Settings.DecimalPlaces);
+        char[] buffer = Main.SharedBuffer;
+        int decimals = Bpm.Settings.DecimalPlaces;
+        int index = WriteText(buffer, "<color=white>TBPM | <color=#", 0);
+        index = WriteColorHex(buffer, index, Bpm.Settings.BpmColor.GetColor(bpm / Bpm.Settings.BpmColorMax));
+        buffer[index++] = '>';
+        index = WriteRounded(buffer, index, bpm, decimals);
+        index = WriteText(buffer, "</color>\nCBPM |</color> ", index);
+        index = WriteRounded(buffer, index, cbpm, decimals);
+        index = WriteText(buffer, "\n<color=white>KPS |</color> ", index);
+        index = WriteRounded(buffer, index, kps, decimals);
+        BpmText.SetCharArray(buffer, 0, index);
         if(LastCurBpm != cbpm) BpmText.color = Bpm.Settings.BpmColor.GetColor(cbpm / Bpm.Settings.BpmColorMax);
         // ReSharper restore CompareOfFloatsByEqualityOperator
         LastTileBpm = bpm;
@@ -579,15 +639,19 @@ public class Overlay {
 
     private const string HexDigits = "0123456789ABCDEF";
 
-    // ReSharper disable once CompareOfFloatsByEqualityOperator
     public static string ColorToHex(Color color) {
-        bool withAlpha = color.a != 1;
-        char[] chars = new char[withAlpha ? 8 : 6];
-        WriteHexByte(chars, 0, Mathf.RoundToInt(color.r * 255));
-        WriteHexByte(chars, 2, Mathf.RoundToInt(color.g * 255));
-        WriteHexByte(chars, 4, Mathf.RoundToInt(color.b * 255));
-        if(withAlpha) WriteHexByte(chars, 6, Mathf.RoundToInt(color.a * 255));
-        return new string(chars);
+        char[] chars = new char[8];
+        return new string(chars, 0, WriteColorHex(chars, 0, color));
+    }
+
+    public static int WriteColorHex(char[] buffer, int index, Color color) {
+        WriteHexByte(buffer, index, Mathf.RoundToInt(color.r * 255));
+        WriteHexByte(buffer, index + 2, Mathf.RoundToInt(color.g * 255));
+        WriteHexByte(buffer, index + 4, Mathf.RoundToInt(color.b * 255));
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if(color.a == 1) return index + 6;
+        WriteHexByte(buffer, index + 6, Mathf.RoundToInt(color.a * 255));
+        return index + 8;
     }
 
     private static void WriteHexByte(char[] chars, int index, int value) {
@@ -609,7 +673,11 @@ public class Overlay {
 
     public void UpdateTimingScale() {
         if(!GameObject.activeSelf) return;
-        TimingScaleText.text = "Timing Scale - " + Math.Round(scrController.instance.currFloor.marginScale * 100, 2) + "%";
+        char[] buffer = Main.SharedBuffer;
+        int index = WriteText(buffer, "Timing Scale - ", 0);
+        index = WriteRounded(buffer, index, scrController.instance.currFloor.marginScale * 100, 2);
+        buffer[index++] = '%';
+        TimingScaleText.SetCharArray(buffer, 0, index);
     }
 
     public void ChangeComboText(ComboTier tier) {

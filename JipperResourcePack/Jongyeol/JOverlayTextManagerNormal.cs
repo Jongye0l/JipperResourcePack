@@ -11,14 +11,30 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
     public override void UpdateProgress(Overlay overlay) {
         int cur = scrController.instance.currentSeqID;
         int last = ADOBase.lm.listFloors.Count - 1;
-        overlay.ProgressText.text = $"<color=white>Progress |</color> {cur} / {last}{(cur == last ? "" : $" [-{last - cur}]")} ({Math.Round(Progress * 100, 5)}%)";
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "Progress");
+        index = Overlay.WriteNumber(buffer, index, cur);
+        index = Overlay.WriteText(buffer, " / ", index);
+        index = Overlay.WriteNumber(buffer, index, last);
+        if(cur != last) {
+            index = Overlay.WriteText(buffer, " [-", index);
+            index = Overlay.WriteNumber(buffer, index, last - cur);
+            buffer[index++] = ']';
+        }
+        index = Overlay.WriteText(buffer, " (", index);
+        index = Overlay.WritePercent(buffer, index, Progress * 100, 5);
+        buffer[index++] = ')';
+        overlay.ProgressText.SetCharArray(buffer, 0, index);
         overlay.ProgressText.color = JStatus.Settings.ProgressColor.GetColor(Progress);
     }
 
     public void UpdateDeath(JOverlay overlay, scrPlanet _) {
         int deathCount;
         if(_death != (deathCount = VersionControl.releaseNumber < 149 ? overlay.Hit[8] + overlay.Hit[9] : overlay.Hit[10] + overlay.Hit[11])) {
-            overlay.DeathText.text = "<color=white>Death |</color> " + deathCount;
+            char[] buffer = Main.SharedBuffer;
+            int index = Overlay.WriteLabel(buffer, "Death");
+            index = Overlay.WriteNumber(buffer, index, deathCount);
+            overlay.DeathText.SetCharArray(buffer, 0, index);
             _death = deathCount;
         }
         float max = (scrController.instance.currentSeqID - overlay.StartTile) * 0.05f;
@@ -45,9 +61,12 @@ public class JOverlayTextManagerNormal : OverlayTextManagerNormal, IJOverlayText
             else if(hits[1] != 0 || hits[VersionControl.releaseNumber < 149 ? 5 : 7] != 0) s = "노미스";
             else s = "완벽주의";
         }
-        if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) s += " 중";
-        if(overlay.StartTile != 0) s += "(중간에서 시작)";
-        overlay.StateText.text = "<color=white>State |</color> " + s;
+        char[] buffer = Main.SharedBuffer;
+        int index = Overlay.WriteLabel(buffer, "State");
+        index = Overlay.WriteText(buffer, s, index);
+        if(scrController.instance.currentSeqID != ADOBase.lm.listFloors.Count) index = Overlay.WriteText(buffer, " 중", index);
+        if(overlay.StartTile != 0) index = Overlay.WriteText(buffer, "(중간에서 시작)", index);
+        overlay.StateText.SetCharArray(buffer, 0, index);
     }
     
     public void CheckPurePerfect(JOverlay overlay, scrPlanet _) {
