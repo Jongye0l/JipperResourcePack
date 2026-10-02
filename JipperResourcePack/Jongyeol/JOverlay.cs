@@ -186,7 +186,17 @@ public class JOverlay : Overlay {
 
     public void UpdateFPS(float deltaTime) {
         if(!JStatus.Settings.ShowFPS || !GameObject.activeSelf || (_fpsTime += deltaTime) < 0.01f) return;
-        FPSText.text = "FPS | " + (1 / deltaTime).ToString("F4");
+        long fps = (long) (10000.0 / deltaTime + 0.5);
+        char[] buffer = Main.SharedBuffer;
+        int index = WriteText(buffer, "FPS | ", 0);
+        index = WriteNumber(buffer, index, (int) (fps / 10000));
+        buffer[index++] = '.';
+        int fraction = (int) (fps % 10000);
+        for(int i = index + 3; i >= index; i--) {
+            buffer[i] = (char) ('0' + fraction % 10);
+            fraction /= 10;
+        }
+        FPSText.SetCharArray(buffer, 0, index + 4);
         _fpsTime %= 0.01f;
     }
 
