@@ -62,9 +62,11 @@ public class Overlay {
     private float _lastSavedStartProgress = -1;
     public float LastMultiplier = 1f;
     private ComboTier _current;
+    private readonly Action _updateComboLocationAction;
 
     public Overlay() {
         Instance = this;
+        _updateComboLocationAction = UpdateComboLocation;
         OnChangePlayers();
         GameObject = new GameObject("JipperResourcePack Overlay");
         Canvas = GameObject.AddComponent<Canvas>();
@@ -498,7 +500,7 @@ public class Overlay {
             _stopwatch.Stop();
         }
         ComboText.fontSize = 30 * OutExpoChange(t) + 78;
-        Task.Yield().OnCompleted(UpdateComboLocation);
+        Task.Yield().OnCompleted(_updateComboLocationAction);
     }
 
     private void UpdateComboLocation() {
