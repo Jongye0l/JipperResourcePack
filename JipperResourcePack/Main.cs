@@ -28,6 +28,8 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private Vector2 _fontScrollPosition;
     private string[] _availableFonts;
     private string[] _availableFontsPath;
+    public static readonly char[] SharedBuffer = new char[256];
+
     protected override void OnSetup() {
         LoadVersionSafe();
         Patcher.AddPatch(OnGameStart1);

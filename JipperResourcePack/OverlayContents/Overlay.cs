@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 namespace JipperResourcePack.OverlayContents;
 
 public class Overlay {
+    public static readonly string[] TimePrefixTexts = [ "음악 시간", "Music Time", "맵 시간", "Map Time" ];
     public static Overlay Instance;
     public IOverlayTextManager OverlayTextManager;
     public readonly GameObject GameObject;
@@ -42,8 +43,13 @@ public class Overlay {
     public Color PurePerfectColor = new(1, 0.8549019607843137f, 0);
     public int[] Hit;
     private readonly Shader _shader = (Shader) typeof(ShaderUtilities).Property("ShaderRef_MobileSDF").GetValue(null);
+
     private int _lastTime = -1;
     private int _lastMapTime = -1;
+    protected string MusicTimeCache;
+    protected string MapTimeCache;
+    protected float MapTotalTime = -1;
+
     public int StartTile;
     public int NoCheckStartTile;
     public int[] Checkpoints;
@@ -54,9 +60,6 @@ public class Overlay {
     public float StartProgress;
     public bool AutoOnceEnabled;
     protected bool IsDeath;
-    protected string MusicTimeCache;
-    protected string MapTimeCache;
-    protected float MapTotalTime = -1;
     private int[] _scorableTiles;
     public PlayCount.Hash LastHash;
     private float _lastSavedStartProgress = -1;
@@ -400,18 +403,12 @@ public class Overlay {
             else {
                 float time = song!.time;
                 float totalTime = song.clip?.length ?? 0;
+                if(time == 0 && SongPlaying) time = totalTime;
+                else if(time > 0) SongPlaying = true;
                 if(_lastTime == (int) time) return;
-                bool hourNeed = totalTime >= 3600;
-                MusicTimeCache ??= GetTimeString(totalTime, hourNeed);
-                string timeStr;
-                if(time == 0 && SongPlaying) {
-                    time = totalTime;
-                    timeStr = MusicTimeCache;
-                } else {
-                    if(time > 0) SongPlaying = true;
-                    timeStr = GetTimeString(time, hourNeed);
-                }
-                TimeText.text = "<color=white>" + (Status.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time") + " |</color> " + timeStr + "~" + MusicTimeCache;
+                MusicTimeCache ??= GetTimeString(totalTime);
+                int length = WriteTimeText(time, totalTime, false, MusicTimeCache);
+                TimeText.SetCharArray(Main.SharedBuffer, 0, length);
                 _lastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
@@ -423,18 +420,15 @@ public class Overlay {
             else if(time > totalTime) time = totalTime;
             if((!Status.Settings.ShowMapTime || _lastMapTime == (int) time) &&
                (!requireMusicToMap || _lastTime == (int) time)) return;
-            bool hourNeed = totalTime >= 3600;
-            MapTimeCache ??= GetTimeString(totalTime, hourNeed);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
-            string text = "<color=white>" + (Status.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time") + " |</color> " + timeStr + "~" + MapTimeCache;
+            MapTimeCache ??= GetTimeString(totalTime);
+            int length = WriteTimeText(time, totalTime, true, MapTimeCache);
             if(Status.Settings.ShowMapTime) {
-                MapTimeText.text = text;
+                MapTimeText.SetCharArray(Main.SharedBuffer, 0, length);
                 _lastMapTime = (int) time;
                 MapTimeText.color = Status.Settings.MapTimeColor.GetColor(time / totalTime);
             }
             if(requireMusicToMap) {
-                TimeText.text = text;
+                TimeText.SetCharArray(Main.SharedBuffer, 0, length);
                 _lastTime = (int) time;
                 TimeText.color = Status.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
@@ -467,10 +461,61 @@ public class Overlay {
         return MapTotalTime;
     }
 
-    private static string GetTimeString(float time, bool hour) {
+    private static string GetTimeString(float time) {
         int timeInt = (int) time;
-        return hour ? (timeInt / 3600) + ":" + (timeInt % 3600 / 60).ToString("00") + ":" + (timeInt % 60).ToString("00") :
-                      (timeInt / 60) + ":" + (timeInt % 60).ToString("00");
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
+
+        if(timeInt >= 3600) sb.Append(timeInt / 3600).Append(':').Append(timeInt % 3600 / 60);
+        else sb.Append(timeInt / 60);
+
+        sb.Append(':').Append(timeInt % 60);
+        return sb.ToString();
+    }
+
+    private static int WriteTimeText(float time, float totalTime, bool isMap, string timeCache) {
+        bool hour = totalTime >= 3600;
+        bool isEnglish = Status.Settings.TimeTextType == TimeTextType.English;
+        int requirePrefix = (isMap ? 2 : 0) | (isEnglish ? 1 : 0);
+        char[] buffer = Main.SharedBuffer;
+
+        int index = WriteText(buffer, "<color=white>", 0);
+        index = WriteText(buffer, TimePrefixTexts[requirePrefix], index);
+        index = WriteText(buffer, " |</color> ", index);
+
+        index = WriteTime(buffer, index, (int) time, hour);
+        buffer[index++] = '~';
+        return WriteText(buffer, timeCache, index);
+    }
+
+    protected static int WriteText(char[] buffer, string value, int index) {
+        value.CopyTo(0, buffer, index, value.Length);
+        return index + value.Length;
+    }
+
+    private static int WriteTime(char[] buffer, int index, int time, bool hour) {
+        if(hour) {
+            index = WriteNumber(buffer, index, time / 3600);
+            buffer[index++] = ':';
+            index = WriteTwoDigits(buffer, index, time % 3600 / 60);
+        } else index = WriteNumber(buffer, index, time / 60);
+        buffer[index++] = ':';
+        return WriteTwoDigits(buffer, index, time % 60);
+    }
+
+    protected static int WriteNumber(char[] buffer, int index, int value) {
+        int end = index + 1;
+        for(int i = value / 10; i > 0; i /= 10) end++;
+        for(int i = end - 1; i >= index; i--) {
+            buffer[i] = (char) ('0' + value % 10);
+            value /= 10;
+        }
+        return end;
+    }
+
+    protected static int WriteTwoDigits(char[] buffer, int index, int value) {
+        buffer[index] = (char) ('0' + value / 10);
+        buffer[index + 1] = (char) ('0' + value % 10);
+        return index + 2;
     }
     
     public void UpdateCombo(int combo, bool bump) {

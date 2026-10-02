@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using ADOFAI;
 using JipperResourcePack.OverlayContents;
 using TMPro;
@@ -101,19 +102,11 @@ public class JOverlay : Overlay {
             else {
                 float time = song!.time;
                 float totalTime = song.clip?.length ?? 0;
-                if(time > 0) SongPlaying = true;
-                else if(time == 0 && SongPlaying) time = totalTime;
-                bool hourNeed = totalTime >= 3600;
-                MusicTimeCache ??= GetTimeString(totalTime, hourNeed);
-                string timeStr;
-                if(time == 0 && SongPlaying) {
-                    time = totalTime;
-                    timeStr = MusicTimeCache;
-                } else {
-                    if(time > 0) SongPlaying = true;
-                    timeStr = GetTimeString(time, hourNeed);
-                }
-                TimeText.text = "<color=white>" + (JStatus.Settings.TimeTextType == TimeTextType.Korean ? "음악 시간" : "Music Time") + " |</color> " + timeStr + "~" + MusicTimeCache;
+                if(time == 0 && SongPlaying) time = totalTime;
+                else if(time > 0) SongPlaying = true;
+                MusicTimeCache ??= GetTimeString(totalTime);
+                int length = WriteTimeText(time, totalTime, false, MusicTimeCache);
+                TimeText.SetCharArray(Main.SharedBuffer, 0, length);
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
@@ -122,27 +115,60 @@ public class JOverlay : Overlay {
             float totalTime = GetMapTotalTime();
             if(time < 0) time = 0;
             else if(time > totalTime) time = totalTime;
-            if(!JStatus.Settings.ShowMapTime && !requireMusicToMap) return;
-            bool hourNeed = totalTime >= 3600;
-            MapTimeCache ??= GetTimeString(totalTime, hourNeed);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            string timeStr = time == totalTime ? MapTimeCache : GetTimeString(time, hourNeed);
-            string text = "<color=white>" + (JStatus.Settings.TimeTextType == TimeTextType.Korean ? "맵 시간" : "Map Time") + " |</color> " + timeStr + "~" + MapTimeCache;
+            MapTimeCache ??= GetTimeString(totalTime);
+            int length = WriteTimeText(time, totalTime, true, MapTimeCache);
             if(JStatus.Settings.ShowMapTime) {
-                MapTimeText.text = text;
+                MapTimeText.SetCharArray(Main.SharedBuffer, 0, length);
                 MapTimeText.color = JStatus.Settings.MapTimeColor.GetColor(time / totalTime);
             }
             if(requireMusicToMap) {
-                TimeText.text = text;
+                TimeText.SetCharArray(Main.SharedBuffer, 0, length);
                 TimeText.color = JStatus.Settings.MusicTimeColor.GetColor(time / totalTime);
             }
         }
     }
-    
-    private static string GetTimeString(float time, bool hour) {
-        int timeInt = (int) time;
-        return hour ? timeInt / 3600 + ":" + (timeInt % 3600 / 60).ToString("00") + ":" + (time % 60).ToString("00.0") :
-                      timeInt / 60 + ":" + (time % 60).ToString("00.0");
+
+    private static string GetTimeString(float time) {
+        StringBuilder sb = VersionSafe.GetSharedBuilder();
+        int tenths = (int) (time * 10);
+        int timeInt = tenths / 10;
+
+        if(timeInt >= 3600) sb.Append(timeInt / 3600).Append(':').Append(timeInt % 3600 / 60);
+        else sb.Append(timeInt / 60);
+
+        sb.Append(':').Append(timeInt % 60)
+          .Append('.').Append(tenths % 10);
+        return sb.ToString();
+    }
+
+    private static int WriteTimeText(float time, float totalTime, bool isMap, string timeCache) {
+        bool hour = totalTime >= 3600;
+        bool isEnglish = JStatus.Settings.TimeTextType == TimeTextType.English;
+        int requirePrefix = (isMap ? 2 : 0) | (isEnglish ? 1 : 0);
+        char[] buffer = Main.SharedBuffer;
+
+        int index = WriteText(buffer, "<color=white>", 0);
+        index = WriteText(buffer, TimePrefixTexts[requirePrefix], index);
+        index = WriteText(buffer, " |</color> ", index);
+
+        index = WriteTime(buffer, index, time, hour);
+        buffer[index++] = '~';
+        return WriteText(buffer, timeCache, index);
+    }
+
+    private static int WriteTime(char[] buffer, int index, float time, bool hour) {
+        int tenths = (int) (time * 10);
+        int timeInt = tenths / 10;
+        if(hour) {
+            index = WriteNumber(buffer, index, timeInt / 3600);
+            buffer[index++] = ':';
+            index = WriteTwoDigits(buffer, index, timeInt % 3600 / 60);
+        } else index = WriteNumber(buffer, index, timeInt / 60);
+        buffer[index++] = ':';
+        index = WriteTwoDigits(buffer, index, timeInt % 60);
+        buffer[index++] = '.';
+        buffer[index++] = (char) ('0' + tenths % 10);
+        return index;
     }
 
     public override Color UpdateComboColor(int combo) {
