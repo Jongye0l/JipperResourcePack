@@ -20,6 +20,7 @@ public class JStatus : OverlayContents.Status {
         SettingGUI settingGUI = Main.SettingGUI;
         JALocalization localization = Main.Instance.Localization;
         settingGUI.AddSettingToggle(ref Settings.ShowFPS, localization["progress.showFPS"], JOverlay.Instance.SetupLocationMain);
+        settingGUI.AddSettingToggle(ref Settings.ShowMemory, localization["progress.showMemory"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowAuthor, localization["progress.showAuthor"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.ShowState, localization["progress.showState"], JOverlay.Instance.SetupLocationMain);
         settingGUI.AddSettingToggle(ref Settings.HideDebugText, localization["progress.hideDebugText"], JOverlay.Instance.SetupLocationMain);
@@ -48,6 +49,7 @@ public class JStatus : OverlayContents.Status {
 
     public class JStatusSetting : StatusSetting {
         public bool ShowFPS = true;
+        public bool ShowMemory = true;
         public bool ShowAuthor = true;
         public bool ShowState = true;
         // ReSharper disable once MemberHidesStaticFromOuterClass

@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using ADOFAI;
 using JipperResourcePack.OverlayContents;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace JipperResourcePack.Jongyeol;
 
@@ -12,6 +13,7 @@ public class JOverlay : Overlay {
     public static new JOverlay Instance;
     public new IJOverlayTextManager OverlayTextManager;
     public TextMeshProUGUI FPSText;
+    public TextMeshProUGUI MemoryText;
     public TextMeshProUGUI AuthorText;
     public TextMeshProUGUI StateText;
     public TextMeshProUGUI DeathText;
@@ -22,6 +24,10 @@ public class JOverlay : Overlay {
     private float _lastCurKps = -1;
     private static LevelData LevelData => scnGame.instance ? scnGame.instance.levelData : null;
     private float _fpsTime;
+    private float _memoryTime;
+    private float _memoryRateTime;
+    private long _memoryRateBase = -1;
+    private long _memoryRate;
 
     public JOverlay() {
         Instance = this;
@@ -36,6 +42,7 @@ public class JOverlay : Overlay {
     protected override void InitializeStatus() {
         base.InitializeStatus();
         SetupMainText("FPS", ref FPSText);
+        SetupMainText("Memory", ref MemoryText);
         SetupMainText("Author", ref AuthorText);
         SetupMainText("State", ref StateText);
         SetupMainText("Checkpoint", ref CheckpointText);
@@ -48,6 +55,7 @@ public class JOverlay : Overlay {
         int y = -15;
         bool checkAuto = !JStatus.Settings.RemoveNotRequireInAuto || !RDC.auto;
         SetupLocationMainText(FPSText, JStatus.Settings.ShowFPS, ref y);
+        SetupLocationMainText(MemoryText, JStatus.Settings.ShowMemory, ref y);
         SetupLocationMainText(AuthorText, !string.IsNullOrEmpty(LevelData?.author) && JStatus.Settings.ShowAuthor, ref y);
         SetupLocationMainText(ProgressText, JStatus.Settings.ShowProgress, ref y);
         SetupLocationMainText(AccuracyText, checkAuto && JStatus.Settings.ShowAccuracy && JStatus.Settings.AccuracyTextType != PotentialTextType.Potential, ref y);
@@ -66,6 +74,9 @@ public class JOverlay : Overlay {
         SetupLocationMainText(StartText, StartTile != 0 && JStatus.Settings.ShowStart, ref y);
         SetupLocationMainText(TimingText, checkAuto && JStatus.Settings.ShowTiming && JStatus.Settings.TimingTextType != TimingTextType.AvgTiming, ref y);
         SetupLocationMainText(AvgTimingText, checkAuto && JStatus.Settings.ShowTiming && JStatus.Settings.TimingTextType is TimingTextType.AvgTiming or TimingTextType.Both, ref y);
+        _memoryRateBase = -1;
+        _memoryRateTime = 0;
+        _memoryRate = 0;
         UpdateProgress();
         VersionSafe.CalculatePercentAcc(); // UpdateAccuracy();
         UpdateTime();
@@ -79,6 +90,7 @@ public class JOverlay : Overlay {
     public override void UpdateFont() {
         base.UpdateFont();
         FPSText.font = BundleLoader.FontAsset;
+        MemoryText.font = BundleLoader.FontAsset;
         AuthorText.font = BundleLoader.FontAsset;
         StateText.font = BundleLoader.FontAsset;
         DeathText.font = BundleLoader.FontAsset;
@@ -198,6 +210,37 @@ public class JOverlay : Overlay {
         }
         FPSText.SetCharArray(buffer, 0, index + 4);
         _fpsTime %= 0.01f;
+    }
+
+    public void UpdateMemory(float deltaTime) {
+        if(!JStatus.Settings.ShowMemory || !GameObject.activeSelf || (_memoryTime += deltaTime) < 0.1f) return;
+        long memory = GC.GetTotalMemory(false);
+        if(_memoryRateBase == -1) _memoryRateBase = memory;
+        if((_memoryRateTime += _memoryTime) >= 1) {
+            _memoryRate = (long) ((memory - _memoryRateBase) / _memoryRateTime);
+            _memoryRateBase = memory;
+            _memoryRateTime = 0;
+        }
+        _memoryTime = 0;
+
+        char[] buffer = Main.SharedBuffer;
+        long hundredths = (memory * 100 + 524288) / 1048576;
+        int index = WriteText(buffer, "Memory | ", 0);
+        index = WriteNumber(buffer, index, (int) (hundredths / 100));
+        buffer[index++] = '.';
+        index = WriteTwoDigits(buffer, index, (int) (hundredths % 100));
+        index = WriteText(buffer, " MB (", index);
+        long rate = _memoryRate / 1024;
+        buffer[index++] = rate < 0 ? '-' : '+';
+        index = WriteNumber(buffer, index, (int) Math.Abs(rate));
+        index = WriteText(buffer, " KB/s)", index);
+        GarbageCollector.Mode gcMode = GarbageCollector.GCMode;
+        index = WriteText(buffer, gcMode switch {
+            GarbageCollector.Mode.Enabled => " | GC On",
+            GarbageCollector.Mode.Disabled => " | GC Off",
+            _ => " | GC Manual"
+        }, index);
+        MemoryText.SetCharArray(buffer, 0, index);
     }
 
     private void UpdateAuthor() {

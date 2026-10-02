@@ -17,7 +17,10 @@ public static class JMain {
     }
 
     public static void Update(float deltaTime) {
-        if(ModeEnabled) JOverlay.Instance.UpdateFPS(deltaTime);
+        if(ModeEnabled) {
+            JOverlay.Instance.UpdateFPS(deltaTime);
+            JOverlay.Instance.UpdateMemory(deltaTime);
+        }
         if(!ADOBase.isLevelSelect || !CheatCode.CheckCheatCode()) return;
         _setting["Jongyeol"] = ModeEnabled = !ModeEnabled;
         Main.Instance.SaveSetting();
