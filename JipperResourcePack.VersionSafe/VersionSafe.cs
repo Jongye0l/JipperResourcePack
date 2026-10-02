@@ -122,7 +122,9 @@ public static class VersionSafe {
     public static KeyLabel UnityKeyToSkyHookKey(KeyCode key) => AsyncKeyMapper.UnityKeyToAsyncKey(key);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#pragma warning disable CS0618 // Type or member is obsolete
     public static T FindAnyObjectByType<T>() where T : Object => Object.FindObjectOfType<T>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Color GetOrange() => new Color(1f, 0.6470588f, 0.0f, 1f);
