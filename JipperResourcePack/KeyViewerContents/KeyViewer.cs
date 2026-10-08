@@ -909,7 +909,7 @@ public partial class KeyViewer : Feature {
 
     private void Initialize4KeyViewer() {
         float y = Settings.YLocation;
-        for(int i = 0; i < 4; i++) Keys[i] = CreateKey(i, 108 + 54 * i, 25 + y, 50, 0);
+        for(int i = 0; i < 4; i++) Keys[i] = CreateKey(i, 108 + (54 * i), 25 + y, 50, 0);
         Kps = CreateKey(-1, 0, 25 + y, 104, -1);
         Total = CreateKey(-2, 324, 25 + y, 104, -1);
         Updater.enabled = true;
