@@ -148,8 +148,10 @@ public partial class KeyViewer : Feature {
         settingGUI.AddSettingSliderFloat(ref settings.rainSpeed, 100, ref _rainSizeString, localization["keyViewer.rainSpeed"], 1, 800);
         settingGUI.AddSettingSliderFloat(ref settings.rainHeight, 200, ref _rainHeightString, localization["keyViewer.rainHeight"], 1, 1000);
         settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
-        settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], [KeyviewerStyle.Key10, KeyviewerStyle.Key12, KeyviewerStyle.Key16, KeyviewerStyle.Key20], ChangeKeyViewer);
+        settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], [KeyviewerStyle.Key4, KeyviewerStyle.Key8, KeyviewerStyle.Key10, KeyviewerStyle.Key12, KeyviewerStyle.Key16, KeyviewerStyle.Key20], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
+        if(settings.KeyViewerStyle == KeyviewerStyle.Key8)
+            settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey8, localization["keyViewer.showTotalKps"], ResetKeyViewer);
         if(settings.KeyViewerStyle == KeyviewerStyle.Key16)
             settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey16, localization["keyViewer.showTotalKps"], ResetKeyViewer);
         settingGUI.AddSettingSliderFloat(ref settings.Size, 1, ref _sizeString, localization["size"], 0, 2, () => {
@@ -176,7 +178,7 @@ public partial class KeyViewer : Feature {
             GUILayout.Space(18f);
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            for(int i = 0; i < 8; i++) CreateButton(i, false);
+            for(int i = 0; i < Math.Min(8, GetKeyCode().Length); i++) CreateButton(i, false);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
@@ -214,7 +216,7 @@ public partial class KeyViewer : Feature {
                 GUILayout.Space(18f);
                 GUILayout.BeginVertical();
                 GUILayout.BeginHorizontal();
-                for(int i = 0; i < 8; i++) CreateGhostButton(i);
+                for(int i = 0; i < Math.Min(8, GetGhostKeyCode().Length); i++) CreateGhostButton(i);
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
@@ -245,7 +247,7 @@ public partial class KeyViewer : Feature {
             GUILayout.Space(18f);
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            for(int i = 0; i < 8; i++) CreateButton(i, true);
+            for(int i = 0; i < Math.Min(8, GetKeyText().Length); i++) CreateButton(i, true);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
@@ -394,6 +396,8 @@ public partial class KeyViewer : Feature {
 
     private static KeyCode[] GetKeyCode() {
         return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key4 => Settings.key4,
+            KeyviewerStyle.Key8 => Settings.key8,
             KeyviewerStyle.Key12 => Settings.key12,
             KeyviewerStyle.Key16 => Settings.key16,
             KeyviewerStyle.Key20 => Settings.key20,
@@ -404,6 +408,8 @@ public partial class KeyViewer : Feature {
 
     private static KeyCode[] GetGhostKeyCode() {
         return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key4 => Settings.GhostKey4,
+            KeyviewerStyle.Key8 => Settings.GhostKey8,
             KeyviewerStyle.Key12 => Settings.GhostKey12,
             KeyviewerStyle.Key16 => Settings.GhostKey16,
             KeyviewerStyle.Key20 => Settings.GhostKey20,
@@ -425,6 +431,8 @@ public partial class KeyViewer : Feature {
 
     private static string[] GetKeyText() {
         return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key4 => Settings.key4Text,
+            KeyviewerStyle.Key8 => Settings.key8Text,
             KeyviewerStyle.Key12 => Settings.key12Text,
             KeyviewerStyle.Key16 => Settings.key16Text,
             KeyviewerStyle.Key20 => Settings.key20Text,
@@ -435,6 +443,7 @@ public partial class KeyViewer : Feature {
 
     private static byte[] GetBackSequence() {
         return Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key4 or KeyviewerStyle.Key8 => [],
             KeyviewerStyle.Key12 => BackSequence12,
             KeyviewerStyle.Key16 => BackSequence16,
             KeyviewerStyle.Key20 => BackSequence20,
@@ -680,6 +689,14 @@ public partial class KeyViewer : Feature {
             string[] keyText1 = GetKeyText();
             string[] keyText2;
             switch(_currentKeyViewerStyle) {
+                case KeyviewerStyle.Key4:
+                    keyCode2 = settings.key4;
+                    keyText2 = settings.key4Text;
+                    break;
+                case KeyviewerStyle.Key8:
+                    keyCode2 = settings.key8;
+                    keyText2 = settings.key8Text;
+                    break;
                 case KeyviewerStyle.Key12:
                     keyCode2 = settings.key12;
                     keyText2 = settings.key12Text;
@@ -699,10 +716,12 @@ public partial class KeyViewer : Feature {
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            int size = Math.Min(keyCode1.Length, keyCode2.Length);
+            int targetOffset = _currentKeyViewerStyle == KeyviewerStyle.Key4 && settings.KeyViewerStyle != KeyviewerStyle.Key4 ? 2 : 0;
+            int sourceOffset = settings.KeyViewerStyle == KeyviewerStyle.Key4 && _currentKeyViewerStyle != KeyviewerStyle.Key4 ? 2 : 0;
+            int size = Math.Min(keyCode1.Length - targetOffset, keyCode2.Length - sourceOffset);
             for(int i = 0; i < size; i++) {
-                keyCode1[i] = keyCode2[i];
-                keyText1[i] = keyText2[i];
+                keyCode1[i + targetOffset] = keyCode2[i + sourceOffset];
+                keyText1[i + targetOffset] = keyText2[i + sourceOffset];
             }
             Mod.SaveSetting();
         }
@@ -728,11 +747,19 @@ public partial class KeyViewer : Feature {
         _lastKpsCount = 0;
         _lastTotalCount = KeyCountData.Instance.TotalCount;
         _currentKeyMaxY = Settings.KeyViewerStyle switch {
+            KeyviewerStyle.Key4 => 1030,
+            KeyviewerStyle.Key8 => Settings.ShowTotalKpsKey8 ? 976 : 1030,
             KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
             _ => Settings.ShowTotalKpsKey16 ? 940 : 970
         };
         switch(Settings.KeyViewerStyle) {
+            case KeyviewerStyle.Key4:
+                Initialize4KeyViewer();
+                break;
+            case KeyviewerStyle.Key8:
+                Initialize5KeyViewer();
+                break;
             case KeyviewerStyle.Key12:
                 Initialize0KeyViewer();
                 break;
@@ -881,6 +908,31 @@ public partial class KeyViewer : Feature {
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
         _pressTimes ??= new ConcurrentQueue<long>();
+    }
+
+    private void Initialize4KeyViewer() {
+        float y = Settings.YLocation;
+        for(int i = 0; i < 4; i++) Keys[i] = CreateKey(i, 108 + (54 * i), 25 + y, 50, 0);
+        Kps = CreateKey(-1, 0, 25 + y, 104, -1);
+        Total = CreateKey(-2, 324, 25 + y, 104, -1);
+        Updater.enabled = true;
+        _pressTimes ??= new ConcurrentQueue<long>();
+    }
+
+    private void Initialize5KeyViewer() {
+        float y = Settings.YLocation - (Settings.ShowTotalKpsKey8 ? 0 : 54);
+        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 79 + y, 50, 0);
+        if(Settings.ShowTotalKpsKey8) {
+            Kps = CreateKey(-1, 0, 25 + y, 212, -1);
+            Total = CreateKey(-2, 216, 25 + y, 212, -1);
+            Updater.enabled = true;
+            _pressTimes ??= new ConcurrentQueue<long>();
+        } else {
+            Kps = null;
+            Total = null;
+            Updater.enabled = false;
+            _pressTimes = null;
+        }
     }
 
     private void InitializeFootKeyViewer(int size) {
