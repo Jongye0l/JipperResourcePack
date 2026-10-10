@@ -150,6 +150,8 @@ public partial class KeyViewer : Feature {
         settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], [KeyviewerStyle.Key4, KeyviewerStyle.Key8, KeyviewerStyle.Key10, KeyviewerStyle.Key12, KeyviewerStyle.Key16, KeyviewerStyle.Key20], ChangeKeyViewer);
         settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
+        if(settings.KeyViewerStyle == KeyviewerStyle.Key8)
+            settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey8, localization["keyViewer.showTotalKps"], ResetKeyViewer);
         if(settings.KeyViewerStyle == KeyviewerStyle.Key16)
             settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey16, localization["keyViewer.showTotalKps"], ResetKeyViewer);
         settingGUI.AddSettingSliderFloat(ref settings.Size, 1, ref _sizeString, localization["size"], 0, 2, () => {
@@ -745,7 +747,8 @@ public partial class KeyViewer : Feature {
         _lastKpsCount = 0;
         _lastTotalCount = KeyCountData.Instance.TotalCount;
         _currentKeyMaxY = Settings.KeyViewerStyle switch {
-            KeyviewerStyle.Key4 or KeyviewerStyle.Key8 => 976,
+            KeyviewerStyle.Key4 => 1030,
+            KeyviewerStyle.Key8 => Settings.ShowTotalKpsKey8 ? 976 : 1030,
             KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
             _ => Settings.ShowTotalKpsKey16 ? 940 : 970
@@ -917,12 +920,19 @@ public partial class KeyViewer : Feature {
     }
 
     private void Initialize5KeyViewer() {
-        float y = Settings.YLocation;
+        float y = Settings.YLocation - (Settings.ShowTotalKpsKey8 ? 0 : 54);
         for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 79 + y, 50, 0);
-        Kps = CreateKey(-1, 0, 25 + y, 212, -1);
-        Total = CreateKey(-2, 216, 25 + y, 212, -1);
-        Updater.enabled = true;
-        _pressTimes ??= new ConcurrentQueue<long>();
+        if(Settings.ShowTotalKpsKey8) {
+            Kps = CreateKey(-1, 0, 25 + y, 212, -1);
+            Total = CreateKey(-2, 216, 25 + y, 212, -1);
+            Updater.enabled = true;
+            _pressTimes ??= new ConcurrentQueue<long>();
+        } else {
+            Kps = null;
+            Total = null;
+            Updater.enabled = false;
+            _pressTimes = null;
+        }
     }
 
     private void InitializeFootKeyViewer(int size) {
