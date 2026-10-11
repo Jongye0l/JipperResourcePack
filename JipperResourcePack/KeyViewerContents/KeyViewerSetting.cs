@@ -14,6 +14,16 @@ public class KeyViewerSetting : JASetting {
 
     // ReSharper disable InconsistentNaming
     // ReSharper disable FieldCanBeMadeReadOnly.Global
+    public KeyCode[] key4 = [KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals];
+    public string[] key4Text = new string[4];
+    public KeyCode[] GhostKey4 = new KeyCode[4];
+
+    public KeyCode[] key8 = [
+        KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash
+    ];
+    public string[] key8Text = new string[8];
+    public KeyCode[] GhostKey8 = new KeyCode[8];
+
     public KeyCode[] key10 = [
         KeyCode.Tab, KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.E, KeyCode.P, KeyCode.Equals, KeyCode.Backspace, KeyCode.Backslash,
         KeyCode.Space, KeyCode.Comma
@@ -57,6 +67,7 @@ public class KeyViewerSetting : JASetting {
     public float Size = 1;
     public bool useRain = true;
     public bool useGhostRain;
+    public bool ShowTotalKpsKey8 = true;
     public bool ShowTotalKpsKey16 = true;
     public float rainSpeed = 100;
     public float rainHeight = 200;
