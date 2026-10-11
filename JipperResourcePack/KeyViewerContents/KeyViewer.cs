@@ -748,9 +748,8 @@ public partial class KeyViewer : Feature {
         _lastTotalCount = KeyCountData.Instance.TotalCount;
         _currentKeyMaxY = Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key4 => 1030,
-            KeyviewerStyle.Key8 => Settings.ShowTotalKpsKey8 ? 976 : 1030,
-            KeyviewerStyle.Key10 => 940,
-            KeyviewerStyle.Key12 => 976,
+            KeyviewerStyle.Key8 => Settings.ShowTotalKpsKey8 ? 994 : 1030,
+            KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
             _ => Settings.ShowTotalKpsKey16 ? 940 : 970
         };
@@ -900,13 +899,13 @@ public partial class KeyViewer : Feature {
 
     private void Initialize3KeyViewer() {
         float y = Settings.YLocation;
-        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 115 + y, 50, 0);
-        Keys[8] = CreateKey(8, 81, 61 + y, 131, 1);
+        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 79 + y, 50, 0);
+        Keys[8] = CreateKey(8, 81, 25 + y, 131, 1);
         Keys[8].RainPool = Keys[3].RainPool;
-        Keys[9] = CreateKey(9, 54 * 4, 61 + y, 131, 1);
+        Keys[9] = CreateKey(9, 54 * 4, 25 + y, 131, 1);
         Keys[9].RainPool = Keys[4].RainPool;
-        Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
-        Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
+        Kps = CreateKey(-1, 0, 25 + y, 77, -1);
+        Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
         _pressTimes ??= new ConcurrentQueue<long>();
     }
@@ -921,11 +920,11 @@ public partial class KeyViewer : Feature {
     }
 
     private void Initialize5KeyViewer() {
-        float y = Settings.YLocation - (Settings.ShowTotalKpsKey8 ? 0 : 54);
-        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 79 + y, 50, 0);
+        float y = Settings.YLocation - (Settings.ShowTotalKpsKey8 ? 0 : 36);
+        for(int i = 0; i < 8; i++) Keys[i] = CreateKey(i, 54 * i, 61 + y, 50, 0);
         if(Settings.ShowTotalKpsKey8) {
-            Kps = CreateKey(-1, 0, 25 + y, 212, -1);
-            Total = CreateKey(-2, 216, 25 + y, 212, -1);
+            Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
+            Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
             Updater.enabled = true;
             _pressTimes ??= new ConcurrentQueue<long>();
         } else {
