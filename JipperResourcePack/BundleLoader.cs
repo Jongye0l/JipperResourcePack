@@ -1,7 +1,9 @@
-using System;
+﻿using System;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.TextCore;
+using UnityEngine.TextCore.LowLevel;
 using Object = UnityEngine.Object;
 
 namespace JipperResourcePack;
@@ -46,7 +48,7 @@ public static class BundleLoader {
             }
         }
         if(!string.IsNullOrEmpty(Main.Settings.FontName)) {
-            if(Main.Settings.FontName == AdofaiFontName) UnloadCustomFont(RDString.fontData.fontTMP, false);
+            if(Main.Settings.FontName == AdofaiFontName) LoadAdofaiFont();
             else LoadCustomFont(Main.Settings.FontName);
         }
     }
@@ -102,9 +104,54 @@ public static class BundleLoader {
         } catch (Exception e) {
             Main.Instance.Warning("Failed to add fallback font asset for system font: " + fontName + "\n" + e);
         }
+        try {
+            MatchDefaultFontScale(fontAsset);
+        } catch (Exception e) {
+            Main.Instance.Warning("Failed to adjust font scale for system font: " + fontName + "\n" + e);
+        }
 
         UnloadCustomFont(fontAsset, true);
-        _requiredFontUnload = true;
+    }
+
+    public static void LoadAdofaiFont() {
+        TMP_FontAsset source = RDString.fontData.fontTMP;
+        TMP_FontAsset fontAsset = null;
+        try {
+            fontAsset = CopyFontAsset(source);
+            if(fontAsset) MatchDefaultFontScale(fontAsset);
+        } catch (Exception e) {
+            Main.Instance.Warning("Failed to adjust font scale for ADOFAI font\n" + e);
+            if(fontAsset) Object.Destroy(fontAsset);
+            fontAsset = null;
+        }
+        if(fontAsset) UnloadCustomFont(fontAsset, true);
+        else UnloadCustomFont(source, false);
+    }
+
+    private static TMP_FontAsset CopyFontAsset(TMP_FontAsset source) {
+        TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(source.sourceFontFile, 90, 9, GlyphRenderMode.SDFAA, 1024, 1024);
+        if(fontAsset) fontAsset.fallbackFontAssetTable = source.fallbackFontAssetTable;
+        return fontAsset;
+    }
+
+    private static void MatchDefaultFontScale(TMP_FontAsset fontAsset) {
+        if(!DefaultFontAsset || DefaultFontAsset == fontAsset) return;
+        float defaultCapHeight = GetCapHeight(DefaultFontAsset);
+        float capHeight = GetCapHeight(fontAsset);
+        Main.Instance.Log("Matching font scale for " + fontAsset.name + ": default cap height = " + defaultCapHeight + ", new cap height = " + capHeight);
+        if(defaultCapHeight <= 0 || capHeight <= 0) return;
+        FaceInfo faceInfo = fontAsset.faceInfo;
+        faceInfo.scale = Mathf.Clamp(defaultCapHeight / capHeight, 0.5f, 2f);
+        fontAsset.faceInfo = faceInfo;
+    }
+
+    private static float GetCapHeight(TMP_FontAsset fontAsset) {
+        FaceInfo faceInfo = fontAsset.faceInfo;
+        if(faceInfo.pointSize <= 0) return 0;
+        float capHeight = faceInfo.capLine;
+        if(capHeight <= 0 && fontAsset.HasCharacter('H', false, true) && fontAsset.characterLookupTable.TryGetValue('H', out TMP_Character character))
+            capHeight = character.glyph.metrics.horizontalBearingY;
+        return capHeight / faceInfo.pointSize;
     }
 
     private static string GetPathForFontName(string fontName) {

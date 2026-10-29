@@ -157,7 +157,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     private void SelectFont(string fontName, string fontPath = null) {
         Settings.FontName = fontName;
         if(string.IsNullOrEmpty(fontName)) BundleLoader.UnloadCustomFont(BundleLoader.DefaultFontAsset, false);
-        else if(fontName.Equals(BundleLoader.AdofaiFontName)) BundleLoader.UnloadCustomFont(RDString.fontData.fontTMP, false);
+        else if(fontName.Equals(BundleLoader.AdofaiFontName)) BundleLoader.LoadAdofaiFont();
         else BundleLoader.LoadCustomFont(fontName, fontPath);
         Overlay.Instance.UpdateFont();
         if(KeyViewer.Instance.Enabled) {
