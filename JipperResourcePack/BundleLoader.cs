@@ -104,10 +104,12 @@ public static class BundleLoader {
         } catch (Exception e) {
             Main.Instance.Warning("Failed to add fallback font asset for system font: " + fontName + "\n" + e);
         }
-        try {
-            MatchDefaultFontScale(fontAsset);
-        } catch (Exception e) {
-            Main.Instance.Warning("Failed to adjust font scale for system font: " + fontName + "\n" + e);
+        if(VersionSafe.FontScaleSupported) {
+            try {
+                MatchDefaultFontScale(fontAsset);
+            } catch (Exception e) {
+                Main.Instance.Warning("Failed to adjust font scale for system font: " + fontName + "\n" + e);
+            }
         }
 
         UnloadCustomFont(fontAsset, true);
@@ -115,6 +117,10 @@ public static class BundleLoader {
 
     public static void LoadAdofaiFont() {
         TMP_FontAsset source = RDString.fontData.fontTMP;
+        if(!VersionSafe.FontScaleSupported) {
+            UnloadCustomFont(source, false);
+            return;
+        }
         TMP_FontAsset fontAsset = null;
         try {
             fontAsset = CopyFontAsset(source);

@@ -53,6 +53,8 @@ public static class VersionSafe {
     }
 
 #if R141After
+    public static bool FontScaleSupported => true;
+
     public static void CalculatePercentAcc() {
         foreach(scrMarginTracker tracker in scrMistakesManager.marginTrackers) tracker.CalculatePercentAcc();
     }
@@ -98,6 +100,7 @@ public static class VersionSafe {
     public static Color GetPurple() => Color.purple;
 
 #else
+    public static bool FontScaleSupported => false;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void CalculatePercentAcc() => scrController.instance.mistakesManager.CalculatePercentAcc();
