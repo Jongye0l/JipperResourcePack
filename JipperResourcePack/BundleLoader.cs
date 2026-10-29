@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using TMPro;
 using UnityEngine;
@@ -46,7 +46,7 @@ public static class BundleLoader {
             }
         }
         if(!string.IsNullOrEmpty(Main.Settings.FontName)) {
-            if(Main.Settings.FontName == AdofaiFontName) UnloadCustomFont(RDString.fontData.fontTMP);
+            if(Main.Settings.FontName == AdofaiFontName) UnloadCustomFont(RDString.fontData.fontTMP, false);
             else LoadCustomFont(Main.Settings.FontName);
         }
     }
@@ -84,7 +84,7 @@ public static class BundleLoader {
     }
 
     public static void UnloadBundle() {
-        UnloadCustomFont(null);
+        UnloadCustomFont(null, false);
         Object.Destroy(DefaultFontAsset);
         DefaultFontAsset = null;
         _bundle.Unload(true);
@@ -103,7 +103,7 @@ public static class BundleLoader {
             Main.Instance.Warning("Failed to add fallback font asset for system font: " + fontName + "\n" + e);
         }
 
-        UnloadCustomFont(fontAsset);
+        UnloadCustomFont(fontAsset, true);
         _requiredFontUnload = true;
     }
 
@@ -114,8 +114,9 @@ public static class BundleLoader {
         return index >= 0 && index < paths.Length ? paths[index] : null;
     }
 
-    public static void UnloadCustomFont(TMP_FontAsset fontAsset) {
+    public static void UnloadCustomFont(TMP_FontAsset fontAsset, bool requireUnload) {
         if(_requiredFontUnload) Object.Destroy(FontAsset);
         FontAsset = fontAsset;
+        _requiredFontUnload = requireUnload;
     }
 }
