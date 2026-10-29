@@ -192,7 +192,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         URLLabel(Localization["credit.translator"] + ": Phrygia", "https://www.youtube.com/@sjk04_");
         URLLabel(Localization["credit.tester"] + ": dofaer", "https://www.youtube.com/@%EB%8F%84%ED%8E%98");
         URLLabel(Localization["credit.tester"] + ": NTure", "https://www.youtube.com/@NTure_1253");
-        GUILayout.Space(25f);
+        GUILayout.Space(10f);
         GUILayout.Label(Localization["credit.reference"]);
         URLLabel("Overlayer(By. c3nb)", "https://github.com/c3nb/Overlayer/tree/2cdf95b13add797f9c274d5766786c24c54adb9f");
         URLLabel("ShowBPM(By. Flower)", "https://github.com/FLOWERs-Modding/ADOFAI_ShowBPM");
@@ -205,9 +205,11 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         if(JMain.ModeEnabled) {
             URLLabel("State(By. Jongyeol)", "https://github.com/Jongye0l/State");
         }
-        GUILayout.Space(25f);
+        GUILayout.Space(10f);
         GUILayout.Label(Localization["credit.font"]);
         URLLabel("Maplestory OTF Bold", "https://fontmeme.com/ktype/maplestory-font/");
+        GUILayout.Space(10f);
+        GUILayout.Label(Localization["credit.aiused"]);
         GUILayout.EndVertical();
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();

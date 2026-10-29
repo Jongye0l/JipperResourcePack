@@ -44,6 +44,7 @@
 ---
 ### 안내 사항 Instructions
 * 이 모드를 사용하려면 [JALib](https://github.com/Jongye0l/JALib/releases)모드가 필요합니다.
+* 해당 모드의 일부 코드는 생성형 AI를 통해 작성되었습니다.
 ---
 ### 사용 방법 How to use
 * [이 링크](https://github.com/Jongye0l/JipperResourcePack/releases/download/v1.0.0.0/JipperResourcePack.Installer.exe)에서 다운로드후 실행하시면 자동으로 설치됩니다.
