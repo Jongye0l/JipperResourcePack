@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -7,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using HarmonyLib;
 using JALib.Core.Patch;
+using JipperResourcePack.KeyViewerContents.KeyMapper;
 using SkyHook;
 using UnityEngine;
 using EventType = SkyHook.EventType;
@@ -27,39 +29,33 @@ public partial class KeyViewer {
     private ConcurrentQueue<KeyEvent> _eventQueue;
     private SemaphoreSlim _eventSignal;
     private volatile bool _listening;
-    private KeyBinding _keyBinding;
+    private FrozenDictionary<int, int[]> _keyBinding;
     private long _eventOffsetTicks = NoEventOffset;
     private volatile int _capturedKeyCode;
     private int _lastKpsCount;
     private int _lastTotalCount;
     private static HashSet<KeyCode> _unityKeyLimitKeys = [];
-    private static HashSet<ushort> _asyncKeyLimitKeys;
+    private static HashSet<ushort> _asyncKeyLimitKeys = [];
 
     private void RebuildKeyBinding() {
         if(Keys == null) return;
-        Dictionary<KeyLabel, List<int>> labels = new();
-        Dictionary<ushort, List<int>> natives = new();
-        AddKeyCodes(GetKeyCode(), 0);
-        AddKeyCodes(GetFootKeyCode(), HandOutIndex);
-        AddKeyCodes(GetGhostKeyCode(), FootOutIndex);
-        _keyBinding = new KeyBinding(ToArrayMap(labels), ToArrayMap(natives));
+        Dictionary<int, List<int>> indexMap = new();
+        AddKeyCodes(indexMap, GetKeyCode(), 0);
+        AddKeyCodes(indexMap, GetFootKeyCode(), HandOutIndex);
+        AddKeyCodes(indexMap, GetGhostKeyCode(), FootOutIndex);
+
+        Dictionary<int, int[]> keyBinding = new(indexMap.Count);
+        foreach(KeyValuePair<int, List<int>> pair in indexMap) keyBinding[pair.Key] = pair.Value.ToArray();
+        _keyBinding = keyBinding.ToFrozenDictionary();
         return;
 
-        void AddKeyCodes(KeyCode[] keyCodes, int offset) {
+        void AddKeyCodes(Dictionary<int, List<int>> keyIndexMap, KeyCode[] keyCodes, int offset) {
             for(int i = 0; i < keyCodes.Length; i++) {
                 KeyCode keyCode = keyCodes[i];
                 if(keyCode == KeyCode.None) continue;
                 int index = i + offset;
-                if((int) keyCode < 0x1000) {
-                    KeyLabel label = VersionSafe.UnityKeyToSkyHookKey(keyCode);
-                    if(label == KeyLabel.Unknown) continue;
-                    if(!labels.TryGetValue(label, out List<int> list)) labels[label] = list = [];
-                    list.Add(index);
-                } else {
-                    ushort nativeKeyCode = (ushort) ((int) keyCode - 0x1000);
-                    if(!natives.TryGetValue(nativeKeyCode, out List<int> list)) natives[nativeKeyCode] = list = [];
-                    list.Add(index);
-                }
+                if(!keyIndexMap.TryGetValue((int) keyCode, out List<int> list)) keyIndexMap[(int) keyCode] = list = [];
+                list.Add(index);
             }
         }
     }
@@ -70,8 +66,8 @@ public partial class KeyViewer {
         for(int i = 0; i < codes.Count; i++) {
             CodeInstruction code = codes[i];
             if(code.operand is FieldInfo { Name: nameof(Persistence.keyLimiterKeys) }) {
-                code.operand = typeof(KeyViewer).GetField(nameof(_unityKeyLimitKeys), BindingFlags.NonPublic | BindingFlags.Static);
-                codes.RemoveAt(i + 1);
+                // Keep the game's own key set load and pick between it and ours right after it.
+                codes.Insert(i + 2, new CodeInstruction(OpCodes.Call, typeof(KeyViewer).GetMethod(nameof(SelectUnityKeyLimitKeys), BindingFlags.NonPublic | BindingFlags.Static)));
             }
         }
         return codes;
@@ -83,50 +79,15 @@ public partial class KeyViewer {
         for(int i = 0; i < codes.Count; i++) {
             CodeInstruction code = codes[i];
             if(code.operand is FieldInfo { Name: nameof(Persistence.keyLimiterKeys) }) {
-                codes[i + 3].labels.AddRange(codes[i].labels);
-                codes.RemoveRange(i, 3);
-            } else if(code.operand is MethodInfo { Name: "get_" + nameof(RDInput.useKeyLimiter) }) {
-                LocalBuilder local = (LocalBuilder) codes[i - 1].operand;
-                codes[i].opcode = OpCodes.Ldloc;
-                codes[i++].operand = local;
-                codes.Insert(i++, new CodeInstruction(OpCodes.Call, typeof(KeyViewer).GetMethod(nameof(IsLimitedKey), BindingFlags.NonPublic | BindingFlags.Static)));
-                int j = i;
-                while(true) {
-                    CodeInstruction cur = codes[++j];
-                    if(cur.opcode == OpCodes.Brfalse || cur.opcode == OpCodes.Brfalse_S) break;
-                }
-                codes.RemoveRange(i, j - i);
+                codes.Insert(i + 2, new CodeInstruction(OpCodes.Call, typeof(KeyViewer).GetMethod(nameof(SelectAsyncKeyLimitKeys), BindingFlags.NonPublic | BindingFlags.Static)));
             }
         }
         return codes;
     }
 
-    private static bool IsLimitedKey(AsyncKeyCode keyCode) {
-        try {
-            if(!RDInput.useKeyLimiter) return true;
+    private static HashSet<KeyCode> SelectUnityKeyLimitKeys(HashSet<KeyCode> manualKeys) => Settings.AutoSetupKeyLimit ? _unityKeyLimitKeys : manualKeys;
 
-            if(Settings.AutoSetupKeyLimit) {
-                if(keyCode.label != KeyLabel.Unknown) {
-                    foreach(KeyCode unityKeyLimitKey in _unityKeyLimitKeys) {
-                        KeyLabel label = VersionSafe.UnityKeyToSkyHookKey(unityKeyLimitKey);
-                        if(label == keyCode.label) return true;
-                    }
-                }
-                return _asyncKeyLimitKeys.Contains(keyCode.key);
-            }
-        } catch (Exception e) {
-            Main.Instance.LogReportException(e);
-        }
-
-        HashSet<ushort> asyncKeysCache = Persistence.keyLimiterKeys.asyncKeysCache;
-        return asyncKeysCache.Count <= 0 || asyncKeysCache.Contains(keyCode.key);
-    }
-
-    private static Dictionary<T, int[]> ToArrayMap<T>(Dictionary<T, List<int>> map) {
-        Dictionary<T, int[]> result = new(map.Count);
-        foreach(KeyValuePair<T, List<int>> pair in map) result[pair.Key] = pair.Value.ToArray();
-        return result;
-    }
+    private static HashSet<ushort> SelectAsyncKeyLimitKeys(HashSet<ushort> manualKeys) => Settings.AutoSetupKeyLimit ? _asyncKeyLimitKeys : manualKeys;
 
     private void StartEventListener() {
         _eventQueue = new ConcurrentQueue<KeyEvent>();
@@ -172,22 +133,18 @@ public partial class KeyViewer {
     }
 
     private void ProcessKeyEvent(KeyEvent keyEvent) {
-        KeyBinding binding = _keyBinding;
+        FrozenDictionary<int, int[]> binding = _keyBinding;
         if(binding == null || !Enabled) return;
         bool pressed = keyEvent.Pressed;
-        if(pressed && _selectedKey != -1 && _changeState != 1) {
-            KeyCode capturedKey = VersionSafe.SkyHookKeyToUnityKey(keyEvent.Label);
-            _capturedKeyCode = capturedKey switch {
-                KeyCode.None => keyEvent.Key + 0x1000,
-                KeyCode.Less => (int) KeyCode.Comma,
-                KeyCode.Greater => (int) KeyCode.Equals,
-                KeyCode.Pipe => (int) KeyCode.Backslash,
-                _ => (int) capturedKey
-            };
-        }
+
+        if(!KeyCodeMapper.TryInit() || !KeyCodeMapper.Instance.TryGetCustomKeyCode(keyEvent.Key, out KeyCode tempKey))
+            tempKey = VersionSafe.SkyHookKeyToUnityKey(keyEvent.Label);
+
+        int capturedKey = tempKey == KeyCode.None ? keyEvent.Key + 0x1000 : (int) tempKey;
+        if(pressed && _selectedKey != -1 && _changeState != 1) _capturedKeyCode = capturedKey;
         bool counted = false;
-        if(binding.LabelMap.TryGetValue(keyEvent.Label, out int[] indexes)) counted = Work(indexes, pressed, keyEvent.Ticks);
-        if(binding.NativeMap.TryGetValue(keyEvent.Key, out indexes)) counted |= Work(indexes, pressed, keyEvent.Ticks);
+
+        if(binding.TryGetValue(capturedKey, out int[] indexes)) counted |= Work(indexes, pressed, keyEvent.Ticks);
         if(counted && Enabled) KeyCountData.Instance.Save();
     }
 
@@ -251,11 +208,6 @@ public partial class KeyViewer {
         public readonly ushort Key = key;
         public readonly bool Pressed = pressed;
         public readonly long Ticks = ticks;
-    }
-
-    private sealed class KeyBinding(Dictionary<KeyLabel, int[]> labelMap, Dictionary<ushort, int[]> nativeMap) {
-        public readonly Dictionary<KeyLabel, int[]> LabelMap = labelMap;
-        public readonly Dictionary<ushort, int[]> NativeMap = nativeMap;
     }
 
     public class KeyViewerUpdater : MonoBehaviour {

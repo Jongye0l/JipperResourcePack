@@ -11,6 +11,7 @@
 
     <PropertyGroup>
         <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 145">$(DefineConstants);R145After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 146">$(DefineConstants);R146After</DefineConstants>
         <DefineConstants Condition="$(GameRelease) &gt;= 149">$(DefineConstants);R149After</DefineConstants>
     </PropertyGroup>
@@ -93,6 +94,9 @@
         </Reference>
         <Reference Include="System">
             <HintPath>$(GameManagedPath)/System.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Collections.Immutable">
+            <HintPath>$(GameManagedPath)/../../Mods/JALib/lib/System.Collections.Immutable.dll</HintPath>
         </Reference>
         <Reference Include="System.Core">
             <HintPath>$(GameManagedPath)/System.Core.dll</HintPath>

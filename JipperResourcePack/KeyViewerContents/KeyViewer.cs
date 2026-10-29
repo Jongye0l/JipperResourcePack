@@ -2,16 +2,15 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using JALib.Core;
 using JALib.Core.Patch;
 using JALib.Tools;
 using JipperResourcePack.Async;
+using JipperResourcePack.KeyViewerContents.KeyMapper;
 using JipperResourcePack.KeyViewerContents.OtherModApi;
 using JipperResourcePack.SettingTool;
-using Newtonsoft.Json.Linq;
 using SkyHook;
 using TMPro;
 using UnityEngine;
@@ -1121,54 +1120,27 @@ public partial class KeyViewer : Feature {
 
     private static void UpdateKeyLimit() {
         Instance?.RebuildKeyBinding();
-        switch(VersionControl.releaseNumber) {
-            case < 145:
-                UpdateKeyLimitR144();
-                break;
-            default:
-                UpdateKeyLimitR145();
-                break;
-        }
-    }
-
-    private static void UpdateKeyLimitR144() {
-        KeyViewerSetting settings = Settings;
-        if(ADOBase.platform != Platform.Windows || !settings.AutoSetupKeyLimit || !AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
-        Dictionary<KeyCode, List<int>> codeDictionary = GetKeyCodes();
-        KeyCode[] keyCodes = GetKeyCode();
-        KeyCode[] footKeyCodes = GetFootKeyCode();
-        HashSet<KeyCode> keys = [..keyCodes.Where(t => (int) t < 0x1000)];
-        foreach(KeyCode keyCode in footKeyCodes) if((int) keyCode < 0x1000) keys.Add(keyCode);
-        HashSet<ushort> asyncKeys = [];
-        foreach(KeyCode code in keyCodes.Concat(footKeyCodes)) {
-            if((int) code < 0x1000) {
-                if(!codeDictionary.TryGetValue(code, out List<int> value)) continue;
-                foreach(int i in value) asyncKeys.Add((ushort) i);
-            } else asyncKeys.Add((ushort) ((int) code - 0x1000));
-        }
-
-        List<KeyCode> keyList = new(keys);
-        List<ushort> asyncKeyList = asyncKeys.ToList();
-        if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
-        if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
-    }
-
-    private static void UpdateKeyLimitR145() {
-        if(ADOBase.platform == Platform.Linux && !SkyHookManager.Instance.isHookActive) {
-            if(MainThread.IsMainThread()) Task.Yield().OnCompleted(UpdateKeyLimitR145);
-            else MainThread.Run(Main.Instance, UpdateKeyLimitR145);
+        if(ADOBase.platform == Platform.Linux && !SkyHookManager.Instance.isHookActive && VersionControl.releaseNumber < 150) {
+            RetryAsyncKeyLimit();
             return;
         }
-        KeyViewerSetting settings = Settings;
-        if(!settings.AutoSetupKeyLimit) return;
+        if(!Settings.AutoSetupKeyLimit) return;
+        if(!KeyCodeMapper.TryInit()) {
+            VersionSafe.RunAfter(UpdateKeyLimit);
+            return;
+        }
         KeyCode[] keyCodes = GetKeyCode();
         KeyCode[] footKeyCodes = GetFootKeyCode();
         
         HashSet<KeyCode> keys = [];
         HashSet<ushort> asyncKeys = [];
         foreach(KeyCode keyCode in keyCodes.Concat(footKeyCodes)) {
-            if((int) keyCode < 0x1000) keys.Add(keyCode);
-            else asyncKeys.Add((ushort) ((int) keyCode - 0x1000));
+            if((int) keyCode < 0x1000) {
+                keys.Add(keyCode);
+                KeyCodeMapper.Instance.AddKeyCode(asyncKeys, keyCode);
+            } else {
+                asyncKeys.Add((ushort) ((int) keyCode - 0x1000));
+            }
         }
 
         _unityKeyLimitKeys = keys;
@@ -1176,46 +1148,22 @@ public partial class KeyViewer : Feature {
 
         if(!AdofaiTweaksAPI.IsExist && !KeyboardChatterBlockerAPI.IsExist) return;
 
-        List<KeyCode> keyList = [ .. keys ];
-        List<ushort> asyncKeyList = new(asyncKeys.Count + keys.Count);
-
-        foreach(KeyCode code in keys) 
-            asyncKeyList.Add(SkyHookKeyMapper.KeyLabelToNativeKeyCode(SkyHookKeyMapper.UnityKeyToSkyHookKey(code)));
-
-        asyncKeyList.AddRange(asyncKeys);
-
+        List<KeyCode> keyList = new(keys);
+        List<ushort> asyncKeyList = new(asyncKeys);
         if(AdofaiTweaksAPI.IsExist) AdofaiTweaksAPI.UpdateKeyLimit(keyList, asyncKeyList);
         if(KeyboardChatterBlockerAPI.IsExist) KeyboardChatterBlockerAPI.UpdateKeyLimit(keyList, asyncKeyList);
     }
 
-    private static Dictionary<KeyCode, List<int>> GetKeyCodes() {
-        JArray array = JArray.Parse(File.ReadAllText(Path.Combine(Main.Instance.Path, "KeyCodes.json")));
-        Dictionary<KeyCode, List<int>> dictionary = new();
-        int i = -1;
-        KeyCode lastCode = KeyCode.None;
-        foreach(KeyCode keyCode in Enum.GetValues(typeof(KeyCode))) {
-            if(i == -1) {
-                i++;
-                continue;
-            }
-            if(keyCode > KeyCode.Mouse6) break;
-            if(keyCode is KeyCode.WheelUp or KeyCode.WheelDown) continue;
-            if(lastCode == keyCode) continue;
-            lastCode = keyCode;
-            JToken token = array[i++];
-            if(token.Type == JTokenType.Array) {
-                List<int> list = token.Select(t => t.Value<int>()).ToList();
-                dictionary.Add(keyCode, list);
-            } else {
-                int value = token.Value<int>();
-                if(value == -1) continue;
-                dictionary.Add(keyCode, [value]);
-            }
+    private static async void RetryAsyncKeyLimit() {
+        try {
+            while(!SkyHookManager.Instance.isHookActive) await Task.Yield();
+            UpdateKeyLimit();
+        } catch (Exception e) {
+            Main.Instance.LogReportException("Fail to retry async key limit", e);
         }
-        return dictionary;
     }
 
-    [JAPatch(typeof(UnityModManager.ModEntry), "Load", PatchType.Postfix, false, TryingCatch = false)]
+    [JAPatch(typeof(UnityModManager.ModEntry), "Load", PatchType.Postfix, false)]
     private static void Load() {
         AdofaiTweaksAPI.Setup();
         KeyboardChatterBlockerAPI.Setup();

@@ -131,6 +131,9 @@
         <Reference Include="System">
             <HintPath>$(GameManagedPath)/System.dll</HintPath>
         </Reference>
+        <Reference Include="System.Collections.Immutable">
+            <HintPath>$(GameManagedPath)/../../Mods/JALib/lib/System.Collections.Immutable.dll</HintPath>
+        </Reference>
         <Reference Include="System.ComponentModel.Composition">
             <HintPath>$(GameManagedPath)/System.ComponentModel.Composition.dll</HintPath>
         </Reference>
@@ -525,6 +528,9 @@
             </VersionSafeBucket>
             <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
                 <AdditionalProperties>GameVersion=R141</AdditionalProperties>
+            </VersionSafeBucket>
+            <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
+                <AdditionalProperties>GameVersion=R145</AdditionalProperties>
             </VersionSafeBucket>
             <VersionSafeBucket Include="$(MSBuildThisFileDirectory)../JipperResourcePack.VersionSafe/JipperResourcePack.VersionSafe.csproj">
                 <AdditionalProperties>GameVersion=R146</AdditionalProperties>

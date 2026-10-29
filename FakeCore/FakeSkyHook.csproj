@@ -10,6 +10,7 @@
 
     <PropertyGroup>
         <DefineConstants Condition="$(GameRelease) &gt;= 141">$(DefineConstants);R141After</DefineConstants>
+        <DefineConstants Condition="$(GameRelease) &gt;= 145">$(DefineConstants);R145After</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup>

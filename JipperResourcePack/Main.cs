@@ -47,6 +47,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         string ver = release switch {
             >= 149 => "R149",
             >= 146 => "R146",
+            >= 145 => "R145",
             >= 141 => "R141",
             _ => "R136"
         };

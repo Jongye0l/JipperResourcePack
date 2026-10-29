@@ -21,7 +21,20 @@ public class scrController {
 #endif
 }
 
+public enum Platform {
+	None,
+	Linux,
+	Mac,
+	Windows,
+	Android,
+	iOS,
+	Switch,
+	Switch2,
+	WebGL,
+}
+
 public class ADOBase {
+	public static Platform platform;
 #if R141After
 	public static scrLoader loader => throw new Exception("stub");
 #else
