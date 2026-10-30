@@ -1,22 +1,17 @@
 [
   {
     "Name": "AdofaiTweaks",
-    "URL": "https://github.com/PizzaLovers007/AdofaiTweaks/releases/download/v2.9.2/AdofaiTweaks-2.9.2.zip",
+    "URL": "https://github.com/PizzaLovers007/AdofaiTweaks/releases/download/v2.9.3/AdofaiTweaks-2.9.3.zip",
     "DisplayName": "AdofaiTweaks(By PizzaLovers007)"
   },
   {
     "Name": "YouTubeStream",
-    "URL": "https://fixcdn.hyonsu.com/attachments/886661471533162526/1509057919369347193/YouTubeStream-1.0.4.zip",
+    "URL": "https://fixcdn.hyonsu.com/attachments/886661471533162526/1530954390813413397/YouTubeStream-1.0.5.zip",
     "DisplayName": "YouTubeStream(By 정현수)"
   },
   {
     "Name": "KeyboardChatterBlocker",
-    "URL": "https://github.com/fangshenghan/KeyboardChatterBlocker/releases/download/0.1.2/KeyboardChatterBlocker.v0.1.2.zip",
+    "URL": "https://github.com/fangshenghan/KeyboardChatterBlocker/releases/download/0.1.3/KeyboardChatterBlocker.v0.1.3.zip",
     "DisplayName": "KeyboardChatterBlocker(By Sharky)"
-  },
-  {
-    "Name": "PACL2",
-    "URL": "https://jalib.jongyeol.kr/downloadMod/PACL2/latest",
-    "DisplayName": "PACL2(By Asansis, Jongyeol)"
   }
 ]
