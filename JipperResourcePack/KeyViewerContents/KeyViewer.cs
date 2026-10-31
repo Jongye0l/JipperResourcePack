@@ -70,6 +70,7 @@ public partial class KeyViewer : Feature {
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSetting)) {
         Instance = this;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
+        OrbitRenderAPI.Setup();
 
         if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys)
                                                        .AddPatch(KeyLimitPatch).AddPatch(AsyncKeyLimitPatch);
@@ -108,12 +109,14 @@ public partial class KeyViewer : Feature {
         _eventOffsetTicks = NoEventOffset;
         RebuildKeyBinding();
         StartEventListener();
+        if(OrbitRenderAPI.IsReplayActive) SetReplayInput(true);
         UpdateKeyLimit();
     }
 
     protected override void OnDisable() {
         if(!KeyViewerObject) return;
-        StopEventListener();
+        if(_replayCounts != null) SetReplayInput(false);
+        if(_listening) StopEventListener();
         AsyncInputHook.Release();
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;

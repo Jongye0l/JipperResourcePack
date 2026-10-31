@@ -21,7 +21,8 @@ public partial class KeyViewer {
 
     public static long CurrentTicks {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks;
+        get => OtherModApi.OrbitRenderAPI.TryGetReplayTicks(out long replayTicks) ? replayTicks
+            : StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks;
     }
 
     private readonly bool[] _keyState = new bool[GhostOutIndex];
@@ -29,6 +30,8 @@ public partial class KeyViewer {
     private ConcurrentQueue<KeyEvent> _eventQueue;
     private SemaphoreSlim _eventSignal;
     private volatile bool _listening;
+    private Thread _eventThread;
+    private KeyCountData _replayCounts;
     private FrozenDictionary<int, int[]> _keyBinding;
     private long _eventOffsetTicks = NoEventOffset;
     private volatile int _capturedKeyCode;
@@ -93,10 +96,11 @@ public partial class KeyViewer {
         _eventQueue = new ConcurrentQueue<KeyEvent>();
         _eventSignal = new SemaphoreSlim(0);
         _listening = true;
-        new Thread(ProcessKeyEvents) {
+        _eventThread = new Thread(ProcessKeyEvents) {
             Name = "JipperResourcePack KeyViewer Input Thread",
             IsBackground = true
-        }.Start();
+        };
+        _eventThread.Start();
         SkyHookManager.KeyUpdated.AddListener(OnKeyEvent);
     }
 
@@ -104,8 +108,76 @@ public partial class KeyViewer {
         SkyHookManager.KeyUpdated.RemoveListener(OnKeyEvent);
         _listening = false;
         _eventSignal?.Release();
+        _eventThread?.Join();
+        _eventThread = null;
         _eventQueue = null;
         _eventSignal = null;
+    }
+
+    // OrbitRender feeds recorded input directly while a replay is rendered.
+    internal void SetReplayInput(bool replay) {
+        if(replay) {
+            if(_replayCounts != null || !KeyViewerObject || KeyCountData.Instance == null) return;
+            if(_listening) StopEventListener();
+            ResetReplayKeys();
+            _replayCounts = new KeyCountData();
+            Array.Copy(KeyCountData.Instance.Count, _replayCounts.Count, _replayCounts.Count.Length);
+            _replayCounts.TotalCount = KeyCountData.Instance.TotalCount;
+            return;
+        }
+        if(_replayCounts == null) return;
+        ResetReplayKeys();
+        _replayCounts = null;
+        if(Keys != null) {
+            for(int i = 0; i < HandOutIndex; i++) {
+                int countIndex = i == 9 && Settings.KeyViewerStyle == KeyviewerStyle.Key10 ? 10 : i;
+                if(Keys[i]?.Value != null) Keys[i].Value.Text = KeyCountData.Instance.Count[countIndex].ToString();
+            }
+        }
+        _lastTotalCount = -1;
+        _eventOffsetTicks = NoEventOffset;
+        if(Enabled && !_listening) StartEventListener();
+    }
+
+    private void ResetReplayKeys() {
+        if(Keys != null) {
+            for(int i = 0; i < _keyState.Length; i++) {
+                if(!_keyState[i]) continue;
+                Key key = Keys[i >= FootOutIndex ? i - FootOutIndex : i];
+                if(key == null) continue;
+                if(i >= FootOutIndex) key.LastGhostRain?.Finish(CurrentTicks);
+                else {
+                    key.UpdateRequestKey(false);
+                    key.LastRain?.Finish(CurrentTicks);
+                }
+            }
+        }
+        Array.Clear(_keyState, 0, _keyState.Length);
+        if(RainManager != null) {
+            while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
+            while(RainManager.RainList.Count > 0) {
+                int index = RainManager.RainList.Count - 1;
+                Rain rain = RainManager.RainList[index];
+                RainManager.RainList.RemoveAt(index);
+                RawRain.AddPool(rain.RawRain);
+                rain.RawRain = null;
+                rain.Pool.AddPool(rain, rain.IsGhost);
+            }
+        }
+        if(Keys != null) foreach(Key key in Keys) {
+            if(key == null) continue;
+            key.LastRain = null;
+            key.LastGhostRain = null;
+        }
+        while(_pressTimes != null && _pressTimes.TryDequeue(out _)) { }
+        _lastKpsCount = -1;
+    }
+
+    // Called on Unity's main thread by OrbitRender.OverlayApi.
+    internal void ApplyReplayKey(KeyCode key, bool pressed, long ticks) {
+        FrozenDictionary<int, int[]> binding = _keyBinding;
+        if(_replayCounts == null || binding == null || !Enabled) return;
+        if(binding.TryGetValue((int) key, out int[] indexes)) Work(indexes, pressed, ticks);
     }
 
     private void OnKeyEvent(SkyHookEvent hookEvent) {
@@ -159,7 +231,7 @@ public partial class KeyViewer {
 
     private bool Work(int[] indexes, bool pressed, long currentTicks) {
         KeyViewerSetting settings = Settings;
-        KeyCountData countData = KeyCountData.Instance;
+        KeyCountData countData = _replayCounts ?? KeyCountData.Instance;
         bool counted = false;
         foreach(int index in indexes) {
             if(index >= FootOutIndex) {
@@ -225,7 +297,7 @@ public partial class KeyViewer {
                 }
             }
             if(instance.Total == null) return;
-            int totalCount = KeyCountData.Instance.TotalCount;
+            int totalCount = (instance._replayCounts ?? KeyCountData.Instance).TotalCount;
             if(totalCount == instance._lastTotalCount) return;
             instance._lastTotalCount = totalCount;
             instance.Total.Value.TMP.text = totalCount.ToString();

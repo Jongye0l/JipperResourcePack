@@ -8,6 +8,7 @@ using System.Text;
 using ADOFAI;
 using HarmonyLib;
 using JALib.Tools.ByteTool;
+using JipperResourcePack.KeyViewerContents.OtherModApi;
 
 namespace JipperResourcePack.OverlayContents;
 
@@ -50,13 +51,20 @@ public static class PlayCount {
         _datas = null;
     }
 
-    public static void AddAttempts(Hash hash, float progress, float multiplier) => GetData(hash).AddAttempts(progress, multiplier);
+    public static void AddAttempts(Hash hash, float progress, float multiplier) {
+        if(OrbitRenderAPI.IsRendering) return;
+        GetData(hash).AddAttempts(progress, multiplier);
+    }
 
 
-    public static void RemoveAttempts(Hash hash, float progress, float multiplier) => GetData(hash).RemoveAttempts(progress, multiplier);
+    public static void RemoveAttempts(Hash hash, float progress, float multiplier) {
+        if(OrbitRenderAPI.IsRendering) return;
+        GetData(hash).RemoveAttempts(progress, multiplier);
+    }
 
 
     public static void SetBest(Hash hash, float start, float cur, float multiplier) {
+        if(OrbitRenderAPI.IsRendering) return;
         GetData(hash).SetBest(start, cur, multiplier);
     }
 
