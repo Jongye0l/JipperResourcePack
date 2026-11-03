@@ -19,13 +19,13 @@ public partial class KeyViewer {
     private const long NoEventOffset = long.MinValue >> 1;
     private static readonly bool StopwatchTicksAreDateTimeTicks = System.Diagnostics.Stopwatch.Frequency == TimeSpan.TicksPerSecond;
 
-    public static long CurrentTicks {
+    public static ulong CurrentTicks {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks;
+        get => (ulong) (StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks);
     }
 
     private readonly bool[] _keyState = new bool[GhostOutIndex];
-    private ConcurrentQueue<long> _pressTimes;
+    private ConcurrentQueue<ulong> _pressTimes;
     private ConcurrentQueue<KeyEvent> _eventQueue;
     private SemaphoreSlim _eventSignal;
     private volatile bool _listening;
@@ -112,7 +112,7 @@ public partial class KeyViewer {
         ConcurrentQueue<KeyEvent> queue = _eventQueue;
         SemaphoreSlim signal = _eventSignal;
         if(queue == null || signal == null) return;
-        queue.Enqueue(new KeyEvent(hookEvent.Label, hookEvent.Key, hookEvent.Type == EventType.KeyPressed, ToStopwatchTicks(hookEvent.GetTimeInTicks())));
+        queue.Enqueue(new KeyEvent(hookEvent.Label, hookEvent.Key, hookEvent.Type, ToStopwatchTicks(hookEvent.GetTimeInTicks())));
         signal.Release();
     }
 
@@ -135,7 +135,7 @@ public partial class KeyViewer {
     private void ProcessKeyEvent(KeyEvent keyEvent) {
         FrozenDictionary<int, int[]> binding = _keyBinding;
         if(binding == null || !Enabled) return;
-        bool pressed = keyEvent.Pressed;
+        bool pressed = keyEvent.EventType == EventType.KeyPressed;
 
         if(!KeyCodeMapper.TryInit() || !KeyCodeMapper.Instance.TryGetCustomKeyCode(keyEvent.Key, out KeyCode tempKey))
             tempKey = VersionSafe.SkyHookKeyToUnityKey(keyEvent.Label);
@@ -149,15 +149,20 @@ public partial class KeyViewer {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private long ToStopwatchTicks(long eventTicks) {
-        long now = CurrentTicks;
-        long currentTicks = eventTicks - _eventOffsetTicks;
-        if(currentTicks < now) return currentTicks;
-        _eventOffsetTicks = eventTicks - now;
+    private ulong ToStopwatchTicks(long eventTicks) {
+        ulong now = CurrentTicks;
+        ulong currentTicks = (ulong) (eventTicks - _eventOffsetTicks);
+        if(currentTicks <= now) {
+            if(now - currentTicks < 8192) return currentTicks;
+            ulong delta = Math.Min(1024, (now - currentTicks) >> 8); // 1/256 second
+            _eventOffsetTicks -= (long) delta;
+            return currentTicks + delta;
+        }
+        _eventOffsetTicks = eventTicks - (long) now;
         return now;
     }
 
-    private bool Work(int[] indexes, bool pressed, long currentTicks) {
+    private bool Work(int[] indexes, bool pressed, ulong currentTicks) {
         KeyViewerSetting settings = Settings;
         KeyCountData countData = KeyCountData.Instance;
         bool counted = false;
@@ -203,20 +208,20 @@ public partial class KeyViewer {
         return counted;
     }
 
-    private readonly struct KeyEvent(KeyLabel label, ushort key, bool pressed, long ticks) {
+    private readonly struct KeyEvent(KeyLabel label, ushort key, EventType eventType, ulong ticks) {
         public readonly KeyLabel Label = label;
         public readonly ushort Key = key;
-        public readonly bool Pressed = pressed;
-        public readonly long Ticks = ticks;
+        public readonly EventType EventType = eventType;
+        public readonly ulong Ticks = ticks;
     }
 
     public class KeyViewerUpdater : MonoBehaviour {
         private void Update() {
             KeyViewer instance = Instance;
-            ConcurrentQueue<long> pressTimes = instance._pressTimes;
+            ConcurrentQueue<ulong> pressTimes = instance._pressTimes;
             if(pressTimes == null) return;
-            long currentTicks = CurrentTicks;
-            while(pressTimes.TryPeek(out long result) && currentTicks - result > TimeSpan.TicksPerSecond) pressTimes.TryDequeue(out _);
+            ulong currentTicks = CurrentTicks;
+            while(pressTimes.TryPeek(out ulong result) && currentTicks - result > TimeSpan.TicksPerSecond) pressTimes.TryDequeue(out _);
             if(instance.Kps != null) {
                 int kpsCount = pressTimes.Count;
                 if(kpsCount != instance._lastKpsCount) {
