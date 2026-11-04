@@ -10,6 +10,7 @@ using JALib.Tools;
 using JipperResourcePack.Async;
 using JipperResourcePack.KeyViewerContents.KeyMapper;
 using JipperResourcePack.KeyViewerContents.OtherModApi;
+using JipperResourcePack.OtherModApi;
 using JipperResourcePack.SettingTool;
 using SkyHook;
 using TMPro;
@@ -70,7 +71,6 @@ public partial class KeyViewer : Feature {
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSetting)) {
         Instance = this;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
-        OrbitRenderAPI.Setup();
 
         if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys)
                                                        .AddPatch(KeyLimitPatch).AddPatch(AsyncKeyLimitPatch);
@@ -104,7 +104,7 @@ public partial class KeyViewer : Feature {
         InitializeFootKeyViewer();
         Object.DontDestroyOnLoad(KeyViewerObject);
         AsyncInputHook.Acquire();
-        _pressTimes = new ConcurrentQueue<long>();
+        _pressTimes = new ConcurrentQueue<ulong>();
         Stopwatch = Stopwatch.StartNew();
         _eventOffsetTicks = NoEventOffset;
         RebuildKeyBinding();
@@ -857,7 +857,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
-        _pressTimes ??= new ConcurrentQueue<long>();
+        _pressTimes ??= new ConcurrentQueue<ulong>();
     }
 
     private void Initialize1KeyViewer() {
@@ -872,7 +872,7 @@ public partial class KeyViewer : Feature {
             Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
             Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
             Updater.enabled = true;
-            _pressTimes ??= new ConcurrentQueue<long>();
+            _pressTimes ??= new ConcurrentQueue<ulong>();
         } else {
             Kps = null;
             Total = null;
@@ -896,7 +896,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
-        _pressTimes ??= new ConcurrentQueue<long>();
+        _pressTimes ??= new ConcurrentQueue<ulong>();
     }
 
     private void Initialize3KeyViewer() {
@@ -909,7 +909,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 77, -1);
         Total = CreateKey(-2, 81 + 54 * 5, 25 + y, 77, -1);
         Updater.enabled = true;
-        _pressTimes ??= new ConcurrentQueue<long>();
+        _pressTimes ??= new ConcurrentQueue<ulong>();
     }
 
     private void Initialize4KeyViewer() {
@@ -918,7 +918,7 @@ public partial class KeyViewer : Feature {
         Kps = CreateKey(-1, 0, 25 + y, 104, -1);
         Total = CreateKey(-2, 324, 25 + y, 104, -1);
         Updater.enabled = true;
-        _pressTimes ??= new ConcurrentQueue<long>();
+        _pressTimes ??= new ConcurrentQueue<ulong>();
     }
 
     private void Initialize5KeyViewer() {
@@ -928,7 +928,7 @@ public partial class KeyViewer : Feature {
             Kps = CreateKey(-1, 0, 15 + y, 212, -1, true);
             Total = CreateKey(-2, 216, 15 + y, 212, -1, true);
             Updater.enabled = true;
-            _pressTimes ??= new ConcurrentQueue<long>();
+            _pressTimes ??= new ConcurrentQueue<ulong>();
         } else {
             Kps = null;
             Total = null;

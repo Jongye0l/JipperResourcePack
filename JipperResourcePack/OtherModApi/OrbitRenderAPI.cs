@@ -1,64 +1,46 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HarmonyLib;
+using JipperResourcePack.KeyViewerContents;
 using JipperResourcePack.OverlayContents;
 using UnityEngine;
 
-namespace JipperResourcePack.KeyViewerContents.OtherModApi;
+namespace JipperResourcePack.OtherModApi;
 
 // Optional bridge to OrbitRender's public overlay API.
 //
 // No compile-time reference to OrbitRender is required.
 public static class OrbitRenderAPI {
     public const string ProviderId = "JipperResourcePack";
-    public const int RequiredApiVersion = 1;
+    public const int RequiredApiVersion = 2;
 
     private static Type _apiType;
-    private static MethodInfo _register;
-    private static MethodInfo _unregister;
-    private static PropertyInfo _isRendering;
-    private static readonly object Gate = new();
+    private static Func<string, object, bool> _register;
+    private static Action<string> _unregister;
+    private static Func<bool> _isRendering;
     private static bool _registered;
-    private static float _nextResolve;
     private static Provider _provider;
     private static long _replayTicks;
     private static volatile bool _replayActive;
-    private static Harmony _lifecyclePatches;
-    private static readonly Dictionary<RectTransform, float> RainDepths = new();
+    private static readonly HashSet<RectTransform> RainTransforms = new();
 
     public static bool IsReplayActive => _replayActive;
 
-    public static bool IsRendering => Resolve() && _isRendering?.GetValue(null) is true;
+    public static bool IsRendering => _isRendering?.Invoke() is true;
 
     public static bool TryGetReplayTicks(out long ticks) {
         ticks = _replayTicks;
         return _replayActive;
     }
 
-    public static void Setup() {
-        if(_lifecyclePatches != null) return;
-        Harmony harmony = new("JipperResourcePack.OrbitRenderAPI");
-        try {
-            harmony.Patch(AccessTools.DeclaredMethod(typeof(Main), "OnEnable"), postfix: new HarmonyMethod(typeof(OrbitRenderAPI), nameof(TryRegister)));
-            harmony.Patch(AccessTools.DeclaredMethod(typeof(Main), "OnUpdate"), postfix: new HarmonyMethod(typeof(OrbitRenderAPI), nameof(TryRegister)));
-            harmony.Patch(AccessTools.DeclaredMethod(typeof(Main), "OnDisable"), prefix: new HarmonyMethod(typeof(OrbitRenderAPI), nameof(Shutdown)));
-            _lifecyclePatches = harmony;
-        } catch(Exception e) {
-            harmony.UnpatchAll(harmony.Id);
-            Main.Instance.LogException(e);
-        }
-    }
+    public static void Setup() => TryRegister();
 
-    private static void TryRegister() {
+    public static void TryRegister() {
         if(_registered) return;
-        if(Time.unscaledTime < _nextResolve) return;
-        _nextResolve = Time.unscaledTime + 1f;
-        if(!Resolve()) return;
-        if(_isRendering?.GetValue(null) is true) return;
         try {
+            if(!Resolve()) return;
             _provider ??= new Provider();
-            if(_register.Invoke(null, new object[] { ProviderId, _provider }) is true) {
+            if(_register(ProviderId, _provider)) {
                 _registered = true;
                 Main.Instance.Log("OrbitRenderAPI is loaded.");
             }
@@ -68,10 +50,10 @@ public static class OrbitRenderAPI {
         }
     }
 
-    private static void Shutdown() {
+    public static void Shutdown() {
         if(!_registered) return;
         try {
-            _unregister?.Invoke(null, new object[] { ProviderId });
+            _unregister?.Invoke(ProviderId);
         } catch(Exception e) {
             Main.Instance.LogException(e);
         } finally {
@@ -85,23 +67,22 @@ public static class OrbitRenderAPI {
 
     private static bool Resolve() {
         if(_apiType != null) return true;
-        lock(Gate) {
-            if(_apiType != null) return true;
-            foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                Type type = assembly.GetType("OrbitRender.OverlayApi", false);
-                if(type == null) continue;
-                FieldInfo versionField = type.GetField("ApiVersion", BindingFlags.Public | BindingFlags.Static);
-                if(versionField == null || versionField.GetValue(null) is not int version || version < RequiredApiVersion) continue;
-                MethodInfo register = type.GetMethod("Register", BindingFlags.Public | BindingFlags.Static);
-                if(register == null) continue;
-                _apiType = type;
-                _register = register;
-                _unregister = type.GetMethod("Unregister", BindingFlags.Public | BindingFlags.Static);
-                _isRendering = type.GetProperty("IsRendering", BindingFlags.Public | BindingFlags.Static);
-                return true;
-            }
-            return false;
+        foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+            Type type = assembly.GetType("OrbitRender.OverlayApi", false);
+            if(type == null) continue;
+            FieldInfo versionField = type.GetField("ApiVersion", BindingFlags.Public | BindingFlags.Static);
+            if(versionField?.GetValue(null) is not int version || version < RequiredApiVersion) continue;
+            MethodInfo register = type.GetMethod("Register", BindingFlags.Public | BindingFlags.Static);
+            MethodInfo unregister = type.GetMethod("Unregister", BindingFlags.Public | BindingFlags.Static);
+            MethodInfo isRendering = type.GetProperty("IsRendering", BindingFlags.Public | BindingFlags.Static)?.GetGetMethod();
+            if(register == null || unregister == null || isRendering == null) continue;
+            _register = (Func<string, object, bool>) Delegate.CreateDelegate(typeof(Func<string, object, bool>), register);
+            _unregister = (Action<string>) Delegate.CreateDelegate(typeof(Action<string>), unregister);
+            _isRendering = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRendering);
+            _apiType = type;
+            return true;
         }
+        return false;
     }
 
     // OrbitRender looks these methods up by name on the registered object.
@@ -142,7 +123,7 @@ public static class OrbitRenderAPI {
                 RectTransform transform = rain.Transform;
                 Vector3 position = transform.localPosition;
                 if(Mathf.Approximately(position.z, 0f)) continue;
-                if(!RainDepths.ContainsKey(transform)) RainDepths.Add(transform, position.z);
+                RainTransforms.Add(transform);
                 position.z = 0f;
                 transform.localPosition = position;
             }
@@ -150,9 +131,8 @@ public static class OrbitRenderAPI {
 
         public void OnAfterOverlayCapture(bool replay) => RestoreRainDepths();
 
-        public void OnReplayInput(string key, bool down, long ticks) {
-            if(!Enum.TryParse(key, true, out KeyCode code) || code == KeyCode.None) return;
-            KeyViewer.Instance?.ApplyReplayKey(code, down, ticks);
+        public void OnReplayKey(KeyCode key, int? nativeKey, bool down, long ticks) {
+            KeyViewer.Instance?.ApplyReplayKey(key, nativeKey, down, ticks);
         }
     }
 
@@ -163,12 +143,12 @@ public static class OrbitRenderAPI {
     }
 
     private static void RestoreRainDepths() {
-        foreach(KeyValuePair<RectTransform, float> entry in RainDepths) {
-            if(entry.Key == null) continue;
-            Vector3 position = entry.Key.localPosition;
-            position.z = entry.Value;
-            entry.Key.localPosition = position;
+        foreach(RectTransform transform in RainTransforms) {
+            if(transform == null) continue;
+            Vector3 position = transform.localPosition;
+            position.z = 0f;
+            transform.localPosition = position;
         }
-        RainDepths.Clear();
+        RainTransforms.Clear();
     }
 }

@@ -7,7 +7,7 @@ public class RawRain {
     public const float RainTickUnit = 3000000f; // 300ms to tick
     private static readonly ConcurrentBag<RawRain> Pool = [];
     public Key Key;
-    public long StartTime;
+    public ulong StartTime;
     public float XSize;
     public bool IsGhost;
     public float FinalSizeY;
@@ -15,9 +15,9 @@ public class RawRain {
     public bool FinishSizeSetup;
     public bool SizeOver;
 
-    private RawRain(Key key, long startTime, bool isGhost) => Init(key, startTime, isGhost);
+    private RawRain(Key key, ulong startTime, bool isGhost) => Init(key, startTime, isGhost);
 
-    private void Init(Key key, long startTime, bool isGhost) {
+    private void Init(Key key, ulong startTime, bool isGhost) {
         Key = key;
         StartTime = startTime;
         XSize = key.Color switch {
@@ -33,7 +33,7 @@ public class RawRain {
         FinishSize = FinishSizeSetup = SizeOver = false;
     }
 
-    public void Finish(long time) {
+    public void Finish(ulong time) {
         FinalSizeY = (time - StartTime) / RainTickUnit * KeyViewer.Settings.rainSpeed;
         FinishSize = true;
     }
@@ -41,7 +41,7 @@ public class RawRain {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AddPool(RawRain rain) => Pool.Add(rain);
 
-    public static RawRain GetOrNewRawRain(Key key, long startTime, bool isGhost) {
+    public static RawRain GetOrNewRawRain(Key key, ulong startTime, bool isGhost) {
         if(!Pool.TryTake(out RawRain rain)) return new RawRain(key, startTime, isGhost);
         rain.Init(key, startTime, isGhost);
         rain.Reset();

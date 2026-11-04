@@ -8,7 +8,7 @@ using System.Text;
 using ADOFAI;
 using HarmonyLib;
 using JALib.Tools.ByteTool;
-using JipperResourcePack.KeyViewerContents.OtherModApi;
+using JipperResourcePack.OtherModApi;
 
 namespace JipperResourcePack.OverlayContents;
 

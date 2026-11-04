@@ -21,7 +21,7 @@ public class RainManager : MonoBehaviour {
             RainList.Add(rainComponent);
         }
         if(RainList.Count == 0) return;
-        long time = KeyViewer.CurrentTicks;
+        ulong time = KeyViewer.CurrentTicks;
         float speed = KeyViewer.Settings.rainSpeed;
         float height = KeyViewer.Settings.rainHeight;
         for(int i = 0; i < RainList.Count; i++) {
