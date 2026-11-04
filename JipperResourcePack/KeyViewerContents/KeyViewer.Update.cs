@@ -140,19 +140,28 @@ public partial class KeyViewer {
     }
 
     private void ResetReplayKeys() {
-        if(Keys != null) {
-            for(int i = 0; i < _keyState.Length; i++) {
-                if(!_keyState[i]) continue;
-                Key key = Keys[i >= FootOutIndex ? i - FootOutIndex : i];
-                if(key == null) continue;
-                if(i >= FootOutIndex) key.LastGhostRain?.Finish(CurrentTicks);
-                else {
-                    key.UpdateRequestKey(false);
-                    key.LastRain?.Finish(CurrentTicks);
-                }
+        FinishHeldReplayKeys();
+        Array.Clear(_keyState, 0, _keyState.Length);
+        ReleaseReplayRains();
+        while(_pressTimes != null && _pressTimes.TryDequeue(out _)) { }
+        _lastKpsCount = -1;
+    }
+
+    private void FinishHeldReplayKeys() {
+        if(Keys == null) return;
+        for(int i = 0; i < _keyState.Length; i++) {
+            if(!_keyState[i]) continue;
+            Key key = Keys[i >= FootOutIndex ? i - FootOutIndex : i];
+            if(key == null) continue;
+            if(i >= FootOutIndex) key.LastGhostRain?.Finish(CurrentTicks);
+            else {
+                key.UpdateRequestKey(false);
+                key.LastRain?.Finish(CurrentTicks);
             }
         }
-        Array.Clear(_keyState, 0, _keyState.Length);
+    }
+
+    private void ReleaseReplayRains() {
         if(RainManager != null) {
             while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
             while(RainManager.RainList.Count > 0) {
@@ -164,13 +173,12 @@ public partial class KeyViewer {
                 rain.Pool.AddPool(rain, rain.IsGhost);
             }
         }
-        if(Keys != null) foreach(Key key in Keys) {
+        if(Keys == null) return;
+        foreach(Key key in Keys) {
             if(key == null) continue;
             key.LastRain = null;
             key.LastGhostRain = null;
         }
-        while(_pressTimes != null && _pressTimes.TryDequeue(out _)) { }
-        _lastKpsCount = -1;
     }
 
     // Called on Unity's main thread by OrbitRender.OverlayApi.
