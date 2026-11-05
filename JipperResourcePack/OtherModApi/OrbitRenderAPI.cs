@@ -26,7 +26,7 @@ public static class OrbitRenderAPI {
 
     public static bool IsReplayActive => _replayActive;
 
-    public static bool IsRendering => _isRendering?.Invoke() is true;
+    public static bool IsRendering => _isRendering != null && _isRendering();
 
     public static bool TryGetReplayTicks(out long ticks) {
         ticks = _replayTicks;
@@ -69,13 +69,14 @@ public static class OrbitRenderAPI {
         if(_apiType != null) return true;
         foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
             Type type = assembly.GetType("OrbitRender.OverlayApi", false);
-            if(type == null) continue;
-            FieldInfo versionField = type.GetField("ApiVersion", BindingFlags.Public | BindingFlags.Static);
+            FieldInfo versionField = type?.GetField("ApiVersion", BindingFlags.Public | BindingFlags.Static);
             if(versionField?.GetValue(null) is not int version || version < RequiredApiVersion) continue;
+
             MethodInfo register = type.GetMethod("Register", BindingFlags.Public | BindingFlags.Static);
             MethodInfo unregister = type.GetMethod("Unregister", BindingFlags.Public | BindingFlags.Static);
             MethodInfo isRendering = type.GetProperty("IsRendering", BindingFlags.Public | BindingFlags.Static)?.GetGetMethod();
-            if(register == null || unregister == null || isRendering == null) continue;
+            if((object) register == null || (object) unregister == null || (object) isRendering == null) continue;
+
             _register = (Func<string, object, bool>) Delegate.CreateDelegate(typeof(Func<string, object, bool>), register);
             _unregister = (Action<string>) Delegate.CreateDelegate(typeof(Action<string>), unregister);
             _isRendering = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRendering);
@@ -89,14 +90,14 @@ public static class OrbitRenderAPI {
     private sealed class Provider {
         public IEnumerable<Canvas> GetOverlayCanvases() {
             Overlay overlay = Overlay.Instance;
-            if(overlay != null && overlay.Canvas != null) yield return overlay.Canvas;
+            if(overlay.Canvas) yield return overlay.Canvas;
             // The key viewer is part of the replay presentation only; a normal
             // render with Mod Overlay enabled shows the status HUD alone.
             if(!_replayActive) yield break;
             KeyViewer keyViewer = KeyViewer.Instance;
-            if(keyViewer == null || !keyViewer.KeyViewerObject) yield break;
+            if(!keyViewer.KeyViewerObject) yield break;
             Canvas canvas = keyViewer.KeyViewerObject.GetComponent<Canvas>();
-            if(canvas != null) yield return canvas;
+            yield return canvas;
         }
 
         public void OnRenderSessionBegin(bool replay) {
@@ -117,9 +118,8 @@ public static class OrbitRenderAPI {
         public void OnBeforeOverlayCapture(bool replay) {
             if(!replay) return;
             RainManager manager = KeyViewer.RainManager;
-            if(manager == null) return;
+            if(!manager) return;
             foreach(Rain rain in manager.RainList) {
-                if(rain?.Transform == null) continue;
                 RectTransform transform = rain.Transform;
                 Vector3 position = transform.localPosition;
                 if(Mathf.Approximately(position.z, 0f)) continue;
@@ -132,19 +132,18 @@ public static class OrbitRenderAPI {
         public void OnAfterOverlayCapture(bool replay) => RestoreRainDepths();
 
         public void OnReplayKey(KeyCode key, int? nativeKey, bool down, long ticks) {
-            KeyViewer.Instance?.ApplyReplayKey(key, nativeKey, down, ticks);
+            KeyViewer.Instance.ApplyReplayKey(key, nativeKey, down, ticks);
         }
     }
 
     // Replay input is fed directly through the API, so the live SkyHook
     // listener must not also dispatch the same virtual events.
     private static void SetInputSuspended(bool suspended) {
-        KeyViewer.Instance?.SetReplayInput(suspended);
+        KeyViewer.Instance.SetReplayInput(suspended);
     }
 
     private static void RestoreRainDepths() {
         foreach(RectTransform transform in RainTransforms) {
-            if(transform == null) continue;
             Vector3 position = transform.localPosition;
             position.z = 0f;
             transform.localPosition = position;

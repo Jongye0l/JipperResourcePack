@@ -42,7 +42,6 @@ public partial class KeyViewer {
     private static HashSet<ushort> _asyncKeyLimitKeys = [];
 
     private void RebuildKeyBinding() {
-        if(Keys == null) return;
         Dictionary<int, List<int>> indexMap = new();
         AddKeyCodes(indexMap, GetKeyCode(), 0);
         AddKeyCodes(indexMap, GetFootKeyCode(), HandOutIndex);
@@ -118,7 +117,7 @@ public partial class KeyViewer {
     // OrbitRender feeds recorded input directly while a replay is rendered.
     internal void SetReplayInput(bool replay) {
         if(replay) {
-            if(_replayCounts != null || !KeyViewerObject || KeyCountData.Instance == null) return;
+            if(_replayCounts != null || !Active || KeyCountData.Instance == null) return;
             if(_listening) StopEventListener();
             ResetReplayKeys();
             _replayCounts = new KeyCountData();
@@ -129,11 +128,9 @@ public partial class KeyViewer {
         if(_replayCounts == null) return;
         ResetReplayKeys();
         _replayCounts = null;
-        if(Keys != null) {
-            for(int i = 0; i < HandOutIndex; i++) {
-                int countIndex = i == 9 && Settings.KeyViewerStyle == KeyviewerStyle.Key10 ? 10 : i;
-                if(Keys[i]?.Value != null) Keys[i].Value.Text = KeyCountData.Instance.Count[countIndex].ToString();
-            }
+        for(int i = 0; i < HandOutIndex; i++) {
+            int countIndex = i == 9 && Settings.KeyViewerStyle == KeyviewerStyle.Key10 ? 10 : i;
+            if(Keys[i]?.Value != null) Keys[i].Value.Text = KeyCountData.Instance.Count[countIndex].ToString();
         }
         _lastTotalCount = -1;
         _eventOffsetTicks = NoEventOffset;
@@ -149,7 +146,6 @@ public partial class KeyViewer {
     }
 
     private void FinishHeldReplayKeys() {
-        if(Keys == null) return;
         for(int i = 0; i < _keyState.Length; i++) {
             if(!_keyState[i]) continue;
             Key key = Keys[i >= FootOutIndex ? i - FootOutIndex : i];
@@ -163,18 +159,15 @@ public partial class KeyViewer {
     }
 
     private void ReleaseReplayRains() {
-        if(RainManager != null) {
-            while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
-            while(RainManager.RainList.Count > 0) {
-                int index = RainManager.RainList.Count - 1;
-                Rain rain = RainManager.RainList[index];
-                RainManager.RainList.RemoveAt(index);
-                RawRain.AddPool(rain.RawRain);
-                rain.RawRain = null;
-                rain.Pool.AddPool(rain, rain.IsGhost);
-            }
+        while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
+        while(RainManager.RainList.Count > 0) {
+            int index = RainManager.RainList.Count - 1;
+            Rain rain = RainManager.RainList[index];
+            RainManager.RainList.RemoveAt(index);
+            RawRain.AddPool(rain.RawRain);
+            rain.RawRain = null;
+            rain.Pool.AddPool(rain, rain.IsGhost);
         }
-        if(Keys == null) return;
         foreach(Key key in Keys) {
             if(key == null) continue;
             key.LastRain = null;
@@ -187,7 +180,7 @@ public partial class KeyViewer {
         FrozenDictionary<int, int[]> binding = _keyBinding;
         if(_replayCounts == null || binding == null || !Enabled) return;
         // Match the live-input path, including native keys on Korean keyboards.
-        if(nativeKey is >= 0 and <= ushort.MaxValue) {
+        if(nativeKey.HasValue) {
             ushort native = (ushort) nativeKey.Value;
             if(KeyCodeMapper.TryInit() && KeyCodeMapper.Instance.TryGetCustomKeyCode(native, out KeyCode mapped)) key = mapped;
             if(key == KeyCode.None) {
