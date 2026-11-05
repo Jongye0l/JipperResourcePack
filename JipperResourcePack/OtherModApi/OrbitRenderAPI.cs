@@ -32,8 +32,6 @@ public static class OrbitRenderAPI {
         return ReplayActive;
     }
 
-    public static void Setup() => TryRegister();
-
     public static void TryRegister() {
         if(_registered) return;
         try {

@@ -43,7 +43,6 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
         Patcher.AddPatch(OnModLoaded);
-        OrbitRenderAPI.Setup();
     }
 
     private void LoadVersionSafe() {
