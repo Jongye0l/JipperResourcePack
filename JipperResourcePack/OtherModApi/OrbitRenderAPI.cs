@@ -14,23 +14,22 @@ public static class OrbitRenderAPI {
     public const string ProviderId = "JipperResourcePack";
     public const int RequiredApiVersion = 2;
 
-    private static Type _apiType;
+    public static bool ReplayActive;
+    private static bool _registered;
+
     private static Func<string, object, bool> _register;
     private static Action<string> _unregister;
     private static Func<bool> _isRendering;
-    private static bool _registered;
+
     private static Provider _provider;
     private static long _replayTicks;
-    private static volatile bool _replayActive;
     private static readonly HashSet<RectTransform> RainTransforms = new();
-
-    public static bool IsReplayActive => _replayActive;
 
     public static bool IsRendering => _isRendering != null && _isRendering();
 
     public static bool TryGetReplayTicks(out long ticks) {
         ticks = _replayTicks;
-        return _replayActive;
+        return ReplayActive;
     }
 
     public static void Setup() => TryRegister();
@@ -60,13 +59,13 @@ public static class OrbitRenderAPI {
             RestoreRainDepths();
             SetInputSuspended(false);
             _registered = false;
-            _replayActive = false;
+            ReplayActive = false;
             _replayTicks = 0;
         }
     }
 
     private static bool Resolve() {
-        if(_apiType != null) return true;
+        if(_isRendering != null) return true;
         foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
             Type type = assembly.GetType("OrbitRender.OverlayApi", false);
             FieldInfo versionField = type?.GetField("ApiVersion", BindingFlags.Public | BindingFlags.Static);
@@ -80,7 +79,6 @@ public static class OrbitRenderAPI {
             _register = (Func<string, object, bool>) Delegate.CreateDelegate(typeof(Func<string, object, bool>), register);
             _unregister = (Action<string>) Delegate.CreateDelegate(typeof(Action<string>), unregister);
             _isRendering = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRendering);
-            _apiType = type;
             return true;
         }
         return false;
@@ -93,7 +91,7 @@ public static class OrbitRenderAPI {
             if(overlay.Canvas) yield return overlay.Canvas;
             // The key viewer is part of the replay presentation only; a normal
             // render with Mod Overlay enabled shows the status HUD alone.
-            if(!_replayActive) yield break;
+            if(!ReplayActive) yield break;
             KeyViewer keyViewer = KeyViewer.Instance;
             if(!keyViewer.KeyViewerObject) yield break;
             Canvas canvas = keyViewer.KeyViewerObject.GetComponent<Canvas>();
@@ -101,7 +99,7 @@ public static class OrbitRenderAPI {
         }
 
         public void OnRenderSessionBegin(bool replay) {
-            _replayActive = replay;
+            ReplayActive = replay;
             _replayTicks = 0;
             if(replay) SetInputSuspended(true);
         }
@@ -109,7 +107,7 @@ public static class OrbitRenderAPI {
         public void OnRenderSessionEnd() {
             RestoreRainDepths();
             SetInputSuspended(false);
-            _replayActive = false;
+            ReplayActive = false;
             _replayTicks = 0;
         }
 
