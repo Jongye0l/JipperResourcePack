@@ -138,41 +138,11 @@ public partial class KeyViewer {
     }
 
     private void ResetReplayKeys() {
-        FinishHeldReplayKeys();
+        foreach(Key key in Keys) key?.SetEnabled(false);
         Array.Clear(_keyState, 0, _keyState.Length);
-        ReleaseReplayRains();
+        ResetRain();
         _pressTimes?.Clear();
         _lastKpsCount = -1;
-    }
-
-    private void FinishHeldReplayKeys() {
-        for(int i = 0; i < _keyState.Length; i++) {
-            if(!_keyState[i]) continue;
-            Key key = Keys[i >= FootOutIndex ? i - FootOutIndex : i];
-            if(key == null) continue;
-            if(i >= FootOutIndex) key.LastGhostRain?.Finish(CurrentTicks);
-            else {
-                key.UpdateRequestKey(false);
-                key.LastRain?.Finish(CurrentTicks);
-            }
-        }
-    }
-
-    private void ReleaseReplayRains() {
-        while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
-        while(RainManager.RainList.Count > 0) {
-            int index = RainManager.RainList.Count - 1;
-            Rain rain = RainManager.RainList[index];
-            RainManager.RainList.RemoveAt(index);
-            RawRain.AddPool(rain.RawRain);
-            rain.RawRain = null;
-            rain.Pool.AddPool(rain, rain.IsGhost);
-        }
-        foreach(Key key in Keys) {
-            if(key == null) continue;
-            key.LastRain = null;
-            key.LastGhostRain = null;
-        }
     }
 
     // Called on Unity's main thread by OrbitRender.OverlayApi.
@@ -183,12 +153,9 @@ public partial class KeyViewer {
         if(nativeKey.HasValue) {
             ushort native = (ushort) nativeKey.Value;
             if(KeyCodeMapper.TryInit() && KeyCodeMapper.Instance.TryGetCustomKeyCode(native, out KeyCode mapped)) key = mapped;
-            if(key == KeyCode.None) {
-                if(binding.TryGetValue(native + 0x1000, out int[] nativeIndexes)) Work(nativeIndexes, pressed, (ulong) Math.Max(0, ticks));
-                return;
-            }
+            if(key == KeyCode.None) key = (KeyCode) (native + 0x1000);
         }
-        if(key != KeyCode.None && binding.TryGetValue((int) key, out int[] indexes)) Work(indexes, pressed, (ulong) Math.Max(0, ticks));
+        if(binding.TryGetValue((int) key, out int[] indexes)) Work(indexes, pressed, (ulong) Math.Max(0, ticks));
     }
 
     private void OnKeyEvent(SkyHookEvent hookEvent) {

@@ -672,6 +672,10 @@ public partial class KeyViewer : Feature {
     private static void CheckResetRain() {
         RainManager.enabled = Settings.useRain;
         if(Settings.useRain) return;
+        ResetRain();
+    }
+
+    private static void ResetRain() {
         while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
         while(RainManager.RainList.Count > 0) {
             int index = RainManager.RainList.Count - 1;
@@ -680,6 +684,11 @@ public partial class KeyViewer : Feature {
             RawRain.AddPool(rain.RawRain);
             rain.RawRain = null;
             rain.Pool.AddPool(rain, rain.IsGhost);
+        }
+        foreach(Key key in Instance.Keys) {
+            if(key == null) continue;
+            key.LastRain = null;
+            key.LastGhostRain = null;
         }
     }
 
