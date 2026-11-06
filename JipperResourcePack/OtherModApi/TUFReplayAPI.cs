@@ -7,25 +7,23 @@ using UnityEngine;
 
 namespace JipperResourcePack.OtherModApi;
 
-// Optional bridge to OrbitRender's public overlay API.
+// Optional bridge to TUFReplay's ReplayApi. TUFReplay hands its replays to JRP
+// the same way whether it plays a run in the game or renders it to video.
 //
-// No compile-time reference to OrbitRender is required.
-public static class OrbitRenderAPI {
+// No compile-time reference to TUFReplay is required.
+public static class TUFReplayAPI {
     public const string ProviderId = "JipperResourcePack";
-    public const int RequiredApiVersion = 2;
+    public const int RequiredApiVersion = 1;
 
     public static bool ReplayActive;
     private static bool _registered;
 
     private static Func<string, object, bool> _register;
     private static Action<string> _unregister;
-    private static Func<bool> _isRendering;
 
     private static Provider _provider;
     private static long _replayTicks;
     private static readonly HashSet<RectTransform> RainTransforms = new();
-
-    public static bool IsRendering => _isRendering != null && _isRendering();
 
     public static bool TryGetReplayTicks(out long ticks) {
         ticks = _replayTicks;
@@ -39,10 +37,10 @@ public static class OrbitRenderAPI {
             _provider ??= new Provider();
             if(_register(ProviderId, _provider)) {
                 _registered = true;
-                Main.Instance.Log("OrbitRenderAPI is loaded.");
+                Main.Instance.Log("TUFReplay ReplayApi is loaded.");
             }
         } catch(Exception e) {
-            Main.Instance.Log("OrbitRenderAPI is not loaded.");
+            Main.Instance.Log("TUFReplay ReplayApi is not loaded.");
             Main.Instance.LogException(e);
         }
     }
@@ -63,56 +61,57 @@ public static class OrbitRenderAPI {
     }
 
     private static bool Resolve() {
-        if(_isRendering != null) return true;
+        if(_register != null) return true;
         foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-            Type type = assembly.GetType("OrbitRender.OverlayApi", false);
+            Type type = assembly.GetType("TUFReplay.ReplayApi", false);
             FieldInfo versionField = type?.GetField("ApiVersion", BindingFlags.Public | BindingFlags.Static);
             if(versionField?.GetValue(null) is not int version || version < RequiredApiVersion) continue;
 
             MethodInfo register = type.GetMethod("Register", BindingFlags.Public | BindingFlags.Static);
             MethodInfo unregister = type.GetMethod("Unregister", BindingFlags.Public | BindingFlags.Static);
-            MethodInfo isRendering = type.GetProperty("IsRendering", BindingFlags.Public | BindingFlags.Static)?.GetGetMethod();
-            if((object) register == null || (object) unregister == null || (object) isRendering == null) continue;
+            if((object) register == null || (object) unregister == null) continue;
 
             _register = (Func<string, object, bool>) Delegate.CreateDelegate(typeof(Func<string, object, bool>), register);
             _unregister = (Action<string>) Delegate.CreateDelegate(typeof(Action<string>), unregister);
-            _isRendering = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRendering);
             return true;
         }
         return false;
     }
 
-    // OrbitRender looks these methods up by name on the registered object.
+    // TUFReplay looks these methods up by name on the registered object.
     private sealed class Provider {
-        public IEnumerable<Canvas> GetOverlayCanvases() {
-            Overlay overlay = Overlay.Instance;
-            if(overlay.Canvas) yield return overlay.Canvas;
-            // The key viewer is part of the replay presentation only; a normal
-            // render with Mod Overlay enabled shows the status HUD alone.
-            if(!ReplayActive) yield break;
-            KeyViewer keyViewer = KeyViewer.Instance;
-            if(!keyViewer.KeyViewerObject) yield break;
-            Canvas canvas = keyViewer.KeyViewerObject.GetComponent<Canvas>();
-            yield return canvas;
-        }
-
-        public void OnRenderSessionBegin(bool replay) {
-            ReplayActive = replay;
+        // In the game and in videos alike: the replay's keys come only through
+        // OnReplayKey, so the live SkyHook listener stops and counts start from a copy.
+        public void OnReplayBegin(bool render) {
+            ReplayActive = true;
             _replayTicks = 0;
-            if(replay) SetInputSuspended(true);
+            SetInputSuspended(true);
         }
 
-        public void OnRenderSessionEnd() {
+        public void OnReplayEnd() {
             RestoreRainDepths();
             SetInputSuspended(false);
             ReplayActive = false;
             _replayTicks = 0;
         }
 
-        public void OnReplayClock(double videoSeconds, long ticks) => _replayTicks = ticks;
+        public void OnReplayClock(long ticks) => _replayTicks = ticks;
 
-        public void OnBeforeOverlayCapture(bool replay) {
-            if(!replay) return;
+        public void OnReplayKey(KeyCode key, int? nativeKey, bool down, long ticks) {
+            KeyViewer.Instance.ApplyReplayKey(key, nativeKey, down, ticks);
+        }
+
+        // Asked only while a replay is rendered to video.
+        public IEnumerable<Canvas> GetReplayCanvases() {
+            Overlay overlay = Overlay.Instance;
+            if(overlay.Canvas) yield return overlay.Canvas;
+            KeyViewer keyViewer = KeyViewer.Instance;
+            if(!keyViewer.KeyViewerObject) yield break;
+            Canvas canvas = keyViewer.KeyViewerObject.GetComponent<Canvas>();
+            yield return canvas;
+        }
+
+        public void OnBeforeFrameCapture() {
             RainManager manager = KeyViewer.RainManager;
             if(!manager) return;
             foreach(Rain rain in manager.RainList) {
@@ -125,15 +124,9 @@ public static class OrbitRenderAPI {
             }
         }
 
-        public void OnAfterOverlayCapture(bool replay) => RestoreRainDepths();
-
-        public void OnReplayKey(KeyCode key, int? nativeKey, bool down, long ticks) {
-            KeyViewer.Instance.ApplyReplayKey(key, nativeKey, down, ticks);
-        }
+        public void OnAfterFrameCapture() => RestoreRainDepths();
     }
 
-    // Replay input is fed directly through the API, so the live SkyHook
-    // listener must not also dispatch the same virtual events.
     private static void SetInputSuspended(bool suspended) {
         KeyViewer.Instance.SetReplayInput(suspended);
     }

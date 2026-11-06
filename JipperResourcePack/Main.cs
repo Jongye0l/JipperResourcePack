@@ -79,10 +79,10 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
     
     [JAPatch(typeof(UnityModManager.ModEntry), "Load", PatchType.Postfix, false)]
-    private static void OnModLoaded() => OrbitRenderAPI.TryRegister();
+    private static void OnModLoaded() => TUFReplayAPI.TryRegister();
 
     protected override void OnEnable() {
-        OrbitRenderAPI.TryRegister();
+        TUFReplayAPI.TryRegister();
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         BundleLoader.LoadBundle();
         PlayCount.Load();
@@ -90,7 +90,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     protected override void OnDisable() {
-        OrbitRenderAPI.Shutdown();
+        TUFReplayAPI.Shutdown();
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
         try {
             PlayCount.Dispose();

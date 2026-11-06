@@ -109,7 +109,7 @@ public partial class KeyViewer : Feature {
         _eventOffsetTicks = NoEventOffset;
         RebuildKeyBinding();
         StartEventListener();
-        if(OrbitRenderAPI.ReplayActive) SetReplayInput(true);
+        if(TUFReplayAPI.ReplayActive) SetReplayInput(true);
         UpdateKeyLimit();
     }
 

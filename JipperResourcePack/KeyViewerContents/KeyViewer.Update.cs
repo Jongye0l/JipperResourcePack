@@ -21,7 +21,7 @@ public partial class KeyViewer {
 
     public static ulong CurrentTicks {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => JipperResourcePack.OtherModApi.OrbitRenderAPI.TryGetReplayTicks(out long replayTicks)
+        get => JipperResourcePack.OtherModApi.TUFReplayAPI.TryGetReplayTicks(out long replayTicks)
             ? (ulong) Math.Max(0, replayTicks)
             : (ulong) (StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks);
     }
@@ -114,7 +114,7 @@ public partial class KeyViewer {
         _eventSignal = null;
     }
 
-    // OrbitRender feeds recorded input directly while a replay is rendered.
+    // TUFReplay feeds recorded input directly while it replays a run, in the game or in a video.
     internal void SetReplayInput(bool replay) {
         if(replay) {
             if(_replayCounts != null || !Active || KeyCountData.Instance == null) return;
@@ -145,7 +145,7 @@ public partial class KeyViewer {
         _lastKpsCount = -1;
     }
 
-    // Called on Unity's main thread by OrbitRender.OverlayApi.
+    // Called on Unity's main thread by TUFReplay's ReplayApi.
     internal void ApplyReplayKey(KeyCode key, int? nativeKey, bool pressed, long ticks) {
         FrozenDictionary<int, int[]> binding = _keyBinding;
         if(_replayCounts == null || binding == null || !Enabled) return;

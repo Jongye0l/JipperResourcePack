@@ -51,20 +51,24 @@ public static class PlayCount {
         _datas = null;
     }
 
+    // TUFReplay's replays, in the game or in videos, and offline renders replay
+    // someone's play: they are not the player's attempts or records.
+    private static bool NotPlayed => TUFReplayAPI.ReplayActive || UnityEngine.Time.captureFramerate > 0;
+
     public static void AddAttempts(Hash hash, float progress, float multiplier) {
-        if(OrbitRenderAPI.IsRendering) return;
+        if(NotPlayed) return;
         GetData(hash).AddAttempts(progress, multiplier);
     }
 
 
     public static void RemoveAttempts(Hash hash, float progress, float multiplier) {
-        if(OrbitRenderAPI.IsRendering) return;
+        if(NotPlayed) return;
         GetData(hash).RemoveAttempts(progress, multiplier);
     }
 
 
     public static void SetBest(Hash hash, float start, float cur, float multiplier) {
-        if(OrbitRenderAPI.IsRendering) return;
+        if(NotPlayed) return;
         GetData(hash).SetBest(start, cur, multiplier);
     }
 
