@@ -115,26 +115,38 @@ public partial class KeyViewer {
     }
 
     // TUFReplay feeds recorded input directly while it replays a run, in the game or in a video.
+    // The replay counts from the run's own key counts when TUFReplay saved them, else from the player's.
     internal void SetReplayInput(bool replay) {
         if(replay) {
             if(_replayCounts != null || !Active || KeyCountData.Instance == null) return;
             if(_listening) StopEventListener();
             ResetReplayKeys();
             _replayCounts = new KeyCountData();
-            Array.Copy(KeyCountData.Instance.Count, _replayCounts.Count, _replayCounts.Count.Length);
-            _replayCounts.TotalCount = KeyCountData.Instance.TotalCount;
+            JipperResourcePack.OtherModApi.TUFReplayAPI.RunState recorded = JipperResourcePack.OtherModApi.TUFReplayAPI.Recorded;
+            if(recorded?.KeyCounts != null) {
+                Array.Copy(recorded.KeyCounts, _replayCounts.Count, Math.Min(recorded.KeyCounts.Length, _replayCounts.Count.Length));
+                _replayCounts.TotalCount = recorded.TotalKeyCount;
+            } else {
+                Array.Copy(KeyCountData.Instance.Count, _replayCounts.Count, _replayCounts.Count.Length);
+                _replayCounts.TotalCount = KeyCountData.Instance.TotalCount;
+            }
+            ShowCounts(_replayCounts);
             return;
         }
         if(_replayCounts == null) return;
         ResetReplayKeys();
         _replayCounts = null;
-        for(int i = 0; i < HandOutIndex; i++) {
-            int countIndex = i == 9 && Settings.KeyViewerStyle == KeyviewerStyle.Key10 ? 10 : i;
-            if(Keys[i]?.Value != null) Keys[i].Value.Text = KeyCountData.Instance.Count[countIndex].ToString();
-        }
-        _lastTotalCount = -1;
+        ShowCounts(KeyCountData.Instance);
         _eventOffsetTicks = NoEventOffset;
         if(Enabled && !_listening) StartEventListener();
+    }
+
+    private void ShowCounts(KeyCountData countData) {
+        for(int i = 0; i < HandOutIndex; i++) {
+            int countIndex = i == 9 && Settings.KeyViewerStyle == KeyviewerStyle.Key10 ? 10 : i;
+            if(Keys[i]?.Value != null) Keys[i].Value.Text = countData.Count[countIndex].ToString();
+        }
+        _lastTotalCount = -1;
     }
 
     private void ResetReplayKeys() {

@@ -25,6 +25,9 @@ public static class TUFReplayAPI {
     private static long _replayTicks;
     private static readonly HashSet<RectTransform> RainTransforms = new();
 
+    // What the replayed run showed as it started, or null when TUFReplay saved nothing for it.
+    internal static RunState Recorded { get; private set; }
+
     public static bool TryGetReplayTicks(out long ticks) {
         ticks = _replayTicks;
         return ReplayActive;
@@ -56,6 +59,7 @@ public static class TUFReplayAPI {
             SetInputSuspended(false);
             _registered = false;
             ReplayActive = false;
+            Recorded = null;
             _replayTicks = 0;
         }
     }
@@ -80,9 +84,14 @@ public static class TUFReplayAPI {
 
     // TUFReplay looks these methods up by name on the registered object.
     private sealed class Provider {
+        // TUFReplay saves this with every run it records, at the countdown or checkpoint.
+        public RunState CaptureRunState() => RunState.Capture();
+
         // In the game and in videos alike: the replay's keys come only through
         // OnReplayKey, so the live SkyHook listener stops and counts start from a copy.
-        public void OnReplayBegin(bool render) {
+        // The attempts, best and key counts are the run's own when it saved them.
+        public void OnReplayBegin(RunState recorded, bool render) {
+            Recorded = recorded;
             ReplayActive = true;
             _replayTicks = 0;
             SetInputSuspended(true);
@@ -92,6 +101,7 @@ public static class TUFReplayAPI {
             RestoreRainDepths();
             SetInputSuspended(false);
             ReplayActive = false;
+            Recorded = null;
             _replayTicks = 0;
         }
 
@@ -125,6 +135,36 @@ public static class TUFReplayAPI {
         }
 
         public void OnAfterFrameCapture() => RestoreRainDepths();
+    }
+
+    // TUFReplay stores the public fields by name and type. Renaming a field or changing
+    // its type needs an UpgradeRunState method on the provider, or older runs lose the value.
+    internal sealed class RunState {
+        public int? Attempts;
+        public int? FullAttempts;
+        public float? Best;
+        public int[] KeyCounts;
+        public int TotalKeyCount;
+
+        // The countdown comes at least a frame after Overlay.Show, so this run's
+        // attempt is already counted: these are the values shown while it plays.
+        internal static RunState Capture() {
+            RunState state = new();
+            Overlay overlay = Overlay.Instance;
+            if(overlay != null && overlay.LastHash.Data != null && overlay.StartProgress >= 0) {
+                PlayCount.PlayData data = PlayCount.GetData(overlay.LastHash);
+                state.Attempts = data.GetAttempts(overlay.StartProgress, overlay.LastMultiplier);
+                state.FullAttempts = data.GetAttempts();
+                float best = data.GetBest(overlay.StartProgress, overlay.LastMultiplier);
+                if(!float.IsNaN(best) && !float.IsInfinity(best)) state.Best = best;
+            }
+            KeyCountData counts = KeyCountData.Instance;
+            if(counts != null) {
+                state.KeyCounts = (int[]) counts.Count.Clone();
+                state.TotalKeyCount = counts.TotalCount;
+            }
+            return state;
+        }
     }
 
     private static void SetInputSuspended(bool suspended) {
