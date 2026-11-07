@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JALib.Tools;
+using JipperResourcePack.OtherModApi;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -382,15 +383,17 @@ public class Overlay {
     public void UpdateAttempts() {
         char[] buffer = Main.SharedBuffer;
         int index = 0;
+        // A TUFReplay replay shows the attempts its run was played at.
+        TUFReplayAPI.RunState recorded = TUFReplayAPI.Recorded;
 
         if(Attempt.Settings.ShowAttempt) {
             index = WriteText(buffer, "Attempt ", index);
-            index = WriteNumber(buffer, index, PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0);
+            index = WriteNumber(buffer, index, recorded?.Attempts ?? PlayCount.GetData(LastHash)?.GetAttempts(StartProgress, LastMultiplier) ?? 0);
             buffer[index++] = '\n';
         }
         if(Attempt.Settings.ShowFullAttempt) {
             index = WriteText(buffer, "Full Attempt ", index);
-            index = WriteNumber(buffer, index, PlayCount.GetData(LastHash)?.GetAttempts() ?? 0);
+            index = WriteNumber(buffer, index, recorded?.FullAttempts ?? PlayCount.GetData(LastHash)?.GetAttempts() ?? 0);
             buffer[index++] = '\n';
         }
 

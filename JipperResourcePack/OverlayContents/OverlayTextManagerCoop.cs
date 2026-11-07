@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
+using JipperResourcePack.OtherModApi;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;
@@ -250,7 +251,7 @@ public class OverlayTextManagerCoop : IOverlayTextManager {
     public void UpdateBest(Overlay overlay) {
         if(RDC.auto && !overlay.AutoOnceEnabled) overlay.AutoOnceEnabled = true;
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if(CurBest == -1) CurBest = PlayCount.GetData(overlay.LastHash)?.GetBest(overlay.StartProgress, overlay.LastMultiplier) ?? 0;
+        if(CurBest == -1) CurBest = TUFReplayAPI.Recorded?.Best ?? PlayCount.GetData(overlay.LastHash)?.GetBest(overlay.StartProgress, overlay.LastMultiplier) ?? 0;
         else if(CurBest > MaxProgress || overlay.AutoOnceEnabled) return;
         UpdateBestText(overlay);
     }

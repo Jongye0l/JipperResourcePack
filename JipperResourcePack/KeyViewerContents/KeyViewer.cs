@@ -10,6 +10,7 @@ using JALib.Tools;
 using JipperResourcePack.Async;
 using JipperResourcePack.KeyViewerContents.KeyMapper;
 using JipperResourcePack.KeyViewerContents.OtherModApi;
+using JipperResourcePack.OtherModApi;
 using JipperResourcePack.SettingTool;
 using SkyHook;
 using TMPro;
@@ -108,12 +109,14 @@ public partial class KeyViewer : Feature {
         _eventOffsetTicks = NoEventOffset;
         RebuildKeyBinding();
         StartEventListener();
+        if(TUFReplayAPI.ReplayActive) SetReplayInput(true);
         UpdateKeyLimit();
     }
 
     protected override void OnDisable() {
         if(!KeyViewerObject) return;
-        StopEventListener();
+        if(_replayCounts != null) SetReplayInput(false);
+        if(_listening) StopEventListener();
         AsyncInputHook.Release();
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;
@@ -669,6 +672,10 @@ public partial class KeyViewer : Feature {
     private static void CheckResetRain() {
         RainManager.enabled = Settings.useRain;
         if(Settings.useRain) return;
+        ResetRain();
+    }
+
+    private static void ResetRain() {
         while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
         while(RainManager.RainList.Count > 0) {
             int index = RainManager.RainList.Count - 1;
@@ -677,6 +684,11 @@ public partial class KeyViewer : Feature {
             RawRain.AddPool(rain.RawRain);
             rain.RawRain = null;
             rain.Pool.AddPool(rain, rain.IsGhost);
+        }
+        foreach(Key key in Instance.Keys) {
+            if(key == null) continue;
+            key.LastRain = null;
+            key.LastGhostRain = null;
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using JipperResourcePack.OtherModApi;
 using JipperResourcePack.SettingTool;
 using TMPro;
 using UnityEngine;
@@ -139,7 +140,7 @@ public class OverlayTextManagerNormal : IOverlayTextManager {
     public void UpdateBest(Overlay overlay) {
         if(RDC.auto && !overlay.AutoOnceEnabled) overlay.AutoOnceEnabled = true;
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if(CurBest == -1) CurBest = PlayCount.GetData(overlay.LastHash)?.GetBest(overlay.StartProgress, overlay.LastMultiplier) ?? 0;
+        if(CurBest == -1) CurBest = TUFReplayAPI.Recorded?.Best ?? PlayCount.GetData(overlay.LastHash)?.GetBest(overlay.StartProgress, overlay.LastMultiplier) ?? 0;
         else if(CurBest > Progress || overlay.AutoOnceEnabled) return;
         
         float best = CurBest > Progress || overlay.AutoOnceEnabled ? CurBest : Progress;

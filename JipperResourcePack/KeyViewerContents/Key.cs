@@ -33,6 +33,11 @@ public class Key {
         if(Interlocked.Increment(ref _updateRequested) == 1) MainThread.Run(Main.Instance, _updateKey);
     }
 
+    public void SetEnabled(bool enabled) {
+        _requestEnabled = enabled;
+        UpdateKey();
+    }
+
     public void UpdateKey(bool force = false) {
         int current;
         do {

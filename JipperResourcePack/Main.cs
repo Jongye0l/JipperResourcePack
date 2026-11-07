@@ -9,6 +9,8 @@ using JALib.Tools;
 using JipperResourcePack.Jongyeol;
 using JipperResourcePack.KeyViewerContents;
 using JipperResourcePack.OverlayContents;
+using JipperResourcePack.OtherModApi;
+using UnityModManagerNet;
 using MonsterLove.StateMachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -40,6 +42,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         FeatureReset(JMain.CheckEnable(Setting));
         Settings = (ResourcePackSetting) Setting;
         SettingGUI = new SettingGUI(this);
+        Patcher.AddPatch(OnModLoaded);
     }
 
     private void LoadVersionSafe() {
@@ -75,7 +78,11 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
         foreach(Feature feature in Features.Where(feature => feature.Enabled)) feature.Invoke("Enable");
     }
     
+    [JAPatch(typeof(UnityModManager.ModEntry), "Load", PatchType.Postfix, false)]
+    private static void OnModLoaded() => TUFReplayAPI.TryRegister();
+
     protected override void OnEnable() {
+        TUFReplayAPI.TryRegister();
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         BundleLoader.LoadBundle();
         PlayCount.Load();
@@ -83,6 +90,7 @@ public class Main() : JAMod(typeof(ResourcePackSetting)) {
     }
 
     protected override void OnDisable() {
+        TUFReplayAPI.Shutdown();
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
         try {
             PlayCount.Dispose();
