@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using JipperResourcePack.KeyViewerContents;
+using JipperResourcePack.OtherModApi.TUFReplay.DTO;
 using JipperResourcePack.OverlayContents;
 using UnityEngine;
 
-namespace JipperResourcePack.OtherModApi;
+namespace JipperResourcePack.OtherModApi.TUFReplay;
 
 // Optional bridge to TUFReplay's ReplayApi. TUFReplay hands its replays to JRP
 // the same way whether it plays a run in the game or renders it to video.
@@ -79,7 +80,8 @@ public static partial class TUFReplayAPI {
     //   TUFReplayAPI.AddEvent(new KeyViewerStyleChanged { Style = ... });          // when it changes
     //
     // Returns false outside a recorded run, and for a type Provider has no OnReplayEvent for.
-    internal static void AddEvent(object e) => _addEvent?.Invoke(e);
+    public static void AddEvent(object e) => _addEvent?.Invoke(e);
+    public static bool IsRecording() => throw new NotImplementedException();
 
     private static bool Resolve() {
         if(_register != null) return true;
@@ -127,7 +129,7 @@ public static partial class TUFReplayAPI {
     }
 
     // TUFReplay looks these methods up by name on the registered object.
-    private abstract class Provider {
+    public abstract class Provider {
         public abstract bool CheckUsableAPIVersion(int version);
 
         // TUFReplay calls this when it starts recording a run's input, at the countdown or
@@ -184,36 +186,6 @@ public static partial class TUFReplayAPI {
         }
 
         public void OnAfterFrameCapture() => RestoreRainDepths();
-    }
-
-    // TUFReplay stores the public fields by name and type. Renaming a field or changing
-    // its type needs an UpgradeRunState method on the provider, or older runs lose the value.
-    internal sealed class RunState {
-        public int? Attempts;
-        public int? FullAttempts;
-        public float? Best;
-        public int[] KeyCounts;
-        public int TotalKeyCount;
-
-        // The countdown comes at least a frame after Overlay.Show, so this run's
-        // attempt is already counted: these are the values shown while it plays.
-        internal static RunState Capture() {
-            RunState state = new();
-            Overlay overlay = Overlay.Instance;
-            if(overlay != null && overlay.LastHash.Data != null && overlay.StartProgress >= 0) {
-                PlayCount.PlayData data = PlayCount.GetData(overlay.LastHash);
-                state.Attempts = data.GetAttempts(overlay.StartProgress, overlay.LastMultiplier);
-                state.FullAttempts = data.GetAttempts();
-                float best = data.GetBest(overlay.StartProgress, overlay.LastMultiplier);
-                if(!float.IsNaN(best) && !float.IsInfinity(best)) state.Best = best;
-            }
-            KeyCountData counts = KeyCountData.Instance;
-            if(counts != null) {
-                state.KeyCounts = (int[]) counts.Count.Clone();
-                state.TotalKeyCount = counts.TotalCount;
-            }
-            return state;
-        }
     }
 
     private static void SetInputSuspended(bool suspended) {

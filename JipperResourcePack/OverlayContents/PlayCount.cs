@@ -8,7 +8,7 @@ using System.Text;
 using ADOFAI;
 using HarmonyLib;
 using JALib.Tools.ByteTool;
-using JipperResourcePack.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay;
 
 namespace JipperResourcePack.OverlayContents;
 
@@ -53,7 +53,7 @@ public static class PlayCount {
 
     // TUFReplay's replays, in the game or in videos, and offline renders replay
     // someone's play: they are not the player's attempts or records.
-    private static bool NotPlayed => TUFReplayAPI.ReplayActive || UnityEngine.Time.captureFramerate > 0;
+    private static bool NotPlayed => TUFReplayAPI.ReplayActive || UnityEngine.Time.captureDeltaTime != 0;
 
     public static void AddAttempts(Hash hash, float progress, float multiplier) {
         if(NotPlayed) return;

@@ -1,6 +1,7 @@
 using JipperResourcePack.KeyViewerContents;
+using JipperResourcePack.OtherModApi.TUFReplay.DTO;
 
-namespace JipperResourcePack.OtherModApi;
+namespace JipperResourcePack.OtherModApi.TUFReplay;
 
 public static partial class TUFReplayAPI {
     private sealed class ProviderV2 : Provider {
@@ -17,5 +18,10 @@ public static partial class TUFReplayAPI {
             Recorded = state;
             KeyViewer.Instance.SetReplayCounts(state);
         }
+
+        public void OnReplayEvent(KeyStyleChange e, long _) => KeyViewer.Instance.OnKeyStyleChange(e);
+        public void OnReplayEvent(KeyChange e, long _) => KeyViewer.Instance.OnKeyChange(e);
+        public void OnReplayEvent(KeyNameChange e, long _) => KeyViewer.Instance.OnKeyNameChange(e);
+        public void OnReplayEvent(KeyCountReset e, long _) => KeyViewer.Instance.OnKeyCountReset();
     }
 }

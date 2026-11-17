@@ -9,6 +9,7 @@ using System.Threading;
 using HarmonyLib;
 using JALib.Core.Patch;
 using JipperResourcePack.KeyViewerContents.KeyMapper;
+using JipperResourcePack.OtherModApi.TUFReplay;
 using SkyHook;
 using UnityEngine;
 using EventType = SkyHook.EventType;
@@ -21,7 +22,7 @@ public partial class KeyViewer {
 
     public static ulong CurrentTicks {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => JipperResourcePack.OtherModApi.TUFReplayAPI.TryGetReplayTicks(out long replayTicks)
+        get => TUFReplayAPI.TryGetReplayTicks(out long replayTicks)
             ? (ulong) Math.Max(0, replayTicks)
             : (ulong) (StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks);
     }
@@ -33,6 +34,10 @@ public partial class KeyViewer {
     private volatile bool _listening;
     private Thread _eventThread;
     private KeyCountData _replayCounts;
+    private KeyCode[] _replayKey;
+    private KeyCode[] _replayFootKey;
+    private KeyCode[] _replayGhostKey;
+    private string[] _replayKeyText;
     private FrozenDictionary<int, int[]> _keyBinding;
     private long _eventOffsetTicks = NoEventOffset;
     private volatile int _capturedKeyCode;
@@ -112,70 +117,6 @@ public partial class KeyViewer {
         _eventThread = null;
         _eventQueue = null;
         _eventSignal = null;
-    }
-
-    // TUFReplay feeds recorded input directly while it replays a run, in the game or in a video.
-    internal void SetReplayInput(bool replay) {
-        if(replay) {
-            if(_replayCounts != null || !Active || KeyCountData.Instance == null) return;
-            if(_listening) StopEventListener();
-            ResetReplayKeys();
-            _replayCounts = new KeyCountData();
-            SetReplayCounts(JipperResourcePack.OtherModApi.TUFReplayAPI.Recorded);
-            return;
-        }
-        if(_replayCounts == null) return;
-        ResetReplayKeys();
-        _replayCounts = null;
-        ShowCounts(KeyCountData.Instance);
-        _eventOffsetTicks = NoEventOffset;
-        if(Enabled && !_listening) StartEventListener();
-    }
-
-    // The replay counts from the run's own key counts when TUFReplay saved them, else from the player's.
-    // The counts are replaced, not added to, so the same value handed over twice counts once.
-    internal void SetReplayCounts(JipperResourcePack.OtherModApi.TUFReplayAPI.RunState recorded) {
-        KeyCountData counts = _replayCounts;
-        if(counts == null) return;
-        if(recorded?.KeyCounts != null) {
-            int length = Math.Min(recorded.KeyCounts.Length, counts.Count.Length);
-            Array.Copy(recorded.KeyCounts, counts.Count, length);
-            Array.Clear(counts.Count, length, counts.Count.Length - length);
-            counts.TotalCount = recorded.TotalKeyCount;
-        } else {
-            Array.Copy(KeyCountData.Instance.Count, counts.Count, counts.Count.Length);
-            counts.TotalCount = KeyCountData.Instance.TotalCount;
-        }
-        ShowCounts(counts);
-    }
-
-    private void ShowCounts(KeyCountData countData) {
-        for(int i = 0; i < HandOutIndex; i++) {
-            int countIndex = i == 9 && Settings.KeyViewerStyle == KeyviewerStyle.Key10 ? 10 : i;
-            if(Keys[i]?.Value != null) Keys[i].Value.Text = countData.Count[countIndex].ToString();
-        }
-        _lastTotalCount = -1;
-    }
-
-    private void ResetReplayKeys() {
-        foreach(Key key in Keys) key?.SetEnabled(false);
-        Array.Clear(_keyState, 0, _keyState.Length);
-        ResetRain();
-        _pressTimes?.Clear();
-        _lastKpsCount = -1;
-    }
-
-    // Called on Unity's main thread by TUFReplay's ReplayApi.
-    internal void ApplyReplayKey(KeyCode key, int? nativeKey, bool pressed, long ticks) {
-        FrozenDictionary<int, int[]> binding = _keyBinding;
-        if(_replayCounts == null || binding == null || !Enabled) return;
-        // Match the live-input path, including native keys on Korean keyboards.
-        if(nativeKey.HasValue) {
-            ushort native = (ushort) nativeKey.Value;
-            if(KeyCodeMapper.TryInit() && KeyCodeMapper.Instance.TryGetCustomKeyCode(native, out KeyCode mapped)) key = mapped;
-            if(key == KeyCode.None) key = (KeyCode) (native + 0x1000);
-        }
-        if(binding.TryGetValue((int) key, out int[] indexes)) Work(indexes, pressed, (ulong) Math.Max(0, ticks));
     }
 
     private void OnKeyEvent(SkyHookEvent hookEvent) {

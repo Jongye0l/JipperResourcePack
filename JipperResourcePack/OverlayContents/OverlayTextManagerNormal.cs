@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Text;
-using JipperResourcePack.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay;
 using JipperResourcePack.SettingTool;
 using TMPro;
 using UnityEngine;

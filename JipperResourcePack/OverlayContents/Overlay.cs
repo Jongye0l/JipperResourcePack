@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JALib.Tools;
-using JipperResourcePack.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay;
+using JipperResourcePack.OtherModApi.TUFReplay.DTO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -384,7 +385,7 @@ public class Overlay {
         char[] buffer = Main.SharedBuffer;
         int index = 0;
         // A TUFReplay replay shows the attempts its run was played at.
-        TUFReplayAPI.RunState recorded = TUFReplayAPI.Recorded;
+        RunState recorded = TUFReplayAPI.Recorded;
 
         if(Attempt.Settings.ShowAttempt) {
             index = WriteText(buffer, "Attempt ", index);

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
-using JipperResourcePack.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay;
 using UnityEngine;
 
 namespace JipperResourcePack.OverlayContents;

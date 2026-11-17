@@ -1,4 +1,6 @@
-namespace JipperResourcePack.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay.DTO;
+
+namespace JipperResourcePack.OtherModApi.TUFReplay;
 
 public static partial class TUFReplayAPI {
     private sealed class ProviderV1 : Provider {

@@ -9,7 +9,7 @@ using JALib.Tools;
 using JipperResourcePack.Jongyeol;
 using JipperResourcePack.KeyViewerContents;
 using JipperResourcePack.OverlayContents;
-using JipperResourcePack.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay;
 using UnityModManagerNet;
 using MonsterLove.StateMachine;
 using UnityEngine;
