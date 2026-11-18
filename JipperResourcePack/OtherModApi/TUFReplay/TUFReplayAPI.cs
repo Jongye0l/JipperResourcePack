@@ -22,6 +22,7 @@ public static partial class TUFReplayAPI {
     private static Func<string, object, bool> _register;
     private static Action<string> _unregister;
     private static Func<object, bool> _addEvent;
+    private static Func<bool> _isRecording;
 
     private static Provider _provider;
     private static long _replayTicks;
@@ -77,11 +78,15 @@ public static partial class TUFReplayAPI {
     //
     //   internal sealed class KeyViewerStyleChanged { public KeyviewerStyle Style; }
     //   public void OnReplayEvent(KeyViewerStyleChanged e, long ticks) { ... }   // on Provider
-    //   TUFReplayAPI.AddEvent(new KeyViewerStyleChanged { Style = ... });          // when it changes
+    //   if(TUFReplayAPI.IsRecording()) TUFReplayAPI.AddEvent(new KeyViewerStyleChanged { Style = ... });
     //
-    // Returns false outside a recorded run, and for a type Provider has no OnReplayEvent for.
+    // Outside a recorded run the event is dropped. So is an event of a type Provider has no
+    // OnReplayEvent for, and TUFReplay writes that to its log.
     public static void AddEvent(object e) => _addEvent?.Invoke(e);
-    public static bool IsRecording() => throw new NotImplementedException();
+
+    // True while TUFReplay records a run, which is exactly when AddEvent keeps an event, so
+    // check it before building one. Always false without TUFReplay's ReplayApi 2.
+    public static bool IsRecording() => _isRecording != null && _isRecording();
 
     private static bool Resolve() {
         if(_register != null) return true;
@@ -108,6 +113,10 @@ public static partial class TUFReplayAPI {
             _unregister = (Action<string>) Delegate.CreateDelegate(typeof(Action<string>), unregister);
 
             if(version < 2) return true;
+
+            MethodInfo isRecording = type.GetProperty("IsRecording", BindingFlags.Public | BindingFlags.Static)?.GetGetMethod();
+            if(isRecording?.ReturnType == typeof(bool)) _isRecording = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRecording);
+            else Main.Instance.Warning($"TUFReplay ReplayApi version {version} is missing IsRecording, so no events are added.");
 
             MethodInfo getEventStore = type.GetMethod("GetEventStore", BindingFlags.Public | BindingFlags.Static);
             if((object) getEventStore == null) {
