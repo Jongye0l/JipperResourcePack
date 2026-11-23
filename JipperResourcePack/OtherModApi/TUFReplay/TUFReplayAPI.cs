@@ -115,7 +115,7 @@ public static partial class TUFReplayAPI {
             if(version < 2) return true;
 
             MethodInfo isRecording = type.GetProperty("IsRecording", BindingFlags.Public | BindingFlags.Static)?.GetGetMethod();
-            if(isRecording?.ReturnType == typeof(bool)) _isRecording = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRecording);
+            if((object) isRecording != null) _isRecording = (Func<bool>) Delegate.CreateDelegate(typeof(Func<bool>), isRecording);
             else Main.Instance.Warning($"TUFReplay ReplayApi version {version} is missing IsRecording, so no events are added.");
 
             MethodInfo getEventStore = type.GetMethod("GetEventStore", BindingFlags.Public | BindingFlags.Static);
