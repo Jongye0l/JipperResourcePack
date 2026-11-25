@@ -16,7 +16,7 @@ public static partial class TUFReplayAPI {
 
         public void OnReplayState(RunState state, long ticks) {
             Recorded = state;
-            KeyViewer.Instance.SetReplayCounts(state);
+            KeyViewer.Instance.ApplyReplayState(state);
         }
 
         public void OnReplayEvent(KeyStyleChange e, long _) => KeyViewer.Instance.OnKeyStyleChange(e);

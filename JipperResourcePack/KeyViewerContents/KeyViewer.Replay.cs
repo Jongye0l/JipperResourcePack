@@ -13,15 +13,17 @@ public partial class KeyViewer {
     public void SetReplayInput(bool replay) {
         if(replay) {
             if(_listening) StopEventListener();
-            RunState state = TUFReplayAPI.Recorded;
-            SetReplayKey(state);
-            _replayCounts = new KeyCountData();
-            SetReplayCounts(state);
-            _currentKeyViewerStyle = (KeyviewerStyle) state.KeyStyle;
-            _currentFootKeyViewerStyle = (FootKeyviewerStyle) state.FootKeyStyle;
-            ResetRain();
-            ResetKeyViewer();
-            ResetFootKeyViewer();
+            // ReplayApi 2 hands over the run's start value after OnReplayBegin, and a run can
+            // have none. Until it comes the replay shows the player's keys and counts on from
+            // a copy of the player's counts.
+            KeyCountData counts = new();
+            KeyCountData player = KeyCountData.Instance;
+            if(player != null) {
+                Array.Copy(player.Count, counts.Count, counts.Count.Length);
+                counts.TotalCount = player.TotalCount;
+            }
+            _replayCounts = counts;
+            ApplyReplayState(TUFReplayAPI.Recorded);
             return;
         }
         if(_replayCounts == null) return;
@@ -32,11 +34,29 @@ public partial class KeyViewer {
         _replayCounts = null;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
         _currentFootKeyViewerStyle = Settings.FootKeyViewerStyle;
+        _eventOffsetTicks = NoEventOffset;
+        if(!KeyViewerObject) return;
         ResetRain();
         ResetKeyViewer();
         ResetFootKeyViewer();
-        _eventOffsetTicks = NoEventOffset;
         if(Enabled && !_listening) StartEventListener();
+    }
+
+    // Shows the run's keys, styles and counts from its start value. A null value keeps the
+    // player's keys, as a run TUFReplay saved no value for showed them.
+    public void ApplyReplayState(RunState recorded) {
+        if(_replayCounts == null) return;
+        if(recorded != null) {
+            SetReplayKey(recorded);
+            SetReplayCounts(recorded);
+            _currentKeyViewerStyle = (KeyviewerStyle) recorded.KeyStyle;
+            _currentFootKeyViewerStyle = (FootKeyviewerStyle) recorded.FootKeyStyle;
+        }
+        // A disabled key viewer has no keys to rebuild; OnEnable applies the value again.
+        if(!KeyViewerObject) return;
+        ResetRain();
+        ResetKeyViewer();
+        ResetFootKeyViewer();
     }
 
     private void SetReplayKey(RunState recorded) {
