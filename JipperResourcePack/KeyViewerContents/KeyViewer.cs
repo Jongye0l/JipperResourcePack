@@ -10,6 +10,8 @@ using JALib.Tools;
 using JipperResourcePack.Async;
 using JipperResourcePack.KeyViewerContents.KeyMapper;
 using JipperResourcePack.KeyViewerContents.OtherModApi;
+using JipperResourcePack.OtherModApi.TUFReplay;
+using JipperResourcePack.OtherModApi.TUFReplay.DTO;
 using JipperResourcePack.SettingTool;
 using SkyHook;
 using TMPro;
@@ -56,6 +58,7 @@ public partial class KeyViewer : Feature {
     private bool _textChangeExpanded;
     private bool[] _colorExpanded;
     private KeyviewerStyle _currentKeyViewerStyle;
+    private FootKeyviewerStyle _currentFootKeyViewerStyle;
     private bool _confirmResetCount;
 
     private int _selectedKey = -1;
@@ -70,6 +73,7 @@ public partial class KeyViewer : Feature {
     public KeyViewer() : base(Main.Instance, nameof(KeyViewer), settingType: typeof(KeyViewerSetting)) {
         Instance = this;
         _currentKeyViewerStyle = Settings.KeyViewerStyle;
+        _currentFootKeyViewerStyle = Settings.FootKeyViewerStyle;
 
         if(VersionControl.releaseNumber >= 145) Patcher.AddPatch(UpdateSetting).AddPatch(GetDescriptionText).AddPatch(StartEditingKeys)
                                                        .AddPatch(KeyLimitPatch).AddPatch(AsyncKeyLimitPatch);
@@ -108,12 +112,14 @@ public partial class KeyViewer : Feature {
         _eventOffsetTicks = NoEventOffset;
         RebuildKeyBinding();
         StartEventListener();
+        if(TUFReplayAPI.ReplayActive) SetReplayInput(true);
         UpdateKeyLimit();
     }
 
     protected override void OnDisable() {
         if(!KeyViewerObject) return;
-        StopEventListener();
+        if(_replayCounts != null) SetReplayInput(false);
+        if(_listening) StopEventListener();
         AsyncInputHook.Release();
         Object.Destroy(KeyViewerObject);
         KeyViewerObject = null;
@@ -148,7 +154,7 @@ public partial class KeyViewer : Feature {
         settingGUI.AddSettingSliderFloat(ref settings.rainHeight, 200, ref _rainHeightString, localization["keyViewer.rainHeight"], 1, 1000);
         settingGUI.AddSettingToggle(ref settings.AutoSetupKeyLimit, localization["keyViewer.autoSetupKeyLimit"], UpdateKeyLimit);
         settingGUI.AddSettingEnum(ref settings.KeyViewerStyle, localization["keyViewer.style"], [KeyviewerStyle.Key4, KeyviewerStyle.Key8, KeyviewerStyle.Key10, KeyviewerStyle.Key12, KeyviewerStyle.Key16, KeyviewerStyle.Key20], ChangeKeyViewer);
-        settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ResetFootKeyViewer);
+        settingGUI.AddSettingEnum(ref settings.FootKeyViewerStyle, localization["keyViewer.style"], ChangeFootKeyViewer);
         if(settings.KeyViewerStyle == KeyviewerStyle.Key8)
             settingGUI.AddSettingToggle(ref settings.ShowTotalKpsKey8, localization["keyViewer.showTotalKps"], ResetKeyViewer);
         if(settings.KeyViewerStyle == KeyviewerStyle.Key16)
@@ -268,6 +274,7 @@ public partial class KeyViewer : Feature {
                     Keys[_selectedKey].Text.SetTextForce(textArea);
                     if(textArea == KeyToString(keyCodes[_selectedKey])) textArea = null;
                     keyTexts[_selectedKey] = textArea;
+                    if(TUFReplayAPI.IsRecording()) TUFReplayAPI.AddEvent(new KeyNameChange(_selectedKey, textArea));
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
@@ -275,6 +282,7 @@ public partial class KeyViewer : Feature {
                 if(GUILayout.Button(localization["keyViewer.textReset"])) {
                     keyTexts[_selectedKey] = null;
                     _selectedKey = -1;
+                    if(TUFReplayAPI.IsRecording()) TUFReplayAPI.AddEvent(new KeyNameChange(_selectedKey, null));
                     Main.Instance.SaveSetting();
                 }
                 if(GUILayout.Button(localization["keyViewer.textSave"])) {
@@ -338,11 +346,12 @@ public partial class KeyViewer : Feature {
             GUILayout.Label("<color=red>" + localization["keyViewer.resetCountConfirmText"] + "</color>");
             if(GUILayout.Button(localization["keyViewer.resetCountConfirm"])) {
                 _confirmResetCount = false;
-                if(Total != null) Total.Value.TMP.text = "0";
+                Total?.Value.TMP.text = "0";
                 foreach(Key key in Keys) key?.Value.SetTextForce("0");
-                for(int i = 0; i < KeyCountData.Instance.Count.Length; i++) KeyCountData.Instance.Count[i] = 0;
+                Array.Clear(KeyCountData.Instance.Count, 0, FootOutIndex);
                 KeyCountData.Instance.TotalCount = 0;
                 Main.Instance.SaveSetting();
+                if(TUFReplayAPI.IsRecording()) TUFReplayAPI.AddEvent(new KeyCountReset());
             }
             if(GUILayout.Button(localization["keyViewer.resetCountCancel"])) _confirmResetCount = false;
         }
@@ -387,13 +396,15 @@ public partial class KeyViewer : Feature {
                 RebuildKeyBinding();
             }
 
+            if(TUFReplayAPI.IsRecording()) TUFReplayAPI.AddEvent(new KeyChange(_selectedKey, keyCode));
+
             _selectedKey = -1;
             _capturedKeyCode = 0;
             Main.Instance.SaveSetting();
         }
     }
 
-    private static KeyCode[] GetKeyCode() {
+    public static KeyCode[] GetKeyCode() {
         return Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key4 => Settings.key4,
             KeyviewerStyle.Key8 => Settings.key8,
@@ -405,7 +416,7 @@ public partial class KeyViewer : Feature {
         };
     }
 
-    private static KeyCode[] GetGhostKeyCode() {
+    public static KeyCode[] GetGhostKeyCode() {
         return Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key4 => Settings.GhostKey4,
             KeyviewerStyle.Key8 => Settings.GhostKey8,
@@ -417,7 +428,7 @@ public partial class KeyViewer : Feature {
         };
     }
 
-    private static KeyCode[] GetFootKeyCode() {
+    public static KeyCode[] GetFootKeyCode() {
         return Settings.FootKeyViewerStyle switch {
             FootKeyviewerStyle.Key2 => Settings.footkey2,
             FootKeyviewerStyle.Key4 => Settings.footkey4,
@@ -428,7 +439,7 @@ public partial class KeyViewer : Feature {
         };
     }
 
-    private static string[] GetKeyText() {
+    public static string[] GetKeyText() {
         return Settings.KeyViewerStyle switch {
             KeyviewerStyle.Key4 => Settings.key4Text,
             KeyviewerStyle.Key8 => Settings.key8Text,
@@ -447,6 +458,29 @@ public partial class KeyViewer : Feature {
             KeyviewerStyle.Key16 => BackSequence16,
             KeyviewerStyle.Key20 => BackSequence20,
             KeyviewerStyle.Key10 => BackSequence10,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    public static int GetKeyCount(KeyviewerStyle style) {
+        return style switch {
+            KeyviewerStyle.Key4 => 4,
+            KeyviewerStyle.Key8 => 8,
+            KeyviewerStyle.Key12 => 12,
+            KeyviewerStyle.Key16 => 16,
+            KeyviewerStyle.Key20 => 20,
+            KeyviewerStyle.Key10 => 10,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    public static int GetKeyCount(FootKeyviewerStyle style) {
+        return style switch {
+            FootKeyviewerStyle.Key2 => 2,
+            FootKeyviewerStyle.Key4 => 4,
+            FootKeyviewerStyle.Key6 => 6,
+            FootKeyviewerStyle.Key8 => 8,
+            FootKeyviewerStyle.Key16 => 16,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -669,6 +703,10 @@ public partial class KeyViewer : Feature {
     private static void CheckResetRain() {
         RainManager.enabled = Settings.useRain;
         if(Settings.useRain) return;
+        ResetRain();
+    }
+
+    private static void ResetRain() {
         while(RainManager.RawRainQueue.TryDequeue(out RawRain rawRain)) RawRain.AddPool(rawRain);
         while(RainManager.RainList.Count > 0) {
             int index = RainManager.RainList.Count - 1;
@@ -677,6 +715,11 @@ public partial class KeyViewer : Feature {
             RawRain.AddPool(rain.RawRain);
             rain.RawRain = null;
             rain.Pool.AddPool(rain, rain.IsGhost);
+        }
+        foreach(Key key in Instance.Keys) {
+            if(key == null) continue;
+            key.LastRain = null;
+            key.LastGhostRain = null;
         }
     }
 
@@ -726,6 +769,22 @@ public partial class KeyViewer : Feature {
         }
         _currentKeyViewerStyle = settings.KeyViewerStyle;
         ResetKeyViewer();
+        if(!TUFReplayAPI.IsRecording()) return;
+        int keySize = GetKeyCount(_currentKeyViewerStyle);
+        int[] keys = new int[keySize * 2];
+        Array.Copy(GetKeyCode(), 0, keys, 0, keySize);
+        Array.Copy(GetGhostKeyCode(), 0, keys, keySize, keySize);
+        TUFReplayAPI.AddEvent(new KeyStyleChange(_currentKeyViewerStyle, keys, GetKeyText().Clone().AsUnsafe<string[]>()));
+    }
+
+    private void ChangeFootKeyViewer() {
+        _currentFootKeyViewerStyle = Settings.FootKeyViewerStyle;
+        ResetFootKeyViewer();
+        if(!TUFReplayAPI.IsRecording()) return;
+        int keySize = GetKeyCount(_currentFootKeyViewerStyle);
+        int[] keys = new int[keySize];
+        Array.Copy(GetFootKeyCode(), 0, keys, 0, keySize);
+        TUFReplayAPI.AddEvent(new KeyStyleChange(_currentFootKeyViewerStyle, keys));
     }
 
     public void ResetKeyViewer() {
@@ -745,14 +804,15 @@ public partial class KeyViewer : Feature {
         _lastYLocation = Settings.YLocation;
         _lastKpsCount = 0;
         _lastTotalCount = KeyCountData.Instance.TotalCount;
-        _currentKeyMaxY = Settings.KeyViewerStyle switch {
+        KeyviewerStyle targetStyle = _currentKeyViewerStyle;
+        _currentKeyMaxY = targetStyle switch {
             KeyviewerStyle.Key4 => 1030,
             KeyviewerStyle.Key8 => Settings.ShowTotalKpsKey8 ? 994 : 1030,
             KeyviewerStyle.Key10 or KeyviewerStyle.Key12 => 976,
             KeyviewerStyle.Key20 => 922,
             _ => Settings.ShowTotalKpsKey16 ? 940 : 970
         };
-        switch(Settings.KeyViewerStyle) {
+        switch(targetStyle) {
             case KeyviewerStyle.Key4:
                 Initialize4KeyViewer();
                 break;
@@ -816,9 +876,10 @@ public partial class KeyViewer : Feature {
     }
 
     private void InitializeFootKeyViewer() {
-        if(Settings.FootKeyViewerStyle is < FootKeyviewerStyle.Key2 or > FootKeyviewerStyle.Key16) return;
+        FootKeyviewerStyle targetStyle = _currentFootKeyViewerStyle;
+        if(targetStyle is < FootKeyviewerStyle.Key2 or > FootKeyviewerStyle.Key16) return;
         
-        InitializeFootKeyViewer(Settings.FootKeyViewerStyle switch {
+        InitializeFootKeyViewer(targetStyle switch {
             FootKeyviewerStyle.Key2 => 2,
             FootKeyviewerStyle.Key4 => 4,
             FootKeyviewerStyle.Key6 => 6,
@@ -1044,25 +1105,26 @@ public partial class KeyViewer : Feature {
         return key;
     }
 
-    private static void UpdateKeyText(Key key, int i) {
+    private void UpdateKeyText(Key key, int i) {
         switch(i) {
             case -1:
                 key.Text.SetTextForce("KPS");
                 key.Value.SetTextForce("0");
+                _lastKpsCount = 0;
                 return;
             case -2:
                 key.Text.SetTextForce("Total");
-                key.Value.SetTextForce(KeyCountData.Instance.TotalCount.ToString());
+                key.Value.SetTextForce((_lastTotalCount = (_replayCounts ?? KeyCountData.Instance).TotalCount).ToString());
                 return;
             default:
                 KeyCode[] keyCodes;
                 KeyViewerSetting settings = Settings;
                 if(i < HandOutIndex) {
-                    keyCodes = GetKeyCode();
-                    string[] keyText = GetKeyText();
+                    keyCodes = _replayKey ?? GetKeyCode();
+                    string[] keyText = _replayKeyText ?? GetKeyText();
                     key.Text.SetTextForce(keyText[i] ?? KeyToString(keyCodes[i]));
                     if(i == 9 && settings.KeyViewerStyle == KeyviewerStyle.Key10) i = 10;
-                    key.Value.SetTextForce(KeyCountData.Instance.Count[i].ToString());
+                    key.Value.SetTextForce((_replayCounts ?? KeyCountData.Instance).Count[i].ToString());
                 } else {
                     keyCodes = GetFootKeyCode();
                     key.Text.SetTextForce(KeyToString(keyCodes[i - HandOutIndex]));
@@ -1119,7 +1181,8 @@ public partial class KeyViewer : Feature {
     #endregion
 
     private static void UpdateKeyLimit() {
-        Instance?.RebuildKeyBinding();
+        if(Instance._replayKey != null) return;
+        Instance.RebuildKeyBinding();
         if(ADOBase.platform == Platform.Linux && !SkyHookManager.Instance.isHookActive && VersionControl.releaseNumber < 150) {
             RetryAsyncKeyLimit();
             return;

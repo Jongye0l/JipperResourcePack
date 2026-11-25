@@ -9,6 +9,7 @@ using System.Threading;
 using HarmonyLib;
 using JALib.Core.Patch;
 using JipperResourcePack.KeyViewerContents.KeyMapper;
+using JipperResourcePack.OtherModApi.TUFReplay;
 using SkyHook;
 using UnityEngine;
 using EventType = SkyHook.EventType;
@@ -21,7 +22,9 @@ public partial class KeyViewer {
 
     public static ulong CurrentTicks {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (ulong) (StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks);
+        get => TUFReplayAPI.TryGetReplayTicks(out long replayTicks)
+            ? (ulong) Math.Max(0, replayTicks)
+            : (ulong) (StopwatchTicksAreDateTimeTicks ? Stopwatch.ElapsedTicks : Stopwatch.Elapsed.Ticks);
     }
 
     private readonly bool[] _keyState = new bool[GhostOutIndex];
@@ -29,6 +32,12 @@ public partial class KeyViewer {
     private ConcurrentQueue<KeyEvent> _eventQueue;
     private SemaphoreSlim _eventSignal;
     private volatile bool _listening;
+    private Thread _eventThread;
+    private KeyCountData _replayCounts;
+    private KeyCode[] _replayKey;
+    private KeyCode[] _replayFootKey;
+    private KeyCode[] _replayGhostKey;
+    private string[] _replayKeyText;
     private FrozenDictionary<int, int[]> _keyBinding;
     private long _eventOffsetTicks = NoEventOffset;
     private volatile int _capturedKeyCode;
@@ -37,12 +46,12 @@ public partial class KeyViewer {
     private static HashSet<KeyCode> _unityKeyLimitKeys = [];
     private static HashSet<ushort> _asyncKeyLimitKeys = [];
 
+    // While a replay shows a run's own keys, its input is matched against those keys, not the player's.
     private void RebuildKeyBinding() {
-        if(Keys == null) return;
         Dictionary<int, List<int>> indexMap = new();
-        AddKeyCodes(indexMap, GetKeyCode(), 0);
-        AddKeyCodes(indexMap, GetFootKeyCode(), HandOutIndex);
-        AddKeyCodes(indexMap, GetGhostKeyCode(), FootOutIndex);
+        AddKeyCodes(indexMap, _replayKey ?? GetKeyCode(), 0);
+        AddKeyCodes(indexMap, _replayFootKey ?? GetFootKeyCode(), HandOutIndex);
+        AddKeyCodes(indexMap, _replayGhostKey ?? GetGhostKeyCode(), FootOutIndex);
 
         Dictionary<int, int[]> keyBinding = new(indexMap.Count);
         foreach(KeyValuePair<int, List<int>> pair in indexMap) keyBinding[pair.Key] = pair.Value.ToArray();
@@ -93,10 +102,11 @@ public partial class KeyViewer {
         _eventQueue = new ConcurrentQueue<KeyEvent>();
         _eventSignal = new SemaphoreSlim(0);
         _listening = true;
-        new Thread(ProcessKeyEvents) {
+        _eventThread = new Thread(ProcessKeyEvents) {
             Name = "JipperResourcePack KeyViewer Input Thread",
             IsBackground = true
-        }.Start();
+        };
+        _eventThread.Start();
         SkyHookManager.KeyUpdated.AddListener(OnKeyEvent);
     }
 
@@ -104,6 +114,8 @@ public partial class KeyViewer {
         SkyHookManager.KeyUpdated.RemoveListener(OnKeyEvent);
         _listening = false;
         _eventSignal?.Release();
+        _eventThread?.Join();
+        _eventThread = null;
         _eventQueue = null;
         _eventSignal = null;
     }
@@ -164,7 +176,7 @@ public partial class KeyViewer {
 
     private bool Work(int[] indexes, bool pressed, ulong currentTicks) {
         KeyViewerSetting settings = Settings;
-        KeyCountData countData = KeyCountData.Instance;
+        KeyCountData countData = _replayCounts ?? KeyCountData.Instance;
         bool counted = false;
         foreach(int index in indexes) {
             if(index >= FootOutIndex) {
@@ -230,7 +242,7 @@ public partial class KeyViewer {
                 }
             }
             if(instance.Total == null) return;
-            int totalCount = KeyCountData.Instance.TotalCount;
+            int totalCount = (instance._replayCounts ?? KeyCountData.Instance).TotalCount;
             if(totalCount == instance._lastTotalCount) return;
             instance._lastTotalCount = totalCount;
             instance.Total.Value.TMP.text = totalCount.ToString();
