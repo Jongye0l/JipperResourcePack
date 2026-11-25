@@ -51,6 +51,7 @@ public partial class KeyViewer {
             SetReplayCounts(recorded);
             _currentKeyViewerStyle = (KeyviewerStyle) recorded.KeyStyle;
             _currentFootKeyViewerStyle = (FootKeyviewerStyle) recorded.FootKeyStyle;
+            RebuildKeyBinding();
         }
         // A disabled key viewer has no keys to rebuild; OnEnable applies the value again.
         if(!KeyViewerObject) return;
@@ -107,6 +108,7 @@ public partial class KeyViewer {
             Array.Copy(e.KeyCode, 0, _replayKey, 0, size);
             Array.Copy(e.KeyCode, size, _replayGhostKey, 0, size);
         }
+        RebuildKeyBinding();
     }
 
     public void OnKeyChange(KeyChange e) {
@@ -121,6 +123,7 @@ public partial class KeyViewer {
                 _replayGhostKey[e.Index - FootOutIndex] = (KeyCode) e.KeyCode;
                 break;
         }
+        RebuildKeyBinding();
         if(e.Index < HandOutIndex && _replayKeyText[e.Index] != null) return;
         Keys[e.Index].Text.SetTextForce(KeyToString((KeyCode) e.KeyCode));
     }

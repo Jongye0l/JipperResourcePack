@@ -46,11 +46,12 @@ public partial class KeyViewer {
     private static HashSet<KeyCode> _unityKeyLimitKeys = [];
     private static HashSet<ushort> _asyncKeyLimitKeys = [];
 
+    // While a replay shows a run's own keys, its input is matched against those keys, not the player's.
     private void RebuildKeyBinding() {
         Dictionary<int, List<int>> indexMap = new();
-        AddKeyCodes(indexMap, GetKeyCode(), 0);
-        AddKeyCodes(indexMap, GetFootKeyCode(), HandOutIndex);
-        AddKeyCodes(indexMap, GetGhostKeyCode(), FootOutIndex);
+        AddKeyCodes(indexMap, _replayKey ?? GetKeyCode(), 0);
+        AddKeyCodes(indexMap, _replayFootKey ?? GetFootKeyCode(), HandOutIndex);
+        AddKeyCodes(indexMap, _replayGhostKey ?? GetGhostKeyCode(), FootOutIndex);
 
         Dictionary<int, int[]> keyBinding = new(indexMap.Count);
         foreach(KeyValuePair<int, List<int>> pair in indexMap) keyBinding[pair.Key] = pair.Value.ToArray();
